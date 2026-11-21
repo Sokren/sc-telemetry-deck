@@ -178,7 +178,8 @@ export function shipStatusOf(vehicle: Obj | undefined, actor: Obj | undefined, l
 	};
 	const instruments: Instrument[] = [
 		gauge("shields", shields ? num(shields.level) : undefined),
-		gauge("hull", num(state.health)),
+		// Absente sur les versions du jeu qui ne l'envoient pas → « — » plutôt qu'un faux 0 % rouge.
+		gauge("hull", typeof state.health === "number" ? num(state.health) : undefined),
 		countermeasure("decoys"),
 		countermeasure("noise"),
 		weapon("weapons_ready"),

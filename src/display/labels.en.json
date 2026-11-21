@@ -30,6 +30,8 @@
 		"radar_altitude": { "short": "Radar alt.", "long": "Radar altitude" },
 		"g_force": { "short": "G", "long": "G-force" },
 		"boost": { "short": "Boost", "long": "Boost reserve" },
-		"hydrogen": { "short": "Hydrogen", "long": "Hydrogen" }
+		"hydrogen": { "short": "Hydrogen", "long": "Hydrogen" },
+		"shields": { "short": "Shields", "long": "Shields" },
+		"hull": { "short": "Hull", "long": "Hull" }
 	}
 }

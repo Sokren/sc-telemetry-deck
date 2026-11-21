@@ -16,6 +16,8 @@ export const SHIP_DISPLAY_VALUES = [
 	"weapon_group",
 	"gimbals",
 	"ship",
+	"shields",
+	"hull",
 	"speed",
 	"vertical_speed",
 	"radar_altitude",
@@ -69,13 +71,13 @@ function shipName(name: string): { text: string; size: number } {
 	return { text: `${[...name].slice(0, 11).join("").trimEnd()}…`, size: 20 };
 }
 
-type FlightId = "ship" | "speed" | "vertical_speed" | "radar_altitude" | "g_force" | "boost" | "hydrogen";
+type FlightId = "ship" | "shields" | "hull" | "speed" | "vertical_speed" | "radar_altitude" | "g_force" | "boost" | "hydrogen";
 
 /** Valeurs de vol et identité du vaisseau (section `vehicle`). */
 function flightView(id: FlightId, s: ShipSections, lang: Lang): DisplayView {
 	const table = TABLES[lang];
 	const { short, long } = table.values[id];
-	const gauge = id === "boost" || id === "hydrogen";
+	const gauge = id === "boost" || id === "hydrogen" || id === "shields" || id === "hull";
 	const none: DisplayView = gauge ? { short, long, text: "—", unit: "", bar: 0, color: COLORS.none } : { short, long, text: "—", unit: "", color: COLORS.none };
 	const f = readFlight(s);
 	if (!f.available) return none;
@@ -103,6 +105,17 @@ function flightView(id: FlightId, s: ShipSections, lang: Lang): DisplayView {
 			const color = COLORS[f.boost.critical ? "bad" : level(percent)];
 			return { short: f.boost.engaged ? `${short} ▲` : short, long, text: String(Math.round(percent)), unit: "%", bar: percent, color };
 		}
+		case "shields":
+		case "hull": {
+			// Boucliers : message optionnel (absent → « — », niveau absent → 0, ex. vidés en NAV).
+			// Coque : absente sur les versions du jeu qui ne l'envoient pas → « — ».
+			const st = s.vehicle?.state as Record<string, unknown> | undefined;
+			const shields = st?.shields && typeof st.shields === "object" ? (st.shields as Record<string, unknown>) : undefined;
+			const raw = id === "shields" ? (shields ? (typeof shields.level === "number" ? shields.level : 0) : undefined) : st?.health;
+			if (typeof raw !== "number" || !Number.isFinite(raw)) return none;
+			const percent = Math.min(100, Math.max(0, raw * 100));
+			return { short, long, text: String(Math.round(percent)), unit: "%", bar: percent, color: COLORS[level(percent)] };
+		}
 		case "hydrogen": {
 			if (f.hydrogen === undefined) return none;
 			const percent = Math.min(100, Math.max(0, f.hydrogen * 100));
@@ -113,7 +126,17 @@ function flightView(id: FlightId, s: ShipSections, lang: Lang): DisplayView {
 
 /** Ce qu'affichent une touche ou une molette « Ship Display » (même forme que « Actor Display »). */
 export function shipView(id: ShipDisplayValueId, s: ShipSections, tracker: CountermeasureTracker, lang: Lang): DisplayView {
-	if (id === "ship" || id === "speed" || id === "vertical_speed" || id === "radar_altitude" || id === "g_force" || id === "boost" || id === "hydrogen") {
+	if (
+		id === "ship" ||
+		id === "shields" ||
+		id === "hull" ||
+		id === "speed" ||
+		id === "vertical_speed" ||
+		id === "radar_altitude" ||
+		id === "g_force" ||
+		id === "boost" ||
+		id === "hydrogen"
+	) {
 		return flightView(id, s, lang);
 	}
 	const labels = TABLES[lang].values;

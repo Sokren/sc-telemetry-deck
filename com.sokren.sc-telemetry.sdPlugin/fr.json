@@ -20,7 +20,7 @@
 	},
 	"com.sokren.sc-telemetry.ship-display": {
 		"Name": "Ship Display",
-		"Tooltip": "Affiche une donnée du vaisseau : contre-mesures, armes, vaisseau, vitesse, vitesse verticale, altitude radar, G, boost, hydrogène.",
+		"Tooltip": "Affiche une donnée du vaisseau : contre-mesures, armes, vaisseau, boucliers, coque, vitesse, vitesse verticale, altitude radar, G, boost, hydrogène.",
 		"Encoder": {
 			"TriggerDescription": {
 				"Rotate": "Changer de donnée"

@@ -18,7 +18,7 @@ const cm = (decoy?: number, noise?: number) => ({
 
 describe("shipView", () => {
 	test("liste des valeurs : contre-mesures, leurres, brouilleurs", () => {
-		expect(SHIP_DISPLAY_VALUES).toEqual(["countermeasures", "decoys", "noise", "weapons", "weapon_group", "gimbals", "ship", "speed", "vertical_speed", "radar_altitude", "g_force", "boost", "hydrogen"]);
+		expect(SHIP_DISPLAY_VALUES).toEqual(["countermeasures", "decoys", "noise", "weapons", "weapon_group", "gimbals", "ship", "shields", "hull", "speed", "vertical_speed", "radar_altitude", "g_force", "boost", "hydrogen"]);
 		expect(isShipDisplayValueId("decoys")).toBe(true);
 		expect(isShipDisplayValueId("oxygen")).toBe(false);
 	});
@@ -167,6 +167,26 @@ describe("shipView", () => {
 			expect(shipView("ship", s("RSI_Constellation_Andromeda"), t, "fr")).toMatchObject({ text: "Constellati…", size: 20 });
 			expect(shipView("ship", s("DRAK_Vulture"), t, "fr").size).toBe(30);
 			expect(shipView("ship", s("CRUS_Starfighter"), t, "fr").size).toBeLessThanOrEqual(24);
+		});
+	});
+
+	describe("boucliers et coque (captures : Lightning F8C en NAV, Arrow après un choc)", () => {
+		const t = new CountermeasureTracker();
+		const ship = (state: Record<string, unknown>) => ({ vehicle: { state: { class_name: "ANVL_Lightning_F8C", ...state } }, actor: SEATED });
+		test("boucliers : % avec jauge ; vidés en NAV → 0, rouge", () => {
+			expect(shipView("shields", ship({ shields: { level: 0.64056736, faces: [0.64056736] } }), t, "fr")).toMatchObject({ short: "Boucliers", text: "64", unit: "%", bar: expect.closeTo(64.06, 1), color: COLORS.ok });
+			expect(shipView("shields", ship({ shields: { faces: [0] } }), t, "en")).toMatchObject({ short: "Shields", text: "0", bar: 0, color: COLORS.bad });
+			expect(shipView("shields", ship({}), t, "fr")).toMatchObject({ text: "—", bar: 0, color: COLORS.none });
+		});
+		test("coque : % avec jauge ; champ absent (ancienne version du jeu) → « — »", () => {
+			expect(shipView("hull", ship({ health: 0.44407666 }), t, "fr")).toMatchObject({ short: "Coque", text: "44", color: COLORS.warn });
+			expect(shipView("hull", ship({ health: 0.20146948 }), t, "en")).toMatchObject({ short: "Hull", text: "20", color: COLORS.bad });
+			expect(shipView("hull", ship({}), t, "fr")).toMatchObject({ text: "—", bar: 0 });
+		});
+		test("à pied → « — »", () => {
+			const onFoot = { vehicle: ship({ health: 1, shields: { level: 1 } }).vehicle, actor: { state: { locomotion: "ACTOR_LOCOMOTION_STATE_ON_FOOT" } } };
+			expect(shipView("shields", onFoot, t, "fr").text).toBe("—");
+			expect(shipView("hull", onFoot, t, "fr").text).toBe("—");
 		});
 	});
 });

@@ -205,4 +205,9 @@ describe("shipStatusOf", () => {
 		expect(by.hydrogen).toMatchObject({ text: "—", level: "none" });
 		expect(by.boost).toMatchObject({ text: "90", level: "bad" });
 	});
+
+	test("coque absente (ancienne version du jeu) → « — » plutôt que 0 % rouge", () => {
+		const s = shipStatusOf(withVehicle((st) => delete st.health), titan.actor, "fr");
+		expect(s.instruments.find((i) => i.id === "hull")).toMatchObject({ text: "—", level: "none" });
+	});
 });
