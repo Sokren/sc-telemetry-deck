@@ -13,7 +13,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 
 ### Ajouté
 - **Ship Display** : **vaisseau** (constructeur, modèle, en vol / posé), **boucliers** et **coque** (les boucliers se vident en mode NAV), **vitesse**, **vitesse verticale** (signée), **altitude radar**, **G subis** et **réserve de boost** (« Boost ▲ » quand il est engagé, rouge si critique), **hydrogène** — vérifié en vol sur l'Arrow et le Lightning F8C.
-- Appli web : encart **Mon vaisseau** (modèle, constructeur, état, mode, rôle, boost, instruments principaux) en tête de l'onglet *Vaisseau* et dans le menu *Ajouter* des vues ; instruments **Vitesse verticale**, **Accélération (G)** et **Boost** ; modèle du vaisseau dans l'API (`shipStatus.model`, `boostEngaged`) ; contrat d'API **1.3.0** (ajouts seulement, couvre aussi les instruments ajoutés en 0.3.5–0.3.6).
+- Appli web : encart **Mon vaisseau** (modèle, constructeur, état, mode, rôle, siège lisible — ex. « Copilote » — avec le nom technique du siège en info, boost, instruments principaux) en tête de l'onglet *Vaisseau* et dans le menu *Ajouter* des vues ; instruments **Vitesse verticale**, **Accélération (G)** et **Boost** ; modèle du vaisseau dans l'API (`shipStatus.model`, `boostEngaged`) ; contrat d'API **1.3.0** (ajouts seulement, couvre aussi les instruments ajoutés en 0.3.5–0.3.6).
 
 ### Corrigé
 - Appli web : l'altitude radar affichait la valeur « hors de portée » du jeu (3,4e38) au lieu de « — ».

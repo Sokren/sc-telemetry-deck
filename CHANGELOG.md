@@ -13,7 +13,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-streamd
 
 ### Added
 - **Ship Display**: **ship** (manufacturer, model, flying / landed), **shields** and **hull** (shields drain in NAV mode), **speed**, **vertical speed** (signed), **radar altitude**, **G-force** and **boost reserve** ("Boost ▲" while engaged, red when critical), **hydrogen** — checked in flight on the Arrow and the Lightning F8C.
-- Web app: **My ship** card (model, manufacturer, state, mode, role, boost, key instruments) at the top of the *Ship* tab and in the views' *Add* menu; **Vertical speed**, **G-force** and **Boost** instruments; ship model in the API (`shipStatus.model`, `boostEngaged`); API contract **1.3.0** (additive, also covers the 0.3.5–0.3.6 instrument additions).
+- Web app: **My ship** card (model, manufacturer, state, mode, role, readable seat — e.g. "Co-pilot" — with the technical seat name as info, boost, key instruments) at the top of the *Ship* tab and in the views' *Add* menu; **Vertical speed**, **G-force** and **Boost** instruments; ship model in the API (`shipStatus.model`, `boostEngaged`); API contract **1.3.0** (additive, also covers the 0.3.5–0.3.6 instrument additions).
 
 ### Fixed
 - Web app: radar altitude showed the game's "out of range" value (3.4e38) instead of "—".

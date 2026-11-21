@@ -210,4 +210,10 @@ describe("shipStatusOf", () => {
 		const s = shipStatusOf(withVehicle((st) => delete st.health), titan.actor, "fr");
 		expect(s.instruments.find((i) => i.id === "hull")).toMatchObject({ text: "—", level: "none" });
 	});
+
+	test("siège lisible (Hermes, copilote) ; nom technique gardé", () => {
+		const c = characterOf({ state: { locomotion: "ACTOR_LOCOMOTION_STATE_SEATED", crew_role: "ACTOR_CREW_ROLE_CREW", seat_name: "RSI_Hermes_SeatDashboard_CoPilot_877605416445" } }, "fr");
+		expect(c).toMatchObject({ seat: "RSI_Hermes_SeatDashboard_CoPilot_877605416445", seatLabel: "Copilote", crewRoleLabel: "Équipage" });
+		expect(characterOf({ state: { locomotion: "ACTOR_LOCOMOTION_STATE_ON_FOOT" } }, "en").seatLabel).toBeNull();
+	});
 });

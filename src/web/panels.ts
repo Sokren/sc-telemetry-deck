@@ -1,6 +1,7 @@
 import type { Lang } from "../catalog/labels.js";
 import type { CountermeasureTracker } from "../display/countermeasures.js";
 import { shipModel, validAltitude, type ShipModel } from "../display/flight.js";
+import { seatLabel } from "../display/seat.js";
 import { gimbalsWord, groupText } from "../display/ship-values.js";
 import { DISPLAY_VALUES } from "../display/values.js";
 import { readWeapons } from "../display/weapons.js";
@@ -31,7 +32,10 @@ export type Character = {
 	locomotionLabel: string;
 	crewRole: "pilot" | "gunner" | "crew" | "none";
 	crewRoleLabel: string;
+	/** Nom technique du siège (ex. `RSI_Hermes_SeatDashboard_CoPilot_…`). */
 	seat: string | null;
+	/** Siège lisible (« Copilote ») ; à défaut le rôle ; `null` sans siège. */
+	seatLabel: string | null;
 	vitals: Vital[];
 };
 
@@ -48,6 +52,7 @@ export function characterOf(actor: Obj | undefined, lang: Lang): Character {
 		crewRole,
 		crewRoleLabel: t.crewRole[crewRole],
 		seat: typeof state.seat_name === "string" && state.seat_name ? state.seat_name : null,
+		seatLabel: seatLabel(typeof state.seat_name === "string" ? state.seat_name : null, crewRole, lang),
 		vitals: DISPLAY_VALUES.map((id) => vitalOf(id, actor, lang)),
 	};
 }

@@ -45,6 +45,8 @@ export function shipCard(state, size, t) {
 	if (s.landed !== null) pill(`● ${cap(s.landed ? t("landed") : t("flying"))}`, s.landed ? "" : "ok");
 	if (s.masterModeLabel && s.masterModeLabel !== "—") pill(s.masterModeLabel);
 	if (c?.available && c.crewRoleLabel && c.crewRoleLabel !== "—") pill(c.crewRoleLabel);
+	// Siège lisible (« Copilote ») s'il dit autre chose que le rôle.
+	if (c?.seatLabel && c.seatLabel !== c.crewRoleLabel) pill(`💺 ${c.seatLabel}`);
 	if (s.boostEngaged) pill(t("cardBoost"), "warn");
 	box.append(pills);
 
@@ -63,7 +65,12 @@ export function shipCard(state, size, t) {
 			grid.append(mini);
 		}
 		box.append(grid);
-		if (c?.seat) box.append(el("div", "sc-seat", `${t("cardSeat")} ${c.seat}`));
+		// Nom technique du siège, en petit, pour information.
+		if (c?.seat) {
+			const info = el("div", "sc-seat", `ⓘ ${c.seat}`);
+			info.title = `${t("cardSeat")} ${c.seat}`;
+			box.append(info);
+		}
 	}
 	return box;
 }

@@ -1731,6 +1731,7 @@
 					"crewRole",
 					"crewRoleLabel",
 					"seat",
+					"seatLabel",
 					"vitals"
 				],
 				"properties": {
@@ -1770,6 +1771,13 @@
 						"items": {
 							"$ref": "#/components/schemas/Vital"
 						}
+					},
+					"seatLabel": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "Readable seat (e.g. Co-pilot), else the crew role; null without a seat — FR : siège lisible (ex. Copilote), sinon le rôle ; null sans siège"
 					}
 				}
 			},
