@@ -4,6 +4,7 @@
 	"static/view.js",
 	"static/lan.js",
 	"static/autoswitch.js",
+	"static/shipcard.js",
 	"static/i18n.js",
 	"static/style.css",
 	"openapi.json",

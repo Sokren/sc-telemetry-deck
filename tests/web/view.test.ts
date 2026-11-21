@@ -63,6 +63,15 @@ describe("parseViewInput", () => {
 		expect(p.sections[1].title).toBe("Section");
 	});
 
+	test("encart vaisseau : accepté sans ref (ref ignorée), tailles 1 et 2", () => {
+		const v = input();
+		v.sections[0].items.push({ id: "card", kind: "ship_card", ref: "x", size: 2 });
+		v.sections[0].items.push({ id: "card1", kind: "ship_card", size: 1 });
+		const p = parseViewInput(v, "fr")!;
+		expect(p.sections[0].items.at(-2)).toEqual({ id: "card", kind: "ship_card", size: 2 });
+		expect(p.sections[0].items.at(-1)).toEqual({ id: "card1", kind: "ship_card", size: 1 });
+	});
+
 	test("action normale acceptée, ref ignorée pour les voyants", () => {
 		const v = input();
 		v.sections[0].items.push({ id: "e1", kind: "action", ref: "emote_wave", size: 2 });

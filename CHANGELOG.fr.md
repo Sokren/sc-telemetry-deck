@@ -9,6 +9,15 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
+## [Non publié]
+
+### Ajouté
+- **Ship Display** : **vaisseau** (constructeur, modèle, en vol / posé), **vitesse**, **vitesse verticale** (signée), **altitude radar**, **G subis** et **réserve de boost** (« Boost ▲ » quand il est engagé, rouge si critique), **hydrogène** — vérifié en vol sur l'Arrow et le Lightning F8C.
+- Appli web : encart **Mon vaisseau** (modèle, constructeur, état, mode, rôle, boost, instruments principaux) en tête de l'onglet *Vaisseau* et dans le menu *Ajouter* des vues ; instruments **Vitesse verticale**, **Accélération (G)** et **Boost** ; modèle du vaisseau dans l'API (`shipStatus.model`, `boostEngaged`).
+
+### Corrigé
+- Appli web : l'altitude radar affichait la valeur « hors de portée » du jeu (3,4e38) au lieu de « — ».
+
 ## [0.3.6] — 2026-11-21
 
 ### Ajouté

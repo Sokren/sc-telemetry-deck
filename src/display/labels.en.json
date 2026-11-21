@@ -2,6 +2,7 @@
 	"yes": "Yes",
 	"no": "No",
 	"allWeapons": "All",
+	"flight": { "flying": "Flying", "landed": "Landed" },
 	"gimbals": { "locked": "Locked", "free": "Free" },
 	"values": {
 		"health": { "short": "Health", "long": "Health" },
@@ -22,6 +23,13 @@
 		"noise": { "short": "Noise", "long": "Noise" },
 		"weapons": { "short": "Weapons", "long": "Weapons ready to fire" },
 		"weapon_group": { "short": "Group", "long": "Active weapon group" },
-		"gimbals": { "short": "Gimbals", "long": "Gimbals" }
+		"gimbals": { "short": "Gimbals", "long": "Gimbals" },
+		"ship": { "short": "Ship", "long": "Ship" },
+		"speed": { "short": "Speed", "long": "Speed" },
+		"vertical_speed": { "short": "Vert. spd", "long": "Vertical speed" },
+		"radar_altitude": { "short": "Radar alt.", "long": "Radar altitude" },
+		"g_force": { "short": "G", "long": "G-force" },
+		"boost": { "short": "Boost", "long": "Boost reserve" },
+		"hydrogen": { "short": "Hydrogen", "long": "Hydrogen" }
 	}
 }

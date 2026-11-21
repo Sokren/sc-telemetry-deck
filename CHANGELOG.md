@@ -9,6 +9,15 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-streamd
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
+## [Unreleased]
+
+### Added
+- **Ship Display**: **ship** (manufacturer, model, flying / landed), **speed**, **vertical speed** (signed), **radar altitude**, **G-force** and **boost reserve** ("Boost ▲" while engaged, red when critical), **hydrogen** — checked in flight on the Arrow and the Lightning F8C.
+- Web app: **My ship** card (model, manufacturer, state, mode, role, boost, key instruments) at the top of the *Ship* tab and in the views' *Add* menu; **Vertical speed**, **G-force** and **Boost** instruments; ship model in the API (`shipStatus.model`, `boostEngaged`).
+
+### Fixed
+- Web app: radar altitude showed the game's "out of range" value (3.4e38) instead of "—".
+
 ## [0.3.6] — 2026-11-21
 
 ### Added

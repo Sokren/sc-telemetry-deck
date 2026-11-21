@@ -20,7 +20,7 @@
 	},
 	"com.sokren.sc-telemetry.ship-display": {
 		"Name": "Ship Display",
-		"Tooltip": "Shows the ship's countermeasures, weapons ready, weapon group or gimbals, with a colored gauge.",
+		"Tooltip": "Shows a ship value: countermeasures, weapons, ship, speed, vertical speed, radar altitude, G-force, boost, hydrogen.",
 		"Encoder": {
 			"TriggerDescription": {
 				"Rotate": "Change value"

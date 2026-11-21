@@ -1,5 +1,6 @@
 import type { Lang } from "../catalog/labels.js";
 import type { CountermeasureTracker } from "../display/countermeasures.js";
+import { shipModel, validAltitude, type ShipModel } from "../display/flight.js";
 import { gimbalsWord, groupText } from "../display/ship-values.js";
 import { DISPLAY_VALUES } from "../display/values.js";
 import { readWeapons } from "../display/weapons.js";
@@ -51,7 +52,7 @@ export function characterOf(actor: Obj | undefined, lang: Lang): Character {
 	};
 }
 
-export type InstrumentId = "shields" | "hull" | "decoys" | "noise" | "weapons_ready" | "weapon_group" | "gimbals" | "hydrogen" | "quantum" | "speed" | "radar_altitude" | "heading";
+export type InstrumentId = "shields" | "hull" | "decoys" | "noise" | "weapons_ready" | "weapon_group" | "gimbals" | "hydrogen" | "quantum" | "speed" | "vertical_speed" | "radar_altitude" | "heading" | "g_force" | "boost";
 export type Instrument = { id: InstrumentId; label: string; text: string; unit: string; percent?: number; level: Level };
 export type AnnunciatorId = "pwr" | "wpn" | "thr" | "shld" | "cool" | "qdrv" | "radr" | "prox" | "hit" | "misl";
 export type Annunciator = {
@@ -66,11 +67,15 @@ export type ShipStatus = {
 	landed: boolean | null;
 	masterMode: "nav" | "scm" | "stealth" | null;
 	masterModeLabel: string;
+	/** Modèle du vaisseau (constructeur, nom, type), `null` hors vaisseau. */
+	model: ShipModel | null;
+	/** Boost en cours d'utilisation. */
+	boostEngaged: boolean;
 	instruments: Instrument[];
 	annunciators: Annunciator[];
 };
 
-export const INSTRUMENTS: readonly InstrumentId[] = ["shields", "hull", "decoys", "noise", "weapons_ready", "weapon_group", "gimbals", "hydrogen", "quantum", "speed", "radar_altitude", "heading"];
+export const INSTRUMENTS: readonly InstrumentId[] = ["shields", "hull", "decoys", "noise", "weapons_ready", "weapon_group", "gimbals", "hydrogen", "quantum", "speed", "vertical_speed", "radar_altitude", "heading", "g_force", "boost"];
 const ANNUNCIATORS: readonly AnnunciatorId[] = ["pwr", "wpn", "thr", "shld", "cool", "qdrv", "radr", "prox", "hit", "misl"];
 const MASTER: Record<string, "nav" | "scm" | "stealth"> = {
 	VEHICLE_MASTER_MODE_NAVIGATION: "nav",
@@ -148,6 +153,8 @@ export function shipStatusOf(vehicle: Obj | undefined, actor: Obj | undefined, l
 			landed: null,
 			masterMode: null,
 			masterModeLabel: "—",
+			model: null,
+			boostEngaged: false,
 			instruments: INSTRUMENTS.map((id) => fromWeapons(id) ?? none(id)),
 			annunciators: ANNUNCIATORS.map((id) => ({ id, label: t.annunciators[id], state: "unknown", flashing: false })),
 		};
@@ -162,6 +169,13 @@ export function shipStatusOf(vehicle: Obj | undefined, actor: Obj | undefined, l
 	const plain = (id: InstrumentId, value: number | undefined, unit: string): Instrument =>
 		value === undefined ? none(id) : { id, label: t.instruments[id], text: fmt(value, lang), unit, level: "none" };
 	const shields = obj(state.shields);
+	// Vol (captures de l'Arrow) : vitesse verticale signée, G subis (sans limite connue), réserve de boost.
+	const boost = obj(instr?.boost);
+	const verticalSpeed = (): Instrument => {
+		if (!instr) return none("vertical_speed");
+		const r = Math.round(num(instr.vertical_speed_indicator));
+		return { id: "vertical_speed", label: t.instruments.vertical_speed, text: r > 0 ? `+${r}` : r < 0 ? `−${-r}` : "0", unit: "m/s", level: "none" };
+	};
 	const instruments: Instrument[] = [
 		gauge("shields", shields ? num(shields.level) : undefined),
 		gauge("hull", num(state.health)),
@@ -170,17 +184,23 @@ export function shipStatusOf(vehicle: Obj | undefined, actor: Obj | undefined, l
 		weapon("weapons_ready"),
 		weapon("weapon_group"),
 		weapon("gimbals"),
-		gauge("hydrogen", instr ? num(instr.hydrogen_fuel) : undefined),
+		// Non envoyé par certains vaisseaux (Prospector) → « — » plutôt qu'un faux 0 % rouge.
+		gauge("hydrogen", instr && typeof instr.hydrogen_fuel === "number" ? num(instr.hydrogen_fuel) : undefined),
 		gauge("quantum", instr ? num(instr.quantum_fuel) : undefined),
 		plain("speed", instr ? num(instr.speed) : undefined, "m/s"),
-		plain("radar_altitude", instr ? num(instr.radar_altitude) : undefined, "m"),
+		verticalSpeed(),
+		plain("radar_altitude", instr ? validAltitude(instr.radar_altitude) : undefined, "m"),
 		plain("heading", instr ? Math.round(num(instr.heading)) % 360 : undefined, "°"),
+		instr ? { id: "g_force", label: t.instruments.g_force, text: fmt(num(obj(instr.g_meter)?.current), lang, 1), unit: "G", level: "none" } : none("g_force"),
+		boost ? { ...gauge("boost", num(boost.reserves)), ...(boost.critical === true ? { level: "bad" as const } : {}) } : none("boost"),
 	];
 	const ann = obj(state.annunciators);
 	const masterMode = MASTER[String(obj(state.master_mode)?.mode)] ?? null;
 	return {
 		available: true,
 		name: shipName(state),
+		model: shipModel(state, lang),
+		boostEngaged: boost?.engaged === true,
 		landed: flight ? obj(flight.state)?.is_landed === true : null,
 		masterMode,
 		masterModeLabel: masterMode ? t.masterMode[masterMode] : "—",

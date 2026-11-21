@@ -2,6 +2,7 @@
 	"yes": "Oui",
 	"no": "Non",
 	"allWeapons": "Toutes",
+	"flight": { "flying": "En vol", "landed": "Posé" },
 	"gimbals": { "locked": "Fixes", "free": "Libres" },
 	"values": {
 		"health": { "short": "Santé", "long": "Santé" },
@@ -22,6 +23,13 @@
 		"noise": { "short": "Brouill.", "long": "Brouilleurs" },
 		"weapons": { "short": "Armes", "long": "Armes prêtes à tirer" },
 		"weapon_group": { "short": "Groupe", "long": "Groupe d'armes actif" },
-		"gimbals": { "short": "Cardans", "long": "Cardans" }
+		"gimbals": { "short": "Cardans", "long": "Cardans" },
+		"ship": { "short": "Vaisseau", "long": "Vaisseau" },
+		"speed": { "short": "Vitesse", "long": "Vitesse" },
+		"vertical_speed": { "short": "V. vert.", "long": "Vitesse verticale" },
+		"radar_altitude": { "short": "Alt. radar", "long": "Altitude radar" },
+		"g_force": { "short": "G", "long": "Accélération (G)" },
+		"boost": { "short": "Boost", "long": "Réserve de boost" },
+		"hydrogen": { "short": "Hydro.", "long": "Hydrogène" }
 	}
 }

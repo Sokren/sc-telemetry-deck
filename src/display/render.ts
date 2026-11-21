@@ -24,7 +24,7 @@ export function renderKeySvg(view: DisplayView): string {
 		`<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">`,
 		`<rect width="144" height="144" fill="${BG}"/>`,
 		`<text x="72" y="32" font-family="${FONT}" font-size="20" fill="${LABEL}" text-anchor="middle">${escapeXml(view.short)}</text>`,
-		`<text x="72" y="${view.unit ? 84 : 92}" font-family="${FONT}" font-size="${valueSize(view.text)}" font-weight="bold" fill="${VALUE}" text-anchor="middle">${escapeXml(view.text)}</text>`,
+		`<text x="72" y="${view.unit ? 84 : 92}" font-family="${FONT}" font-size="${view.size ?? valueSize(view.text)}" font-weight="bold" fill="${VALUE}" text-anchor="middle">${escapeXml(view.text)}</text>`,
 	];
 	if (view.unit) {
 		parts.push(`<text x="72" y="110" font-family="${FONT}" font-size="18" fill="${UNIT}" text-anchor="middle">${escapeXml(view.unit)}</text>`);

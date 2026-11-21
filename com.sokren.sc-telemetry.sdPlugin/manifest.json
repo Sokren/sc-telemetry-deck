@@ -63,7 +63,7 @@
 			"Name": "Ship Display",
 			"UUID": "com.sokren.sc-telemetry.ship-display",
 			"Icon": "imgs/actions/ship-display/icon",
-			"Tooltip": "Shows the ship's countermeasures, weapons ready, weapon group or gimbals, with a colored gauge.",
+			"Tooltip": "Shows a ship value: countermeasures, weapons, ship, speed, vertical speed, radar altitude, G-force, boost, hydrogen.",
 			"PropertyInspectorPath": "ui/ship-display.html",
 			"Controllers": [
 				"Keypad",

@@ -14,7 +14,10 @@
 		"quantum": "Quantum",
 		"speed": "Vitesse",
 		"radar_altitude": "Altitude radar",
-		"heading": "Cap"
+		"heading": "Cap",
+		"vertical_speed": "Vitesse verticale",
+		"g_force": "Accélération",
+		"boost": "Boost"
 	},
 	"annunciators": {
 		"pwr": "Puissance",

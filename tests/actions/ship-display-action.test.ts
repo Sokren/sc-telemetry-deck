@@ -141,7 +141,7 @@ describe("Ship Display", () => {
 		expect(key.sent.at(-1)).toBe("image:Brouill.|5");
 	});
 
-	test("molette : +1 et −1 en boucle sur les 6 valeurs, réglage enregistré", async () => {
+	test("molette : +1 et −1 en boucle sur les 13 valeurs, réglage enregistré", async () => {
 		const dial = new FakeAction("d1", true);
 		await appear(dial, { value: "noise" });
 		dial.settings = { value: "noise" };
@@ -150,9 +150,13 @@ describe("Ship Display", () => {
 		await rotate(dial, 2);
 		expect(dial.settings).toEqual({ value: "gimbals" });
 		await rotate(dial, 1);
+		expect(dial.settings).toEqual({ value: "ship" });
+		await rotate(dial, 6);
+		expect(dial.settings).toEqual({ value: "hydrogen" });
+		await rotate(dial, 1);
 		expect(dial.settings).toEqual({ value: "countermeasures" });
 		await rotate(dial, -1);
-		expect(dial.settings).toEqual({ value: "gimbals" });
+		expect(dial.settings).toEqual({ value: "hydrogen" });
 	});
 
 	test("disparition → désabonnement", async () => {
@@ -162,7 +166,7 @@ describe("Ship Display", () => {
 		expect(hub.listeners.size).toBe(0);
 	});
 
-	test("getValues → 6 valeurs, libellés longs en français", async () => {
+	test("getValues → 13 valeurs, libellés longs en français", async () => {
 		await action.onSendToPlugin({ action: new FakeAction("k1"), payload: { event: "getValues" } } as unknown as SendToPluginEvent<JsonValue, ShipDisplaySettings>);
 		expect(toPI[0]).toEqual({
 			event: "getValues",
@@ -173,6 +177,13 @@ describe("Ship Display", () => {
 				{ label: "Armes prêtes à tirer", value: "weapons" },
 				{ label: "Groupe d'armes actif", value: "weapon_group" },
 				{ label: "Cardans", value: "gimbals" },
+				{ label: "Vaisseau", value: "ship" },
+				{ label: "Vitesse", value: "speed" },
+				{ label: "Vitesse verticale", value: "vertical_speed" },
+				{ label: "Altitude radar", value: "radar_altitude" },
+				{ label: "Accélération (G)", value: "g_force" },
+				{ label: "Réserve de boost", value: "boost" },
+				{ label: "Hydrogène", value: "hydrogen" },
 			],
 		});
 	});

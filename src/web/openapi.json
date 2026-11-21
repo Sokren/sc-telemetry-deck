@@ -1228,7 +1228,7 @@
 					"Ship"
 				],
 				"summary": "Ship instruments and warning lights — instruments et voyants du vaisseau",
-				"description": "Ship name, landed, master mode, instruments (shields, hull, decoys and noise countermeasures — count, percent of the largest stock seen for this ship model —, weapons ready to fire, active weapon group, gimbals (display only), hydrogen, quantum fuel, speed, radar altitude, heading) and the 10 warning lights, as shown in the Ship tab of the page. available: false outside a ship (character not seated) or when the game is closed; countermeasure and weapon instruments can still show while the ship section is late, as on the Stream Deck key. — FR : nom du vaisseau, posé, mode maître, instruments (boucliers, coque, leurres et brouilleurs — nombre, pourcentage du plus grand stock vu pour ce modèle de vaisseau —, armes prêtes à tirer, groupe d’armes actif, cardans (affichage seulement), hydrogène, quantum, vitesse, altitude radar, cap) et les 10 voyants, comme dans l'onglet Vaisseau de la page. available: false hors du vaisseau (perso pas assis) ou si le jeu est fermé ; les instruments de contre-mesures et d’armes peuvent rester affichés si la section vaisseau est en retard, comme sur la touche Stream Deck.",
+				"description": "Ship name, landed, master mode, instruments (shields, hull, decoys and noise countermeasures — count, percent of the largest stock seen for this ship model —, weapons ready to fire, active weapon group, gimbals (display only), hydrogen, quantum fuel, speed, vertical speed, radar altitude, heading, G-force, boost reserve), the ship model (manufacturer, name, type) and the 10 warning lights, as shown in the Ship tab of the page. available: false outside a ship (character not seated) or when the game is closed; countermeasure and weapon instruments can still show while the ship section is late, as on the Stream Deck key. — FR : nom du vaisseau, posé, mode maître, instruments (boucliers, coque, leurres et brouilleurs — nombre, pourcentage du plus grand stock vu pour ce modèle de vaisseau —, armes prêtes à tirer, groupe d’armes actif, cardans (affichage seulement), hydrogène, quantum, vitesse, vitesse verticale, altitude radar, cap, G subis, réserve de boost), le modèle du vaisseau (constructeur, nom, type) et les 10 voyants, comme dans l'onglet Vaisseau de la page. available: false hors du vaisseau (perso pas assis) ou si le jeu est fermé ; les instruments de contre-mesures et d’armes peuvent rester affichés si la section vaisseau est en retard, comme sur la touche Stream Deck.",
 				"parameters": [
 					{
 						"name": "lang",
@@ -1795,8 +1795,11 @@
 							"hydrogen",
 							"quantum",
 							"speed",
+							"vertical_speed",
 							"radar_altitude",
-							"heading"
+							"heading",
+							"g_force",
+							"boost"
 						]
 					},
 					"label": {
@@ -1872,7 +1875,9 @@
 					"masterMode",
 					"masterModeLabel",
 					"instruments",
-					"annunciators"
+					"annunciators",
+					"model",
+					"boostEngaged"
 				],
 				"properties": {
 					"available": {
@@ -1912,6 +1917,52 @@
 						"items": {
 							"$ref": "#/components/schemas/Annunciator"
 						}
+					},
+					"model": {
+						"type": [
+							"object",
+							"null"
+						],
+						"required": [
+							"code",
+							"manufacturer",
+							"manufacturerShort",
+							"name",
+							"type",
+							"typeLabel"
+						],
+						"additionalProperties": false,
+						"description": "Ship model from the game (manufacturer from a built-in list of codes); null outside a ship — FR : modèle du vaisseau d’après le jeu (constructeur d’après une liste de codes intégrée) ; null hors vaisseau",
+						"properties": {
+							"code": {
+								"type": "string"
+							},
+							"manufacturer": {
+								"type": "string"
+							},
+							"manufacturerShort": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string"
+							},
+							"type": {
+								"enum": [
+									"spaceship",
+									"ground",
+									"gravlev",
+									"boat",
+									"unknown"
+								]
+							},
+							"typeLabel": {
+								"type": "string"
+							}
+						}
+					},
+					"boostEngaged": {
+						"type": "boolean",
+						"description": "Boost in use — FR : boost en cours d’utilisation"
 					}
 				}
 			},
@@ -1936,12 +1987,13 @@
 							"ship_info",
 							"character_info",
 							"ship_function",
-							"action"
+							"action",
+							"ship_card"
 						]
 					},
 					"ref": {
 						"type": "string",
-						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, radar_altitude, heading; ship_info: name, master_mode, landed; character_info: position, role, seat; ship_function: a ship function id; action: a game action name (dangerous actions refused); none for annunciators — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, radar_altitude, heading ; ship_info : name, master_mode, landed ; character_info : position, role, seat ; ship_function : une fonction vaisseau ; action : nom d’action du jeu (actions dangereuses refusées) ; rien pour annunciators"
+						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost; ship_card: the “My ship” card (no ref); ship_info: name, master_mode, landed; character_info: position, role, seat; ship_function: a ship function id; action: a game action name (dangerous actions refused); none for annunciators — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost ; ship_card : l’encart « Mon vaisseau » (sans ref) ; ship_info : name, master_mode, landed ; character_info : position, role, seat ; ship_function : une fonction vaisseau ; action : nom d’action du jeu (actions dangereuses refusées) ; rien pour annunciators"
 					},
 					"size": {
 						"enum": [

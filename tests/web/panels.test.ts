@@ -60,7 +60,25 @@ describe("shipStatusOf", () => {
 		expect(by.speed).toMatchObject({ text: "0", unit: "m/s", level: "none" });
 		expect(by.radar_altitude).toMatchObject({ text: "4", unit: "m" });
 		expect(by.heading).toMatchObject({ text: "0", unit: "°" });
-		expect(s.instruments.map((i) => i.id)).toEqual(["shields", "hull", "decoys", "noise", "weapons_ready", "weapon_group", "gimbals", "hydrogen", "quantum", "speed", "radar_altitude", "heading"]);
+		expect(s.instruments.map((i) => i.id)).toEqual([
+			"shields",
+			"hull",
+			"decoys",
+			"noise",
+			"weapons_ready",
+			"weapon_group",
+			"gimbals",
+			"hydrogen",
+			"quantum",
+			"speed",
+			"vertical_speed",
+			"radar_altitude",
+			"heading",
+			"g_force",
+			"boost",
+		]);
+		expect(s.model).toMatchObject({ code: "AEGS", manufacturer: "Aegis Dynamics", name: "Avenger Titan", type: "spaceship", typeLabel: "Vaisseau spatial" });
+		expect(s.boostEngaged).toBe(false);
 	});
 
 	test("voyants : 10, état et clignotement", () => {
@@ -149,5 +167,42 @@ describe("shipStatusOf", () => {
 		expect(en.instruments.find((i) => i.id === "gimbals")).toMatchObject({ text: "Free" });
 		const none = shipStatusOf(titan.vehicle, titan.actor, "fr", { tracker });
 		for (const id of ["weapons_ready", "weapon_group", "gimbals"]) expect(none.instruments.find((i) => i.id === id)).toMatchObject({ text: "—" });
+	});
+
+	test("vol (capture de l'Arrow) : vitesse verticale signée, G, réserve de boost ; boost engagé", () => {
+		const v = withVehicle((st) => {
+			const f = st.flight as Obj;
+			f.instruments = { ...(f.instruments as Obj), vertical_speed_indicator: -16.15, g_meter: { current: 6.39, max: 92 }, boost: { engaged: true, output: 1, reserves: 0.4 } };
+		});
+		const s = shipStatusOf(v, titan.actor, "fr");
+		const by = Object.fromEntries(s.instruments.map((i) => [i.id, i]));
+		expect(by.vertical_speed).toMatchObject({ label: "Vitesse verticale", text: "−16", unit: "m/s", level: "none" });
+		expect(by.g_force).toMatchObject({ label: "Accélération", text: "6,4", unit: "G", level: "none" });
+		expect(by.boost).toMatchObject({ label: "Boost", text: "40", unit: "%", percent: 40, level: "warn" });
+		expect(s.boostEngaged).toBe(true);
+		const none = shipStatusOf(undefined, titan.actor, "en");
+		expect(none.model).toBeNull();
+		expect(none.boostEngaged).toBe(false);
+		for (const id of ["vertical_speed", "g_force", "boost"]) expect(none.instruments.find((i) => i.id === id)).toMatchObject({ text: "—" });
+	});
+
+	test("altitude radar invalide (valeur géante hors de portée) → « — »", () => {
+		const v = withVehicle((st) => {
+			const f = st.flight as Obj;
+			f.instruments = { ...(f.instruments as Obj), radar_altitude: 3.4028234663852886e38 };
+		});
+		expect(shipStatusOf(v, titan.actor, "fr").instruments.find((i) => i.id === "radar_altitude")).toMatchObject({ text: "—" });
+	});
+
+	test("hydrogène non envoyé (Prospector) → « — » ; boost critique → rouge", () => {
+		const v = withVehicle((st) => {
+			const f = st.flight as Obj;
+			const instr = { ...(f.instruments as Obj), boost: { critical: true, reserves: 0.9 } } as Obj;
+			delete instr.hydrogen_fuel;
+			f.instruments = instr;
+		});
+		const by = Object.fromEntries(shipStatusOf(v, titan.actor, "fr").instruments.map((i) => [i.id, i]));
+		expect(by.hydrogen).toMatchObject({ text: "—", level: "none" });
+		expect(by.boost).toMatchObject({ text: "90", level: "bad" });
 	});
 });

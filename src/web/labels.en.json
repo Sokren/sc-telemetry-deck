@@ -14,7 +14,10 @@
 		"quantum": "Quantum",
 		"speed": "Speed",
 		"radar_altitude": "Radar altitude",
-		"heading": "Heading"
+		"heading": "Heading",
+		"vertical_speed": "Vertical speed",
+		"g_force": "G-force",
+		"boost": "Boost"
 	},
 	"annunciators": {
 		"pwr": "Power",

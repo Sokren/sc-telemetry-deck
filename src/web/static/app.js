@@ -3,6 +3,7 @@
 import { I18N } from "./i18n.js";
 import { createAutoSwitch, parseAutoSettings, POSITIONS } from "./autoswitch.js";
 import { createLan } from "./lan.js";
+import { shipCard } from "./shipcard.js";
 import { createView } from "./view.js";
 
 const TOKEN_KEY = "sctd-token";
@@ -408,6 +409,11 @@ function connect() {
 		lastState = JSON.parse(e.data);
 		renderCharacter(lastState.character);
 		renderShip(lastState.shipStatus, lastState.ship);
+		// Encart « Mon vaisseau » en tête de l'onglet Vaisseau (remplace la ligne de résumé).
+		const inShip = lastState.shipStatus.available && !!lastState.shipStatus.model;
+		$("ship-card").hidden = !inShip;
+		$("ship-head").hidden = inShip;
+		if (inShip) $("ship-card").replaceChildren(shipCard(lastState, 2, t));
 		myView?.setState(lastState);
 		autoSwitch?.update(lastState.character.locomotion);
 	});

@@ -20,6 +20,8 @@ export type DisplayView = {
 	/** Remplissage de la barre 0–100 ; absent = donnée sans jauge. */
 	bar?: number;
 	color: string;
+	/** Taille du texte de la valeur sur une touche (sinon selon sa longueur). */
+	size?: number;
 };
 
 type LabelTable = { yes: string; no: string; values: Record<string, { short: string; long: string }> };

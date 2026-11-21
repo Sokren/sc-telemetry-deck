@@ -18,7 +18,7 @@ const cm = (decoy?: number, noise?: number) => ({
 
 describe("shipView", () => {
 	test("liste des valeurs : contre-mesures, leurres, brouilleurs", () => {
-		expect(SHIP_DISPLAY_VALUES).toEqual(["countermeasures", "decoys", "noise", "weapons", "weapon_group", "gimbals"]);
+		expect(SHIP_DISPLAY_VALUES).toEqual(["countermeasures", "decoys", "noise", "weapons", "weapon_group", "gimbals", "ship", "speed", "vertical_speed", "radar_altitude", "g_force", "boost", "hydrogen"]);
 		expect(isShipDisplayValueId("decoys")).toBe(true);
 		expect(isShipDisplayValueId("oxygen")).toBe(false);
 	});
@@ -97,5 +97,76 @@ describe("shipView", () => {
 		const gun = { name: "x", ready_to_fire: true };
 		expect(shipView("weapon_group", at({ preset_name: "Missiles anti-vaisseaux", weapons: [gun] }), t, "fr").text).toBe("Missiles…");
 		expect(shipView("weapon_group", at({ preset_name: "Missiles", weapons: [gun] }), t, "fr").text).toBe("Missiles");
+	});
+
+	describe("vol et vaisseau (captures de l'Arrow)", () => {
+		const t = new CountermeasureTracker();
+		const fly = (instruments: Record<string, unknown>, landed = false, cls = "ANVL_Arrow") => ({
+			vehicle: { state: { class_name: cls, type: "VEHICLE_TYPE_SPACESHIP", flight: { state: landed ? { is_landed: true } : {}, instruments } } },
+			actor: SEATED,
+		});
+
+		test("vaisseau : constructeur court, nom, état", () => {
+			expect(shipView("ship", fly({}), t, "fr")).toMatchObject({ short: "Anvil", long: "Anvil", text: "Arrow", unit: "En vol" });
+			expect(shipView("ship", fly({}, true), t, "en")).toMatchObject({ short: "Anvil", text: "Arrow", unit: "Landed" });
+			expect(shipView("ship", fly({}, true, "MISC_Prospector"), t, "fr")).toMatchObject({ short: "MISC", text: "Prospector", unit: "Posé" });
+			const long = shipView("ship", fly({}, false, "AEGS_Avenger_Titan_Renegade"), t, "fr");
+			expect(long.text).toBe("Avenger Tit…");
+			expect(long.size).toBeLessThanOrEqual(22);
+			expect(shipView("ship", {}, t, "fr")).toMatchObject({ short: "Vaisseau", text: "—", unit: "" });
+		});
+
+		test("vitesse, vitesse verticale signée, altitude radar, G", () => {
+			const s = fly({ speed: 99.45, vertical_speed_indicator: -16.15, radar_altitude: 28.76, g_meter: { current: 6.39, max: 92 } });
+			expect(shipView("speed", s, t, "fr")).toMatchObject({ short: "Vitesse", text: "99", unit: "m/s" });
+			expect(shipView("vertical_speed", s, t, "fr")).toMatchObject({ text: "−16", unit: "m/s" });
+			expect(shipView("vertical_speed", fly({ vertical_speed_indicator: 11.28 }), t, "en").text).toBe("+11");
+			expect(shipView("vertical_speed", fly({ vertical_speed_indicator: 0.2 }), t, "en").text).toBe("0");
+			expect(shipView("radar_altitude", s, t, "en")).toMatchObject({ text: "29", unit: "m" });
+			expect(shipView("radar_altitude", fly({ radar_altitude: 3.4e38 }), t, "en")).toMatchObject({ text: "—" });
+			const g = shipView("g_force", s, t, "fr");
+			expect(g).toMatchObject({ text: "6,4", unit: "G" });
+			expect(g.bar).toBeUndefined();
+			expect(shipView("g_force", s, t, "en").text).toBe("6.4");
+		});
+
+		test("boost : réserve en %, engagé dans le libellé, critique en rouge ; absent → « — »", () => {
+			expect(shipView("boost", fly({ boost: { reserves: 1 } }), t, "fr")).toMatchObject({ short: "Boost", text: "100", unit: "%", bar: 100, color: COLORS.ok });
+			const on = shipView("boost", fly({ boost: { engaged: true, output: 1, reserves: 0.97826827 } }), t, "fr");
+			expect(on).toMatchObject({ short: "Boost ▲", text: "98", color: COLORS.ok });
+			expect(shipView("boost", fly({ boost: { reserves: 0.4 } }), t, "fr").color).toBe(COLORS.warn);
+			expect(shipView("boost", fly({ boost: { critical: true, reserves: 0.9 } }), t, "fr").color).toBe(COLORS.bad);
+			expect(shipView("boost", fly({}), t, "fr")).toMatchObject({ text: "—", bar: 0 });
+		});
+
+		test("hydrogène : % avec jauge, « — » si le vaisseau ne l'envoie pas", () => {
+			expect(shipView("hydrogen", fly({ hydrogen_fuel: 0.99 }), t, "fr")).toMatchObject({ text: "99", unit: "%", bar: 99, color: COLORS.ok });
+			expect(shipView("hydrogen", fly({}), t, "fr")).toMatchObject({ text: "—", bar: 0, color: COLORS.none });
+		});
+
+		test("à pied ou jeu fermé → « — » partout", () => {
+			for (const id of ["speed", "vertical_speed", "radar_altitude", "g_force", "boost", "hydrogen"] as const) {
+				expect(shipView(id, { vehicle: fly({ speed: 5 }).vehicle, actor: { state: { locomotion: "ACTOR_LOCOMOTION_STATE_ON_FOOT" } } }, t, "fr").text).toBe("—");
+			}
+		});
+	});
+
+	describe("vol : cas limites (relecture)", () => {
+		const t = new CountermeasureTracker();
+		test("véhicule sans données de vol : nom sans état, instruments « — »", () => {
+			const s = { vehicle: { state: { class_name: "TMBL_Cyclone", type: "VEHICLE_TYPE_GROUND" } }, actor: SEATED };
+			expect(shipView("ship", s, t, "fr")).toMatchObject({ short: "Tumbril", text: "Cyclone", unit: "" });
+			for (const id of ["speed", "vertical_speed", "radar_altitude", "g_force"] as const) expect(shipView(id, s, t, "fr").text).toBe("—");
+		});
+		test("molette : constructeur court (pas le nom complet)", () => {
+			const s = { vehicle: { state: { class_name: "MISC_Prospector", flight: { state: { is_landed: true } } } }, actor: SEATED };
+			expect(shipView("ship", s, t, "fr").long).toBe("MISC");
+		});
+		test("noms longs : taille réduite", () => {
+			const s = (cls: string) => ({ vehicle: { state: { class_name: cls, flight: { state: {} } } }, actor: SEATED });
+			expect(shipView("ship", s("RSI_Constellation_Andromeda"), t, "fr")).toMatchObject({ text: "Constellati…", size: 20 });
+			expect(shipView("ship", s("DRAK_Vulture"), t, "fr").size).toBe(30);
+			expect(shipView("ship", s("CRUS_Starfighter"), t, "fr").size).toBeLessThanOrEqual(24);
+		});
 	});
 });

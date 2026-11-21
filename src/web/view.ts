@@ -6,7 +6,7 @@ import { SHIP_FUNCTION_IDS } from "../ship/functions.js";
 import { INSTRUMENTS } from "./panels.js";
 
 /** « Ma vue » : vues nommées (un onglet chacune), faites de sections contenant des cases, enregistrées dans `view.json`. */
-export const ITEM_KINDS = ["vital", "instrument", "annunciators", "ship_info", "character_info", "ship_function", "action"] as const;
+export const ITEM_KINDS = ["vital", "instrument", "annunciators", "ship_info", "character_info", "ship_function", "action", "ship_card"] as const;
 export type ItemKind = (typeof ITEM_KINDS)[number];
 
 export type ViewItem = { id: string; kind: ItemKind; ref?: string; size: 1 | 2 };
@@ -90,7 +90,8 @@ function parseItem(x: unknown): ViewItem | undefined {
 	if (!(ITEM_KINDS as readonly unknown[]).includes(o.kind)) return undefined;
 	if (o.size !== 1 && o.size !== 2) return undefined;
 	const kind = o.kind as ItemKind;
-	if (kind === "annunciators") return { id: o.id, kind, size: o.size };
+	// Cases sans `ref` : voyants, encart « Mon vaisseau ».
+	if (kind === "annunciators" || kind === "ship_card") return { id: o.id, kind, size: o.size };
 	if (typeof o.ref !== "string") return undefined;
 	if (kind === "action") {
 		if (!ACTION.test(o.ref) || DANGEROUS_ACTIONS.has(o.ref)) return undefined;

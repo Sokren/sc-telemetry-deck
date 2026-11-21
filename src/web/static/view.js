@@ -2,6 +2,8 @@
 // dans l'appli (une route par vue : /api/v1/views/{id}) et rendues à partir de l'événement « state ». Édition au cadenas : glisser-déposer souris + tactile (événements
 // pointer), menu « Ajouter », largeur, taille, renommage. Aucune bibliothèque.
 
+import { shipCard } from "./shipcard.js";
+
 const MAX_SECTIONS = 20;
 const MAX_ITEMS = 40;
 const MAX_TITLE = 40;
@@ -81,6 +83,8 @@ export function createView(ctx) {
 				return state?.ship.find((f) => f.id === item.ref)?.label ?? item.ref;
 			case "annunciators":
 				return t("warningLights");
+			case "ship_card":
+				return t("shipCard");
 			case "action":
 				return actionLabel(item.ref);
 			default:
@@ -122,6 +126,10 @@ export function createView(ctx) {
 			case "character_info":
 			case "ship_info": {
 				const update = () => box.replaceChildren(ctx.card({ label: labelOf(item), text: infoText(item), unit: "", level: "none" }));
+				return { box, update };
+			}
+			case "ship_card": {
+				const update = () => box.replaceChildren(shipCard(state, item.size, t));
 				return { box, update };
 			}
 			case "annunciators": {
@@ -410,6 +418,7 @@ export function createView(ctx) {
 						label: i.label,
 						type: kindText(GAUGES.includes(i.id) ? "kindGauge" : "kindValue"),
 					})),
+					{ kind: "ship_card", label: t("shipCard"), type: kindText("kindCard") },
 					{ kind: "annunciators", label: t("warningLights"), type: kindText("kindLights") },
 					...Object.keys(INFO.ship_info).map((ref) => ({ kind: "ship_info", ref, label: t(INFO.ship_info[ref]), type: kindText("kindState") })),
 					...state.ship.map((f) => ({ kind: "ship_function", ref: f.id, label: f.label, type: kindText("kindButton") })),
@@ -483,7 +492,7 @@ export function createView(ctx) {
 		const section = menuSection;
 		if (!section || section.items.length >= MAX_ITEMS) return closeMenu();
 		// Même ordre de clés que la vue renvoyée par l'appli (comparaison des copies sans re-rendu inutile).
-		const item = { id: newId(), kind: entry.kind, ...(entry.ref ? { ref: entry.ref } : {}), size: entry.kind === "annunciators" ? 2 : 1 };
+		const item = { id: newId(), kind: entry.kind, ...(entry.ref ? { ref: entry.ref } : {}), size: entry.kind === "annunciators" || entry.kind === "ship_card" ? 2 : 1 };
 		section.items.push(item);
 		changed();
 	}
