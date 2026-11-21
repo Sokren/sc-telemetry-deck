@@ -9,7 +9,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-streamd
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
-## [Unreleased]
+## [0.3.7] — 2026-11-21
 
 ### Added
 - **Ship Display**: **ship** (manufacturer, model, flying / landed), **shields** and **hull** (shields drain in NAV mode), **speed**, **vertical speed** (signed), **radar altitude**, **G-force** and **boost reserve** ("Boost ▲" while engaged, red when critical), **hydrogen** — checked in flight on the Arrow and the Lightning F8C.
@@ -116,6 +116,7 @@ First release.
 ### Known issues
 - In 5.0 PTU the game accepts the `mobiglas` action but does not open the mobiGlas.
 
+[0.3.7]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.7
 [0.3.6]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.6
 [0.3.5]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.5
 [0.3.4]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.4

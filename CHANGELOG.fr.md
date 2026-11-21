@@ -9,7 +9,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
-## [Non publié]
+## [0.3.7] — 2026-11-21
 
 ### Ajouté
 - **Ship Display** : **vaisseau** (constructeur, modèle, en vol / posé), **boucliers** et **coque** (les boucliers se vident en mode NAV), **vitesse**, **vitesse verticale** (signée), **altitude radar**, **G subis** et **réserve de boost** (« Boost ▲ » quand il est engagé, rouge si critique), **hydrogène** — vérifié en vol sur l'Arrow et le Lightning F8C.
@@ -123,6 +123,7 @@ Première version.
 ### Problèmes connus
 - En 5.0 PTU, le jeu accepte l'action `mobiglas` mais n'ouvre pas le mobiGlas.
 
+[0.3.7]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.7
 [0.3.6]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.6
 [0.3.5]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.5
 [0.3.4]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.4
