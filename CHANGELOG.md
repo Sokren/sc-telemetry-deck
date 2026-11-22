@@ -4,7 +4,7 @@
 
 All notable changes to SC Telemetry Deck (Stream Deck plugin and standalone web app for Star Citizen).
 Format inspired by [Keep a Changelog](https://keepachangelog.com/); full release notes are in [`docs/releases/`](docs/releases/)
-and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-streamdeck/releases).
+and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/releases).
 
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
@@ -123,13 +123,13 @@ First release.
 ### Known issues
 - In 5.0 PTU the game accepts the `mobiglas` action but does not open the mobiGlas.
 
-[0.3.7]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.7
-[0.3.6]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.6
-[0.3.5]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.5
-[0.3.4]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.4
-[0.3.3]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.3
-[0.3.2]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.2
-[0.3.1]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.1
-[0.3.0]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.3.0
-[0.2.0]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.2.0
-[0.1.0]: https://github.com/Sokren/sc-telemetry-streamdeck/releases/tag/v0.1.0
+[0.3.7]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.7
+[0.3.6]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.6
+[0.3.5]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.5
+[0.3.4]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.4
+[0.3.3]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.3
+[0.3.2]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.2
+[0.3.1]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.1
+[0.3.0]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.0
+[0.2.0]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.2.0
+[0.1.0]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.1.0

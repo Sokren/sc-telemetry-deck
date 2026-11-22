@@ -85,7 +85,7 @@ function applyTexts() {
 }
 
 // ---------- À propos ----------
-const REPO = "https://github.com/Sokren/sc-telemetry-streamdeck";
+const REPO = "https://github.com/Sokren/sc-telemetry-deck";
 let lastStatus = {};
 
 function renderAbout() {

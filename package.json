@@ -1,5 +1,5 @@
 {
-    "name": "sc-telemetry-streamdeck",
+    "name": "sc-telemetry-deck",
     "private": true,
     "description": "Plugin Stream Deck pour Star Citizen, via l'API de télémétrie locale du jeu",
     "type": "module",
