@@ -9,7 +9,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
-## [Non publié]
+## [0.3.9] — 2026-11-22
 
 ### Modifié
 - **Actions sensibles sur les touches et dans l'appli web** : ouvrir / déverrouiller portes et sas, autodestruction, sortie d'urgence et coupure de la puissance générale sont maintenant proposées et envoyées en **un appui** (toujours refusées à l'IA). L'**éjection** demande de **rester appuyé 1,5 s** — un anneau rouge se remplit avec le temps restant, relâcher avant annule (touche Ship Action, tuile de la grille, case des vues).
@@ -21,6 +21,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 - Appli web : bouton **❓ Activer la télémétrie**, affiché tant que le jeu n'envoie rien (aussi dans *À propos*) : tuto pas à pas pour Star Citizen 5.0 (créer `user.cfg` dans le dossier du canal de jeu, ajouter `server.game.telemetry.enabled=1`, lancer le jeu, vérifier `Game.log`) et la commande pour la 4.10.3 LIVE, avec des boutons *Copier*. L'appli ne touche toujours à aucun fichier du jeu.
 - Appli web : **thèmes de couleurs** — Actuel, Cockpit vert, Ambre, Bleu nuit et Clair (jour), plus une couleur d'accent au choix, retenus par appareil (ta tablette peut être différente de ton PC). Les couleurs OK / attention / danger restent lisibles dans chaque thème.
 - Appli web : fenêtre **⚙ Options** qui regroupe apparence, langue, vue automatique, accès tablette / téléphone et aide (activer la télémétrie, À propos, API) ; la barre du haut ne garde que l'état du jeu, le cadenas des vues et ⚙ Options.
+
+### Limite connue
+- 5.0 PTU : le jeu n'envoie pas encore l'état des portes et refuse les commandes portes / verrous / sas via l'API (les touches du jeu marchent ; testé sur l'Avenger Titan et le Corsair). *Portes* et *Verrous* affichent « — » jusqu'à ce que CIG les branche.
 
 ### Corrigé
 - Appli web : sur téléphone, les boutons du haut débordaient de l'écran ; ils passent maintenant à la ligne.
@@ -149,6 +152,7 @@ Première version.
 ### Problèmes connus
 - En 5.0 PTU, le jeu accepte l'action `mobiglas` mais n'ouvre pas le mobiGlas.
 
+[0.3.9]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.9
 [0.3.8]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.8
 [0.3.7]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.7
 [0.3.6]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.6

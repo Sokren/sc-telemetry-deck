@@ -9,7 +9,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
-## [Unreleased]
+## [0.3.9] — 2026-11-22
 
 ### Changed
 - **Sensitive actions on keys and in the web app**: opening / unlocking doors and ports, self-destruct, emergency exit and turning main power off are now offered and sent in **one press** (they stay refused to the AI). **Eject** must be **held 1.5 s** — a red ring fills up with the time left, releasing earlier cancels (Ship Action key, grid tile, view item).
@@ -21,6 +21,9 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 - Web app: **❓ Enable telemetry** button, shown while the game sends nothing (also in *About*): step-by-step guide for Star Citizen 5.0 (create `user.cfg` in the game channel folder, add `server.game.telemetry.enabled=1`, launch the game, check `Game.log`) and the 4.10.3 LIVE command, with *Copy* buttons. The app still never touches the game's files.
 - Web app: **color themes** — Default, Green cockpit, Amber, Night blue and Light (day), plus an accent color of your choice, remembered per device (your tablet can differ from your PC). OK / warning / danger colors stay readable in every theme.
 - Web app: **⚙ Options** window gathering appearance, language, automatic view, tablet / phone access and help (enable telemetry, About, API); the header keeps only the game status, the views padlock and ⚙ Options.
+
+### Known limitation
+- 5.0 PTU: the game does not send the door state yet and refuses the door / lock / port commands through the API (in-game keys work; tested on the Avenger Titan and Corsair). *Doors* and *Door locks* show "—" until CIG wires them.
 
 ### Fixed
 - Web app: the header buttons overflowed the screen on phones; they now wrap.
@@ -142,6 +145,7 @@ First release.
 ### Known issues
 - In 5.0 PTU the game accepts the `mobiglas` action but does not open the mobiGlas.
 
+[0.3.9]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.9
 [0.3.8]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.8
 [0.3.7]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.7
 [0.3.6]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.6
