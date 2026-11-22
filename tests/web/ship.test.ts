@@ -18,15 +18,19 @@ async function inShip(trigger?: (r: TriggerRequest) => { status: number; message
 }
 
 describe("GET /api/v1/ship/functions", () => {
-	test("17 fonctions, état lu sur le Titan, libellés selon la langue", async () => {
+	test("18 fonctions, état lu sur le Titan, libellés selon la langue", async () => {
 		const s = await inShip();
 		const r = await s.call("GET", "/api/v1/ship/functions?lang=fr");
 		expect(r.status).toBe(200);
 		validateResponse("/api/v1/ship/functions", "GET", 200, r.body);
-		expect(r.body).toHaveLength(17);
+		expect(r.body).toHaveLength(18);
 		expect(r.body[0]).toEqual({ id: "gear", name: "Train d'atterrissage", label: "Train", state: "on", word: "SORTI" });
 		const doors = r.body.find((f: { id: string }) => f.id === "doors_closed");
 		expect(doors).toMatchObject({ state: "unavailable", word: "—" });
+		// Croisière : lecture seule (aucune commande du jeu) ; les autres fonctions n'ont pas le marqueur.
+		const cruise = r.body.find((f: { id: string }) => f.id === "cruise");
+		expect(cruise).toMatchObject({ label: "Croisière", readOnly: true });
+		expect(r.body.filter((f: { readOnly?: boolean }) => f.readOnly).map((f: { id: string }) => f.id)).toEqual(["cruise"]);
 	});
 
 	test("une fonction ; inconnue → 404 ; jeu fermé → unknown", async () => {

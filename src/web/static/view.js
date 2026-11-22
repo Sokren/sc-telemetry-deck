@@ -187,11 +187,13 @@ export function createView(ctx) {
 				const b = button("card function");
 				b.append(el("div", "label"), el("div", "value"), el("span", "flash"));
 				b.addEventListener("click", () => {
-					if (!unlocked) ctx.pressFunction(item.ref, b);
+					if (!unlocked && b.dataset.readonly !== "1") ctx.pressFunction(item.ref, b);
 				});
 				box.append(b);
 				const update = () => {
 					const f = state?.ship.find((x) => x.id === item.ref);
+					b.dataset.readonly = f?.readOnly ? "1" : "";
+					b.title = f?.readOnly ? t("readOnlyFunction") : "";
 					b.querySelector(".label").textContent = f?.label ?? labelOf(item);
 					b.querySelector(".value").textContent = f?.word ?? "—";
 					b.dataset.state = f?.state ?? "unknown";

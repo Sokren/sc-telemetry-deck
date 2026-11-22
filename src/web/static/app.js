@@ -514,13 +514,18 @@ function renderShip(status, functions) {
 			el.className = "card function";
 			el.dataset.id = f.id;
 			el.innerHTML = '<div class="label"></div><div class="value"></div><span class="flash"></span>';
-			el.addEventListener("click", () => pressFunction(f.id, el));
+			el.addEventListener("click", () => {
+				if (el.dataset.readonly !== "1") pressFunction(f.id, el);
+			});
 			if (box.children[i]) box.children[i].replaceWith(el);
 			else box.append(el);
 		}
 		el.querySelector(".label").textContent = f.label;
 		el.querySelector(".value").textContent = f.word;
 		el.dataset.state = f.state;
+		// Lecture seule (ex. croisière) : pas d'appui, une info-bulle explique pourquoi.
+		el.dataset.readonly = f.readOnly ? "1" : "";
+		el.title = f.readOnly ? t("readOnlyFunction") : "";
 	});
 }
 

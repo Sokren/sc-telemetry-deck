@@ -12,6 +12,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 ## [Unreleased]
 
 ### Added
+- **Cruise control** (Alt+C) as a ship function, **read only**: ON / OFF on Ship Toggle, in the web app's *Ship* tab and views (dashed outline, a press does nothing — the game has no command for it). API: `cruise` function id, `readOnly: true` on functions the game cannot control. Checked in game on the Lightning F8C. The speed limiter value (mouse wheel) and the Corsair's wings are not sent by the game, so not shown.
 - Web app: **❓ Enable telemetry** button, shown while the game sends nothing (also in *About*): step-by-step guide for Star Citizen 5.0 (create `user.cfg` in the game channel folder, add `server.game.telemetry.enabled=1`, launch the game, check `Game.log`) and the 4.10.3 LIVE command, with *Copy* buttons. The app still never touches the game's files.
 - Web app: **color themes** — Default, Green cockpit, Amber, Night blue and Light (day), plus an accent color of your choice, remembered per device (your tablet can differ from your PC). OK / warning / danger colors stay readable in every theme.
 - Web app: **⚙ Options** window gathering appearance, language, automatic view, tablet / phone access and help (enable telemetry, About, API); the header keeps only the game status, the views padlock and ⚙ Options.

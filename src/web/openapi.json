@@ -1488,6 +1488,7 @@
 					"transform",
 					"decoupled",
 					"gsafe",
+					"cruise",
 					"proximity",
 					"esp",
 					"advanced_hud",
@@ -1537,6 +1538,10 @@
 					"word": {
 						"type": "string",
 						"description": "State word as shown on the key (SORTI, ON, NAV, …, —) — FR : mot d'état affiché sur la touche"
+					},
+					"readOnly": {
+						"const": true,
+						"description": "Only present (true) when the game has no command for this function (e.g. cruise control): the state is read, a press does nothing. — FR : présent (vrai) seulement quand le jeu n’a aucune commande pour cette fonction (ex. croisière) : l’état se lit, un appui ne fait rien."
 					}
 				}
 			},

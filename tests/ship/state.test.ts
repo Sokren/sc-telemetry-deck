@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { describe, expect, test } from "vitest";
 import { DANGEROUS_ACTIONS } from "../../src/game/dangerous.js";
-import { SHIP_FUNCTIONS, shipFunction, type ShipFunctionId } from "../../src/ship/functions.js";
+import { isReadOnly, SHIP_FUNCTIONS, shipFunction, type ShipFunctionId } from "../../src/ship/functions.js";
 import { readShipState } from "../../src/ship/state.js";
 
 type Obj = Record<string, unknown>;
@@ -21,9 +21,9 @@ const read = (id: ShipFunctionId, vehicle: Obj | null = titan.vehicle, actor: Ob
 	readShipState(id, vehicle ?? undefined, actor ?? undefined);
 
 describe("table des fonctions", () => {
-	test("17 fonctions dans l'ordre de la spec", () => {
+	test("18 fonctions dans l'ordre de la spec", () => {
 		expect(SHIP_FUNCTIONS.map((f) => f.id)).toEqual([
-			"gear", "lights", "vtol", "transform", "decoupled", "gsafe", "proximity", "esp", "advanced_hud",
+			"gear", "lights", "vtol", "transform", "decoupled", "gsafe", "cruise", "proximity", "esp", "advanced_hud",
 			"night_vision", "master_nav", "power_engines", "power_weapons", "power_shields", "power_main", "doors_closed", "doors_locked",
 		]);
 	});
@@ -147,6 +147,19 @@ describe("section flight absente (champ optional)", () => {
 		expect(read("night_vision", noFlight)).toBe("unavailable");
 		expect(read("advanced_hud", noFlight)).toBe("unavailable");
 		expect(read("gsafe", noFlight)).toBe("unavailable");
+		expect(read("cruise", noFlight)).toBe("unavailable");
+	});
+});
+
+describe("croisière (lecture seule, vérifiée en jeu le 22/11/2026)", () => {
+	test("activée = {enabled, active} ; coupée = champ vide ou absent → OFF, pas « indisponible »", () => {
+		expect(read("cruise", withState((s) => (flight(s).settings.ifcs_cruise_mode = { enabled: true, active: true })))).toBe("on");
+		expect(read("cruise", withState((s) => (flight(s).settings.ifcs_cruise_mode = {})))).toBe("off");
+		expect(read("cruise", withState((s) => delete flight(s).settings.ifcs_cruise_mode))).toBe("off");
+	});
+	test("aucune commande du jeu : lecture seule", () => {
+		expect(isReadOnly(SHIP_FUNCTIONS.find((f) => f.id === "cruise")!)).toBe(true);
+		expect(SHIP_FUNCTIONS.filter(isReadOnly).map((f) => f.id)).toEqual(["cruise"]);
 	});
 });
 

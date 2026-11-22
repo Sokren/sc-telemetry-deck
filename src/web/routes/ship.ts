@@ -1,6 +1,6 @@
 import type { Lang } from "../../catalog/labels.js";
 import type { GameApi } from "../../game/types.js";
-import { SHIP_FUNCTION_IDS, shipFunction, type ShipFunctionId } from "../../ship/functions.js";
+import { isReadOnly, SHIP_FUNCTION_IDS, shipFunction, type ShipFunctionId } from "../../ship/functions.js";
 import { decidePress, type ShipMode } from "../../ship/press.js";
 import { shipFunctionName, toShipView } from "../../ship/render.js";
 import { readShipState, type ShipState } from "../../ship/state.js";
@@ -8,7 +8,8 @@ import type { TelemetryHub } from "../../telemetry/hub.js";
 import type { Route } from "../http.js";
 import { TRIGGER_TIMEOUT_MS } from "./actions.js";
 
-export type ShipFunctionState = { id: ShipFunctionId; name: string; label: string; state: ShipState; word: string };
+/** `readOnly` (seulement s'il est vrai) : aucune commande du jeu, l'état se lit mais un appui ne fait rien. */
+export type ShipFunctionState = { id: ShipFunctionId; name: string; label: string; state: ShipState; word: string; readOnly?: true };
 
 const isId = (x: string): x is ShipFunctionId => (SHIP_FUNCTION_IDS as readonly string[]).includes(x);
 const MODES: readonly ShipMode[] = ["toggle", "on", "off"];
@@ -16,7 +17,8 @@ const MODES: readonly ShipMode[] = ["toggle", "on", "off"];
 export function shipStateOf(id: ShipFunctionId, hub: Pick<TelemetryHub, "section">, lang: Lang): ShipFunctionState {
 	const state = readShipState(id, hub.section("vehicle"), hub.section("actor"));
 	const view = toShipView(id, state, lang);
-	return { id, name: shipFunctionName(id, lang), label: view.label, state, word: view.word };
+	const base = { id, name: shipFunctionName(id, lang), label: view.label, state, word: view.word };
+	return isReadOnly(shipFunction(id)) ? { ...base, readOnly: true } : base;
 }
 
 /** Code stable d'un refus (indépendant de la langue). */

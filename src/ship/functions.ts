@@ -6,6 +6,7 @@ export const SHIP_FUNCTION_IDS = [
 	"transform",
 	"decoupled",
 	"gsafe",
+	"cruise",
 	"proximity",
 	"esp",
 	"advanced_hud",
@@ -43,6 +44,8 @@ export const SHIP_FUNCTIONS: readonly ShipFunction[] = [
 	fn("transform", "v_transform_deploy", "v_transform_retract", "v_transform_cycle"),
 	fn("decoupled", "v_ifcs_vector_decoupling_on", "v_ifcs_vector_decoupling_off", "v_ifcs_vector_decoupling_toggle"),
 	fn("gsafe", "v_ifcs_gsafe_on", "v_ifcs_gsafe_off", "v_ifcs_toggle_gforce_safety"),
+	// Lecture seule : le jeu (5.0 PTU) n'a aucune action pour la croisière (Alt+C en jeu).
+	fn("cruise", undefined, undefined, undefined),
 	fn("proximity", "v_ifcs_proximity_assist_on", "v_ifcs_proximity_assist_off", "v_ifcs_proximity_assist_toggle"),
 	fn("esp", undefined, undefined, "v_ifcs_toggle_esp"),
 	fn("advanced_hud", "v_flight_advanced_hud_on", "v_flight_advanced_hud_off", "v_flight_advanced_hud_toggle"),
@@ -55,6 +58,9 @@ export const SHIP_FUNCTIONS: readonly ShipFunction[] = [
 	onlyOn("doors_closed", "v_close_all_doors"),
 	onlyOn("doors_locked", "v_lock_all_doors"),
 ];
+
+/** Fonction sans aucune commande du jeu : l'état se lit, mais un appui ne peut rien envoyer. */
+export const isReadOnly = (f: ShipFunction): boolean => !f.on && !f.off && !f.toggle;
 
 /** Fonction par identifiant ; identifiant inconnu → train d'atterrissage. */
 export function shipFunction(id: unknown): ShipFunction {

@@ -6,6 +6,7 @@
 		"transform": { "name": "Transformation", "label": "Transfo.", "on": "DÉPLOYÉ", "off": "RENTRÉ" },
 		"decoupled": { "name": "Découplage", "label": "Découplage", "on": "DÉCOUPLÉ", "off": "COUPLÉ" },
 		"gsafe": { "name": "G-safe", "label": "G-safe", "on": "ON", "off": "OFF" },
+		"cruise": { "name": "Croisière (lecture seule)", "label": "Croisière", "on": "ON", "off": "OFF" },
 		"proximity": { "name": "Assistance de proximité", "label": "Proximité", "on": "ON", "off": "OFF" },
 		"esp": { "name": "ESP", "label": "ESP", "on": "ON", "off": "OFF" },
 		"advanced_hud": { "name": "HUD avancé", "label": "HUD avancé", "on": "ON", "off": "OFF" },

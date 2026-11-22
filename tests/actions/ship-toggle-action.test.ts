@@ -163,11 +163,11 @@ describe("appui", () => {
 });
 
 describe("panneau", () => {
-	test("getFunctions → 17 fonctions, noms complets en français", async () => {
+	test("getFunctions → 18 fonctions, noms complets en français", async () => {
 		await action.onSendToPlugin({ action: new FakeKey("k1"), payload: { event: "getFunctions" } } as unknown as SendToPluginEvent<JsonValue, ShipToggleSettings>);
 		const msg = toPI[0] as { event: string; items: { label: string; value: string }[] };
 		expect(msg.event).toBe("getFunctions");
-		expect(msg.items).toHaveLength(17);
+		expect(msg.items).toHaveLength(18);
 		expect(msg.items[0]).toEqual({ label: "Train d'atterrissage", value: "gear" });
 	});
 });

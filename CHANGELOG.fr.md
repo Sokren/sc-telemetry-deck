@@ -12,6 +12,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 ## [Non publié]
 
 ### Ajouté
+- **Croisière** (Alt+C) en fonction vaisseau, **en lecture seule** : ON / OFF sur Ship Toggle, dans l'onglet *Vaisseau* et les vues de l'appli web (contour en pointillés, un appui ne fait rien — le jeu n'a aucune commande pour elle). API : fonction `cruise`, `readOnly: true` sur les fonctions que le jeu ne permet pas de commander. Vérifié en jeu sur le Lightning F8C. La valeur du limiteur de vitesse (molette) et les ailes du Corsair ne sont pas envoyées par le jeu, donc pas affichées.
 - Appli web : bouton **❓ Activer la télémétrie**, affiché tant que le jeu n'envoie rien (aussi dans *À propos*) : tuto pas à pas pour Star Citizen 5.0 (créer `user.cfg` dans le dossier du canal de jeu, ajouter `server.game.telemetry.enabled=1`, lancer le jeu, vérifier `Game.log`) et la commande pour la 4.10.3 LIVE, avec des boutons *Copier*. L'appli ne touche toujours à aucun fichier du jeu.
 - Appli web : **thèmes de couleurs** — Actuel, Cockpit vert, Ambre, Bleu nuit et Clair (jour), plus une couleur d'accent au choix, retenus par appareil (ta tablette peut être différente de ton PC). Les couleurs OK / attention / danger restent lisibles dans chaque thème.
 - Appli web : fenêtre **⚙ Options** qui regroupe apparence, langue, vue automatique, accès tablette / téléphone et aide (activer la télémétrie, À propos, API) ; la barre du haut ne garde que l'état du jeu, le cadenas des vues et ⚙ Options.

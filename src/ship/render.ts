@@ -54,6 +54,7 @@ const ICONS: Record<ShipFunctionId, string> = {
 	transform: "M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4",
 	decoupled: "M3 12h5M16 12h5M8 7v10M16 7v10",
 	gsafe: "M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM12 8v5M12 16v.5",
+	cruise: "M3 16a9 9 0 0 1 18 0M12 16l4-5M6 20h12",
 	proximity: "M4 14a8 8 0 0 1 16 0M8 14a4 4 0 0 1 8 0M12 14v6",
 	esp: "M12 3v4M12 17v4M3 12h4M17 12h4M12 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8",
 	advanced_hud: "M3 5h18v14H3zM7 9h10M7 13h6",

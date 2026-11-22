@@ -6,6 +6,7 @@
 		"transform": { "name": "Transformation", "label": "Transform", "on": "DEPLOYED", "off": "STOWED" },
 		"decoupled": { "name": "Decoupled mode", "label": "Decoupled", "on": "DECOUPLED", "off": "COUPLED" },
 		"gsafe": { "name": "G-safe", "label": "G-safe", "on": "ON", "off": "OFF" },
+		"cruise": { "name": "Cruise control (read only)", "label": "Cruise", "on": "ON", "off": "OFF" },
 		"proximity": { "name": "Proximity assist", "label": "Proximity", "on": "ON", "off": "OFF" },
 		"esp": { "name": "ESP", "label": "ESP", "on": "ON", "off": "OFF" },
 		"advanced_hud": { "name": "Advanced HUD", "label": "Adv. HUD", "on": "ON", "off": "OFF" },

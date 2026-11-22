@@ -78,7 +78,7 @@ describe("EventHub", () => {
 		expect(c.events("tile").map((e) => e.data.index)).toEqual([0, 1, 2]);
 		const state = c.events("state")[0].data;
 		expect(state.vitals).toHaveLength(13);
-		expect(state.ship).toHaveLength(17);
+		expect(state.ship).toHaveLength(18);
 		expect(state.character).toMatchObject({ available: false, locomotion: "unknown" });
 		expect(state.shipStatus).toMatchObject({ available: false, instruments: expect.any(Array), annunciators: expect.any(Array) });
 		expect(state.morse).toEqual({ playing: false, text: "", light: "flashlight", progress: null });

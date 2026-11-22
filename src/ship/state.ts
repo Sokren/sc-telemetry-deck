@@ -70,6 +70,10 @@ export function readShipState(id: ShipFunctionId, vehicle: Obj | undefined, acto
 			return availability(settings.ifcs_coupled, true);
 		case "gsafe":
 			return availability(settings.ifcs_g_safe);
+		case "cruise":
+			// Activée : {enabled, active} ; coupée : rien du tout (pas « indisponible »).
+			if (!obj(flight?.settings)) return "unavailable";
+			return obj(settings.ifcs_cruise_mode)?.active === true ? "on" : "off";
 		case "proximity":
 			return availability(settings.ifcs_proximity_assist);
 		case "esp":

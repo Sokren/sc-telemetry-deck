@@ -69,7 +69,7 @@ describe("garde-fou indépendant de la table", () => {
 		expect(decidePress(corrupted, "on", "off").kind).toBe("refuse");
 	});
 
-	test("aucune combinaison (17 fonctions × 6 états × 3 modes) n'envoie une action dangereuse", () => {
+	test("aucune combinaison (18 fonctions × 6 états × 3 modes) n'envoie une action dangereuse", () => {
 		const states: ShipState[] = ["on", "off", "moving-on", "moving-off", "unavailable", "unknown"];
 		let combos = 0;
 		for (const fn of SHIP_FUNCTIONS) {
@@ -81,6 +81,6 @@ describe("garde-fou indépendant de la table", () => {
 				}
 			}
 		}
-		expect(combos).toBe(306);
+		expect(combos).toBe(324);
 	});
 });

@@ -1439,3 +1439,7 @@ dialog.options {
 dialog .opt-back {
 	margin-right: 8px;
 }
+.function[data-readonly="1"] {
+	cursor: default;
+	border-style: dashed;
+}
