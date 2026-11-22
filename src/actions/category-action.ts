@@ -3,6 +3,7 @@ import {
 	type Action,
 	type DidReceiveSettingsEvent,
 	type KeyDownEvent,
+	type KeyUpEvent,
 	type SendToPluginEvent,
 	type WillAppearEvent,
 } from "@elgato/streamdeck";
@@ -10,15 +11,17 @@ import type { JsonValue } from "@elgato/utils";
 import { buildDropdown, type ActionGroup } from "../catalog/dropdown.js";
 import { labelFor, type Lang } from "../catalog/labels.js";
 import type { ActionSource } from "../catalog/source.js";
-import { DANGEROUS_ACTIONS } from "../game/dangerous.js";
+import { HOLD_ACTIONS, HOLD_MS } from "../game/dangerous.js";
 import { failureLog } from "../game/messages.js";
 import type { GameApi } from "../game/types.js";
+import { renderHoldKey } from "./hold-render.js";
 
 export const TRIGGER_TIMEOUT_MS = 2000;
 /** Événement de la source de données du panneau de réglage (`datasource="getActions"`). */
 export const DATASOURCE_EVENT = "getActions";
 
-export { DANGEROUS_ACTIONS } from "../game/dangerous.js";
+/** Touche reçue à l'appui. */
+type KeyAction = KeyDownEvent<ActionSettings>["action"];
 
 /** Réglages enregistrés par touche. */
 export type ActionSettings = { action?: string };
@@ -37,6 +40,9 @@ export type CategoryActionDeps = {
  * Chaque action Stream Deck concrète (Actor Action…) ne fait que fixer ses catégories.
  */
 export abstract class CategoryAction extends SingletonAction<ActionSettings> {
+	/** Appuis maintenus en cours (éjection), par touche. */
+	readonly #holds = new Map<string, { timer: ReturnType<typeof setInterval>; done: boolean }>();
+
 	constructor(protected readonly deps: CategoryActionDeps) {
 		super();
 	}
@@ -55,19 +61,51 @@ export abstract class CategoryAction extends SingletonAction<ActionSettings> {
 			await ev.action.showAlert();
 			return;
 		}
-		if (DANGEROUS_ACTIONS.has(name)) {
-			this.deps.log(`Action dangereuse refusée : ${name}`);
-			await ev.action.showAlert();
-			return;
-		}
+		// Éjection : rester appuyé HOLD_MS (anneau qui se remplit) ; relâcher avant annule.
+		if (HOLD_ACTIONS.has(name)) return this.#startHold(ev.action, name);
+		await this.#send(ev.action, name);
+	}
+
+	override async onKeyUp(ev: KeyUpEvent<ActionSettings>): Promise<void> {
+		const hold = this.#holds.get(ev.action.id);
+		if (!hold) return;
+		this.#holds.delete(ev.action.id);
+		clearInterval(hold.timer);
+		// Relâché avant la fin : annulé, image d'origine.
+		if (!hold.done && ev.action.isKey()) await ev.action.setImage();
+	}
+
+	#startHold(action: KeyAction, name: string): void {
+		if (this.#holds.has(action.id)) return;
+		const key = action;
+		const label = labelFor(name, this.deps.lang());
+		const start = Date.now();
+		const hold = { done: false, timer: setInterval(() => void tick(), 100) };
+		this.#holds.set(action.id, hold);
+		const tick = async () => {
+			if (hold.done || this.#holds.get(action.id) !== hold) return;
+			const elapsed = Date.now() - start;
+			if (elapsed < HOLD_MS) {
+				await key.setImage(renderHoldKey(label, elapsed / HOLD_MS, HOLD_MS - elapsed));
+				return;
+			}
+			hold.done = true;
+			clearInterval(hold.timer);
+			await key.setImage();
+			await this.#send(key, name);
+		};
+		void key.setImage(renderHoldKey(label, 0, HOLD_MS));
+	}
+
+	async #send(action: KeyAction, name: string): Promise<void> {
 		const result = await this.deps.game.trigger(name, TRIGGER_TIMEOUT_MS);
 		if (result.ok) {
-			await ev.action.showOk();
+			await action.showOk();
 			return;
 		}
 		if (result.reason === "UNAVAILABLE") this.deps.source.invalidate();
 		this.deps.log(failureLog(name, result));
-		await ev.action.showAlert();
+		await action.showAlert();
 	}
 
 	override async onSendToPlugin(ev: SendToPluginEvent<JsonValue, ActionSettings>): Promise<void> {

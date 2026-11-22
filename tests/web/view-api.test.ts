@@ -100,10 +100,10 @@ describe("/api/v1/views", () => {
 		expect(bad.status).toBe(400);
 	});
 
-	test("PUT avec une action dangereuse : 400, rien d'enregistré ; vue inconnue : 404", async () => {
+	test("PUT avec un nom d'action invalide : 400, rien d'enregistré ; vue inconnue : 404", async () => {
 		const s = await start();
 		const sections = layout();
-		sections[0].items.push({ id: "boom", kind: "action", ref: "v_self_destruct", size: 1 });
+		sections[0].items.push({ id: "boom", kind: "action", ref: "../boom", size: 1 });
 		const r = await s.call("PUT", "/api/v1/views/main", { body: { name: "X", sections } });
 		expect(r.status).toBe(400);
 		validateResponse("/api/v1/views/{id}", "PUT", 400, r.body);

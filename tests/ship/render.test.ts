@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { SHIP_FUNCTION_IDS } from "../../src/ship/functions.js";
+import { isDangerState, SHIP_FUNCTION_IDS } from "../../src/ship/functions.js";
 import en from "../../src/ship/labels.en.json" with { type: "json" };
 import fr from "../../src/ship/labels.fr.json" with { type: "json" };
 import { SHIP_COLORS, renderShipKey, shipFunctionName, toShipView, type ShipView } from "../../src/ship/render.js";
@@ -23,7 +23,7 @@ describe("libellés", () => {
 	});
 
 	test("nom complet pour la liste du panneau", () => {
-		expect(shipFunctionName("doors_locked", "fr")).toBe("Portes verrouillées");
+		expect(shipFunctionName("doors_locked", "fr")).toBe("Verrous des portes (verrouiller / déverrouiller)");
 		expect(shipFunctionName("gear", "en")).toBe("Landing gear");
 	});
 });
@@ -94,5 +94,28 @@ describe("renderShipKey", () => {
 		expect(icons.size).toBe(SHIP_FUNCTION_IDS.length);
 		expect(renderShipKey(on, "led")).toBe(renderShipKey({ ...on }, "led"));
 		expect(svgOf(renderShipKey({ ...on, label: "<a&b>" }, "text"))).toContain("&lt;a&amp;b&gt;");
+	});
+});
+
+describe("état dangereux (portes ouvertes, verrous ouverts)", () => {
+	test("seulement portes / verrous ouverts ; fermé, verrouillé ou autre fonction : non", () => {
+		expect(isDangerState("doors_closed", "off")).toBe(true);
+		expect(isDangerState("doors_closed", "moving-off")).toBe(true);
+		expect(isDangerState("doors_locked", "off")).toBe(true);
+		expect(isDangerState("doors_closed", "on")).toBe(false);
+		expect(isDangerState("doors_locked", "on")).toBe(false);
+		expect(isDangerState("doors_closed", "unknown")).toBe(false);
+		expect(isDangerState("power_main", "off")).toBe(false);
+	});
+
+	test("touche : contour rouge, ⚠ et mot en rouge ; sans danger, rien de rouge", () => {
+		const open = toShipView("doors_closed", "off", "fr");
+		const red = svgOf(renderShipKey(open, "text", true));
+		expect(red).toContain(`stroke="${SHIP_COLORS.danger}"`);
+		expect(red).toContain("⚠");
+		expect(red).toContain(`fill="${SHIP_COLORS.danger}" text-anchor="middle">OUVERTES`);
+		const plain = svgOf(renderShipKey(open, "text"));
+		expect(plain).not.toContain(SHIP_COLORS.danger);
+		expect(svgOf(renderShipKey(open, "fill", true))).toContain(`fill="${SHIP_COLORS.dangerFill}"`);
 	});
 });

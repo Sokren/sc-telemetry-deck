@@ -21,6 +21,8 @@ export const SHIP_COLORS = {
 	label: "#C9D1DB",
 	white: "#FFFFFF",
 	dim: "#444441",
+	danger: "#E24B4A",
+	dangerFill: "#7A1F1F",
 } as const;
 
 type FunctionLabels = { name: string; label: string; on: string; off: string };
@@ -75,12 +77,19 @@ const escapeXml = (s: string) =>
 const TONE_TEXT: Record<Tone, string> = { on: SHIP_COLORS.on, moving: SHIP_COLORS.moving, off: SHIP_COLORS.off, none: SHIP_COLORS.none };
 
 /** Image de touche 144×144 (data URI SVG) d'un interrupteur vaisseau, dans le style choisi. */
-export function renderShipKey(view: ShipView, style: ShipStyle): string {
-	const filled = style === "fill" && (view.tone === "on" || view.tone === "moving");
-	const bg = !filled ? SHIP_COLORS.background : view.tone === "on" ? SHIP_COLORS.onFill : SHIP_COLORS.movingFill;
+/** `danger` : état dangereux (portes ouvertes…) → contour rouge, mot en rouge, ⚠ (fond rouge en style C). */
+export function renderShipKey(view: ShipView, style: ShipStyle, danger = false): string {
+	const filled = style === "fill" && (view.tone === "on" || view.tone === "moving" || danger);
+	const bg = !filled
+		? SHIP_COLORS.background
+		: danger
+			? SHIP_COLORS.dangerFill
+			: view.tone === "on"
+				? SHIP_COLORS.onFill
+				: SHIP_COLORS.movingFill;
 	const iconColor = view.tone === "none" ? SHIP_COLORS.dim : view.tone === "off" ? SHIP_COLORS.off : SHIP_COLORS.white;
 	const labelColor = view.tone === "none" ? SHIP_COLORS.none : SHIP_COLORS.label;
-	const wordColor = filled ? SHIP_COLORS.white : TONE_TEXT[view.tone];
+	const wordColor = filled ? SHIP_COLORS.white : danger ? SHIP_COLORS.danger : TONE_TEXT[view.tone];
 	const withWord = style !== "led";
 
 	const parts = [
@@ -95,12 +104,17 @@ export function renderShipKey(view: ShipView, style: ShipStyle): string {
 			`<text x="72" y="120" font-family="${FONT}" font-size="${size}" font-weight="bold" fill="${wordColor}" text-anchor="middle">${escapeXml(view.word)}</text>`,
 		);
 	}
+	if (danger) {
+		parts.push(`<rect x="3" y="3" width="138" height="138" rx="12" fill="none" stroke="${SHIP_COLORS.danger}" stroke-width="5"/>`);
+		// ⚠ en haut à gauche (le voyant du style B est en haut à droite).
+		parts.push(`<text x="22" y="32" font-family="${FONT}" font-size="22" fill="${SHIP_COLORS.danger}" text-anchor="middle">⚠</text>`);
+	}
 	if (style === "led") {
 		if (view.tone === "none") {
 			// Pas de données : « — » à la place du voyant, pour ne pas ressembler à « éteint ».
 			parts.push(`<text x="124" y="30" font-family="${FONT}" font-size="26" font-weight="bold" fill="${SHIP_COLORS.none}" text-anchor="middle">${escapeXml(view.word)}</text>`);
 		} else {
-			const led = view.tone === "on" ? SHIP_COLORS.on : view.tone === "moving" ? SHIP_COLORS.moving : SHIP_COLORS.off;
+			const led = danger ? SHIP_COLORS.danger : view.tone === "on" ? SHIP_COLORS.on : view.tone === "moving" ? SHIP_COLORS.moving : SHIP_COLORS.off;
 			parts.push(`<circle cx="124" cy="20" r="9" fill="${led}"/>`);
 		}
 	}

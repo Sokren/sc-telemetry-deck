@@ -23,8 +23,8 @@ export const SHIP_FUNCTION_IDS = [
 export type ShipFunctionId = (typeof SHIP_FUNCTION_IDS)[number];
 
 /**
- * Commandes du jeu d'une fonction. `onlyOn` : la commande « off » et la bascule sont dangereuses
- * (coupure totale, ouverture / déverrouillage des portes) ; la touche agit toujours comme « On ».
+ * Commandes du jeu d'une fonction. `onlyOn` : la touche agit toujours comme « On » (plus utilisé depuis que
+ * portes, verrous et puissance générale marchent dans les deux sens, 22/11/2026).
  */
 export type ShipFunction = { id: ShipFunctionId; on?: string; off?: string; toggle?: string; onlyOn: boolean };
 
@@ -35,7 +35,6 @@ const fn = (id: ShipFunctionId, on: string | undefined, off: string | undefined,
 	toggle,
 	onlyOn: false,
 });
-const onlyOn = (id: ShipFunctionId, on: string): ShipFunction => ({ id, on, off: undefined, toggle: undefined, onlyOn: true });
 
 export const SHIP_FUNCTIONS: readonly ShipFunction[] = [
 	fn("gear", "v_deploy_landing_system", "v_retract_landing_system", "v_toggle_landing_system"),
@@ -54,10 +53,18 @@ export const SHIP_FUNCTIONS: readonly ShipFunction[] = [
 	fn("power_engines", "v_power_set_thrusters_on", "v_power_set_thrusters_off", "v_power_toggle_thrusters"),
 	fn("power_weapons", "v_power_set_weapons_on", "v_power_set_weapons_off", "v_power_toggle_weapons"),
 	fn("power_shields", "v_power_set_shields_on", "v_power_set_shields_off", "v_power_toggle_shields"),
-	onlyOn("power_main", "v_power_set_on"),
-	onlyOn("doors_closed", "v_close_all_doors"),
-	onlyOn("doors_locked", "v_lock_all_doors"),
+	fn("power_main", "v_power_set_on", "v_power_set_off", "v_power_toggle"),
+	fn("doors_closed", "v_close_all_doors", "v_open_all_doors", "v_toggle_all_doors"),
+	fn("doors_locked", "v_lock_all_doors", "v_unlock_all_doors", "v_toggle_all_doorlocks"),
 ];
+
+/**
+ * État dangereux d'une fonction (alerte rouge, désactivable) : portes ouvertes, verrous ouverts.
+ * Rien quand c'est fermé ou verrouillé.
+ */
+export function isDangerState(id: ShipFunctionId, state: string): boolean {
+	return (id === "doors_closed" || id === "doors_locked") && (state === "off" || state === "moving-off");
+}
 
 /** Fonction sans aucune commande du jeu : l'état se lit, mais un appui ne peut rien envoyer. */
 export const isReadOnly = (f: ShipFunction): boolean => !f.on && !f.off && !f.toggle;

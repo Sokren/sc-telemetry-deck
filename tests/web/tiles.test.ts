@@ -3,7 +3,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { renderShipKey, toShipView } from "../../src/ship/render.js";
 import { readShipState } from "../../src/ship/state.js";
 import { DEFAULT_LAYOUT, type Tile } from "../../src/web/layout.js";
-import { pressTile, renderTile } from "../../src/web/tiles.js";
+import { pressTile, renderTile, tileNeedsHold } from "../../src/web/tiles.js";
 import { MorseControl } from "../../src/web/morse-control.js";
 import type { TriggerRequest } from "../game/fake-server.js";
 import { startTestServer, validateResponse, type TestServer } from "./harness.js";
@@ -91,15 +91,10 @@ describe("pressTile", () => {
 		expect(c.game.sent).toEqual(["emote_wave", "v_lights_off"]);
 	});
 
-	test("action dangereuse trafiquée dans la grille → ⚠, rien envoyé", async () => {
+	test("action sensible de la grille → envoyée", async () => {
 		const c = ctx();
-		for (const tile of [
-			{ type: "actor-action", settings: { action: "v_self_destruct" } },
-			{ type: "ship-action", settings: { action: "v_open_all_doors" } },
-		] as Tile[]) {
-			expect(await pressTile(tile, c)).toMatchObject({ feedback: "alert" });
-		}
-		expect(c.game.sent).toEqual([]);
+		expect(await pressTile({ type: "ship-action", settings: { action: "v_open_all_doors" } } as Tile, c)).toMatchObject({ feedback: "ok" });
+		expect(c.game.sent).toEqual(["v_open_all_doors"]);
 	});
 
 	test("fonction absente du vaisseau → ⚠ ; afficheur → rien envoyé", async () => {
@@ -141,5 +136,14 @@ describe("API grille", () => {
 		expect(sent).toEqual([{ action_name: "emote_wave" }]);
 		const bad = await s.call("POST", "/api/v1/layout/tiles/99/press");
 		expect(bad.status).toBe(404);
+	});
+});
+
+describe("tuile à maintenir (éjection)", () => {
+	test("seulement une tuile d'action dont la commande est l'éjection", () => {
+		expect(tileNeedsHold({ type: "ship-action", settings: { action: "v_eject" } })).toBe(true);
+		expect(tileNeedsHold({ type: "ship-action", settings: { action: "v_self_destruct" } })).toBe(false);
+		expect(tileNeedsHold({ type: "ship-toggle", settings: { function: "doors_closed" } })).toBe(false);
+		expect(tileNeedsHold({ type: "ship-action", settings: {} })).toBe(false);
 	});
 });

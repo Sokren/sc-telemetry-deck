@@ -25,21 +25,20 @@ describe("groupes de Ship Action", () => {
 		expect(buildDropdown(snapshot, SHIP_GROUPS, "en")[0].label).toBe("Ship");
 	});
 
-	test("aucune action dangereuse proposée", () => {
+	test("actions sensibles proposées comme les autres (refusées seulement à l'IA)", () => {
 		const offered = values(buildDropdown(snapshot, SHIP_GROUPS, "fr"));
 		expect(offered.length).toBeGreaterThan(40);
-		for (const name of DANGEROUS_ACTIONS) expect(offered).not.toContain(name);
+		for (const name of ["v_self_destruct", "v_eject", "v_open_all_doors", "v_unlock_all_doors"]) expect(offered).toContain(name);
 	});
 
-	test("une action dangereuse enregistrée apparaît seulement comme « (indisponible) »", () => {
+	test("une action sensible enregistrée est retrouvée (pas « indisponible »)", () => {
 		const items = buildDropdown(snapshot, SHIP_GROUPS, "fr", "v_self_destruct");
-		expect(items[0]).toMatchObject({ value: "v_self_destruct" });
-		expect((items[0] as { label: string }).label).toContain("(indisponible)");
-		expect(values(items.slice(1))).not.toContain("v_self_destruct");
+		expect(JSON.stringify(items)).not.toContain("(indisponible)");
+		expect(values(items)).toContain("v_self_destruct");
 	});
 
-	test("chaque action non dangereuse de ces catégories a un libellé fr et en", () => {
-		const names = snapshot.filter((a) => shipCategories.includes(a.category) && !DANGEROUS_ACTIONS.has(a.name)).map((a) => a.name);
+	test("chaque action de ces catégories a un libellé fr et en", () => {
+		const names = snapshot.filter((a) => shipCategories.includes(a.category)).map((a) => a.name);
 		const missing = names.filter((n) => !(n in fr.actions && n in en.actions));
 		expect(missing).toEqual([]);
 	});

@@ -1,6 +1,6 @@
 import type { KeyDownEvent, SendToPluginEvent, WillAppearEvent } from "@elgato/streamdeck";
 import type { JsonValue } from "@elgato/utils";
-import { beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { CategoryAction, type ActionSettings } from "../../src/actions/category-action.js";
 import { ACTOR_GROUPS } from "../../src/catalog/dropdown.js";
 import { ActionSource } from "../../src/catalog/source.js";
@@ -33,7 +33,11 @@ class FakeGame implements GameApi {
 /** Touche simulée : enregistre ce que le plugin lui demande d'afficher. */
 class FakeKey {
 	calls: string[] = [];
+	id = "key-1";
 	constructor(public settings: ActionSettings = {}) {}
+	async setImage(image?: string) {
+		this.calls.push(image ? "image:hold" : "image:reset");
+	}
 	isKey() {
 		return true;
 	}
@@ -122,17 +126,44 @@ describe("appui sur la touche", () => {
 	});
 });
 
-describe("actions dangereuses", () => {
-	test.each(["v_self_destruct", "v_eject", "v_emergency_exit", "v_power_set_off", "v_power_toggle", "v_open_all_doors", "v_toggle_all_doors", "v_unlock_all_doors", "v_unlock_all_ports"])(
-		"%s enregistrée (profil importé) → refusée : ⚠, journal, aucun appel au jeu",
+describe("actions sensibles (refusées seulement à l'IA, 22/11/2026)", () => {
+	test.each(["v_self_destruct", "v_emergency_exit", "v_power_set_off", "v_power_toggle", "v_open_all_doors", "v_toggle_all_doors", "v_unlock_all_doors", "v_unlock_all_ports"])(
+		"%s → envoyée en un appui",
 		async (name) => {
 			const key = new FakeKey({ action: name });
 			await action.onKeyDown(keyDown(key));
-			expect(game.triggered).toEqual([]);
-			expect(key.calls).toEqual(["alert"]);
-			expect(logs[0]).toContain(name);
+			expect(game.triggered).toEqual([[name, 2000]]);
+			expect(key.calls).toEqual(["ok"]);
 		},
 	);
+});
+
+describe("éjection : appui maintenu 1,5 s", () => {
+	const keyUp = (key: FakeKey) => ({ action: key, payload: { settings: key.settings } }) as never;
+	beforeEach(() => vi.useFakeTimers());
+	afterEach(() => vi.useRealTimers());
+
+	test("relâchée avant la fin → annulée, image d'origine, rien envoyé", async () => {
+		const key = new FakeKey({ action: "v_eject" });
+		await action.onKeyDown(keyDown(key));
+		await vi.advanceTimersByTimeAsync(800);
+		await action.onKeyUp(keyUp(key));
+		await vi.advanceTimersByTimeAsync(2000);
+		expect(game.triggered).toEqual([]);
+		expect(key.calls.filter((c) => c === "image:hold").length).toBeGreaterThan(3); // l'anneau avance
+		expect(key.calls.at(-1)).toBe("image:reset");
+	});
+
+	test("maintenue 1,5 s → envoyée une seule fois, ✔, image d'origine", async () => {
+		const key = new FakeKey({ action: "v_eject" });
+		await action.onKeyDown(keyDown(key));
+		await action.onKeyDown(keyDown(key)); // répétition de l'appui : ignorée
+		await vi.advanceTimersByTimeAsync(1700);
+		expect(game.triggered).toEqual([["v_eject", 2000]]);
+		expect(key.calls.slice(-2)).toEqual(["image:reset", "ok"]);
+		await action.onKeyUp(keyUp(key));
+		expect(game.triggered).toHaveLength(1);
+	});
 });
 
 describe("titre", () => {

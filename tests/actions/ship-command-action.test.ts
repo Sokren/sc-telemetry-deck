@@ -72,11 +72,10 @@ describe("appui", () => {
 		expect(triggered).toEqual(["v_flightready"]);
 	});
 
-	test("action dangereuse : toujours refusée", async () => {
+	test("action sensible (autodestruction) : envoyée en un appui", async () => {
 		const key = new FakeKey({ action: "v_self_destruct" });
 		await action.onKeyDown(ev<KeyDownEvent<ShipCommandSettings>>(key));
-		expect(triggered).toEqual([]);
-		expect(key.calls).toEqual(["alert"]);
+		expect(triggered).toEqual(["v_self_destruct"]);
 	});
 
 	test("regroupement inconnu → ⚠, rien envoyé", async () => {

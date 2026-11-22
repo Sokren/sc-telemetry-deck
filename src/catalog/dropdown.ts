@@ -1,4 +1,3 @@
-import { DANGEROUS_ACTIONS } from "../game/dangerous.js";
 import { shipFunctionName } from "../ship/render.js";
 import type { MergedCommand } from "./merged.js";
 import type { GameAction } from "../game/types.js";
@@ -41,7 +40,7 @@ export function buildDropdown(
 	selected?: string,
 	merged: readonly MergedCommand[] = [],
 ): DataSourceItem[] {
-	const offered = actions.filter((a) => !DANGEROUS_ACTIONS.has(a.name));
+	const offered = actions;
 	const entries = offered.map((a) => ({ category: a.category, label: labelFor(a.name, lang), value: a.name }));
 	for (const g of merged) {
 		const members = offered.filter((a) => a.name === g.on || a.name === g.off || a.name === g.toggle);

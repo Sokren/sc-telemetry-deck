@@ -1,12 +1,12 @@
+import { HOLD_ACTIONS } from "../game/dangerous.js";
 import { labelFor, type Lang } from "../catalog/labels.js";
 import { commandFor, mergedGroup } from "../catalog/merged.js";
 import { toView } from "../display/format.js";
 import { renderKeySvg } from "../display/render.js";
 import { isDisplayValueId, readValue } from "../display/values.js";
-import { DANGEROUS_ACTIONS } from "../game/dangerous.js";
 import type { GameApi } from "../game/types.js";
 import { normalizeText, progressLines } from "../morse/encode.js";
-import { SHIP_FUNCTION_IDS, type ShipFunctionId } from "../ship/functions.js";
+import { isDangerState, SHIP_FUNCTION_IDS, type ShipFunctionId } from "../ship/functions.js";
 import type { ShipMode } from "../ship/press.js";
 import { renderShipKey, toShipView, type ShipStyle } from "../ship/render.js";
 import { readShipState } from "../ship/state.js";
@@ -40,6 +40,13 @@ function commandOf(tile: Tile): string | undefined {
 	return group ? commandFor(group, modeOf(tile.settings.mode)) : action;
 }
 
+/** Tuile dont l'appui doit être maintenu (éjection), comme la touche du plugin. */
+export function tileNeedsHold(tile: Tile): boolean {
+	if (tile.type !== "actor-action" && tile.type !== "ship-action") return false;
+	const command = commandOf(tile);
+	return !!command && HOLD_ACTIONS.has(command);
+}
+
 /** Image d'une tuile, avec les mêmes dessins que les touches du plugin quand ils existent. */
 export function renderTile(tile: Tile, ctx: Omit<TileContext, "game">): string {
 	switch (tile.type) {
@@ -47,7 +54,8 @@ export function renderTile(tile: Tile, ctx: Omit<TileContext, "game">): string {
 			const id = shipId(tile.settings.function);
 			const style = STYLES.includes(tile.settings.style as ShipStyle) ? (tile.settings.style as ShipStyle) : "text";
 			const state = readShipState(id, ctx.hub.section("vehicle"), ctx.hub.section("actor"));
-			return renderShipKey(toShipView(id, state, ctx.lang), style);
+			const danger = tile.settings.dangerAlert !== false && isDangerState(id, state);
+			return renderShipKey(toShipView(id, state, ctx.lang), style, danger);
 		}
 		case "actor-display": {
 			const id = isDisplayValueId(tile.settings.value) ? tile.settings.value : "oxygen";
@@ -99,7 +107,6 @@ export async function pressTile(tile: Tile, ctx: Omit<TileContext, "lang">): Pro
 		case "ship-action": {
 			const command = commandOf(tile);
 			if (!command) return { feedback: "alert", detail: "no_action" };
-			if (DANGEROUS_ACTIONS.has(command)) return { feedback: "alert", detail: "dangerous_action" };
 			const result = await ctx.game.trigger(command, TRIGGER_TIMEOUT_MS);
 			return result.ok ? { feedback: "ok" } : { feedback: "alert", detail: result.reason };
 		}

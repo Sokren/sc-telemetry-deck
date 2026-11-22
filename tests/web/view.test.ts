@@ -25,7 +25,6 @@ describe("parseViewInput", () => {
 	test.each([
 		["type de case inconnu", (v: any) => (v.sections[0].items[0].kind = "rocket")],
 		["constante inconnue", (v: any) => (v.sections[0].items[0] = { id: "x", kind: "vital", ref: "mana", size: 1 })],
-		["action dangereuse", (v: any) => v.sections[0].items.push({ id: "x", kind: "action", ref: "v_self_destruct", size: 1 })],
 		["nom d'action invalide", (v: any) => v.sections[0].items.push({ id: "x", kind: "action", ref: "../x", size: 1 })],
 		["taille 3", (v: any) => (v.sections[0].items[0].size = 3)],
 		["largeur inconnue", (v: any) => (v.sections[0].width = "third")],
@@ -194,7 +193,7 @@ describe("ViewStore", () => {
 		const a = { id: "main", name: "A", sections: input().sections };
 		const b = { id: "vb", name: "B", sections: input().sections.map((s: any) => ({ ...s, id: `b${s.id}`, items: s.items.map((i: any) => ({ ...i, id: `b${i.id}` })) })) };
 		b.sections[0].items[0].ref = "constante_retiree";
-		b.sections[1].items.push({ id: "boom", kind: "action", ref: "v_self_destruct", size: 1 });
+		b.sections[1].items.push({ id: "boom", kind: "action", ref: "../boom", size: 1 });
 		fs.writeFileSync(file, JSON.stringify({ version: 2, views: [a, b, { id: "a b", name: "id invalide", sections: [] }] }));
 		const views = new ViewStore(file).list("fr");
 		expect(views.map((v) => v.name)).toEqual(["A", "B"]);

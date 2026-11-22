@@ -1,6 +1,7 @@
 /**
- * Actions du jeu jamais envoyées ni proposées par le plugin (aucune confirmation n'existe encore) :
- * autodestruction, éjection, coupure totale, ouverture ou déverrouillage des portes et des sas.
+ * Actions sensibles : autodestruction, éjection, coupure totale, ouverture ou déverrouillage des portes et des sas.
+ * Les touches Stream Deck et l'appli web les envoient en un appui (décision du
+ * 22/11/2026) ; l'éjection demande d'appui maintenu (`HOLD_ACTIONS`).
  */
 export const DANGEROUS_ACTIONS: ReadonlySet<string> = new Set([
 	"v_self_destruct",
@@ -16,3 +17,8 @@ export const DANGEROUS_ACTIONS: ReadonlySet<string> = new Set([
 	"v_toggle_all_doorlocks",
 	"v_toggle_all_portlocks",
 ]);
+
+/** Actions qui demandent de rester appuyé (touche, case de l'appli web) avant d'être envoyées. */
+export const HOLD_ACTIONS: ReadonlySet<string> = new Set(["v_eject"]);
+/** Durée d'appui maintenu (ms). */
+export const HOLD_MS = 1500;

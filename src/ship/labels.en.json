@@ -15,8 +15,8 @@
 		"power_engines": { "name": "Engine power", "label": "Engines", "on": "ON", "off": "OFF" },
 		"power_weapons": { "name": "Weapon power", "label": "Weapons", "on": "ON", "off": "OFF" },
 		"power_shields": { "name": "Shield power", "label": "Shields", "on": "ON", "off": "OFF" },
-		"power_main": { "name": "Main power (turn on)", "label": "Power", "on": "ON", "off": "OFF" },
-		"doors_closed": { "name": "Doors closed (close)", "label": "Doors", "on": "CLOSED", "off": "OPEN" },
-		"doors_locked": { "name": "Doors locked", "label": "Locks", "on": "LOCKED", "off": "UNLOCKED" }
+		"power_main": { "name": "Main power", "label": "Power", "on": "ON", "off": "OFF" },
+		"doors_closed": { "name": "Doors (close / open)", "label": "Doors", "on": "CLOSED", "off": "OPEN" },
+		"doors_locked": { "name": "Door locks (lock / unlock)", "label": "Locks", "on": "LOCKED", "off": "UNLOCKED" }
 	}
 }

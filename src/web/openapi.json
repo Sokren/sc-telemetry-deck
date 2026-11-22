@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.5.0",
+		"version": "1.6.0",
 		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Dangerous actions (self destruct, eject, opening doors…) are always refused. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions dangereuses (autodestruction, éjection, ouverture des portes…) sont toujours refusées.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
@@ -1141,7 +1141,7 @@
 					"Realtime"
 				],
 				"summary": "Real-time events (SSE) — événements temps réel (SSE)",
-				"description": "Server-Sent Events stream. Events: status (same object as /status, when it changes), tile {index, image} (only tiles whose image changed), state {vitals, ship, character, shipStatus, morse {playing, text, light, progress}} (at most 4 per second, only when changed), feedback {index, feedback, detail?} after a tile press, views (same object as GET /views) on connection and whenever a view is created, saved or deleted. morse.progress: null, or the letter being sent {letter, code ('.' and '-'), sign (index of the lit sign, -1 between signs), round, rounds, wordGap (pause before the next word)}. A ': ping' comment every 15 s. Browsers' EventSource cannot send headers: pass the token as ?t=. — FR : flux Server-Sent Events. Événements : status (même objet que /status, quand il change), tile {index, image} (seulement les tuiles dont l'image change), state {vitals, ship, character, shipStatus, morse {playing, text, light, progress}} (au plus 4 par seconde, seulement si changé), feedback {index, feedback, detail?} après un appui de tuile, views (même objet que GET /views) à la connexion et à chaque création, enregistrement ou suppression d’une vue. morse.progress : null, ou la lettre en cours {letter, code (« . » et « - »), sign (indice du signe allumé, -1 entre deux signes), round, rounds, wordGap (pause avant le mot suivant)}. Un commentaire « : ping » toutes les 15 s. EventSource ne peut pas envoyer d'en-tête : passer le jeton en ?t=.",
+				"description": "Server-Sent Events stream. Events: status (same object as /status, when it changes), tile {index, image, hold?} (only tiles whose image changed), state {vitals, ship, character, shipStatus, morse {playing, text, light, progress}} (at most 4 per second, only when changed), feedback {index, feedback, detail?} after a tile press, views (same object as GET /views) on connection and whenever a view is created, saved or deleted. morse.progress: null, or the letter being sent {letter, code ('.' and '-'), sign (index of the lit sign, -1 between signs), round, rounds, wordGap (pause before the next word)}. tile.hold: true when the tile must be held 1.5 s before its press is sent (eject). A ': ping' comment every 15 s. Browsers' EventSource cannot send headers: pass the token as ?t=. — FR : flux Server-Sent Events. Événements : status (même objet que /status, quand il change), tile {index, image, hold?} (seulement les tuiles dont l'image change), state {vitals, ship, character, shipStatus, morse {playing, text, light, progress}} (au plus 4 par seconde, seulement si changé), feedback {index, feedback, detail?} après un appui de tuile, views (même objet que GET /views) à la connexion et à chaque création, enregistrement ou suppression d’une vue. morse.progress : null, ou la lettre en cours {letter, code (« . » et « - »), sign (indice du signe allumé, -1 entre deux signes), round, rounds, wordGap (pause avant le mot suivant)}. tile.hold : vrai quand la tuile doit être maintenue 1,5 s avant l’envoi de l’appui (éjection). Un commentaire « : ping » toutes les 15 s. EventSource ne peut pas envoyer d'en-tête : passer le jeton en ?t=.",
 				"parameters": [
 					{
 						"name": "lang",
@@ -1542,6 +1542,10 @@
 					"readOnly": {
 						"const": true,
 						"description": "Only present (true) when the game has no command for this function (e.g. cruise control): the state is read, a press does nothing. — FR : présent (vrai) seulement quand le jeu n’a aucune commande pour cette fonction (ex. croisière) : l’état se lit, un appui ne fait rien."
+					},
+					"danger": {
+						"const": true,
+						"description": "Only present (true) in a dangerous state: doors open, door locks open. — FR : présent (vrai) seulement en état dangereux : portes ouvertes, verrous ouverts."
 					}
 				}
 			},

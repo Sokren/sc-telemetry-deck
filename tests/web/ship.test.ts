@@ -31,6 +31,8 @@ describe("GET /api/v1/ship/functions", () => {
 		const cruise = r.body.find((f: { id: string }) => f.id === "cruise");
 		expect(cruise).toMatchObject({ label: "Croisière", readOnly: true });
 		expect(r.body.filter((f: { readOnly?: boolean }) => f.readOnly).map((f: { id: string }) => f.id)).toEqual(["cruise"]);
+		// Aucun état dangereux ici (portes absentes) : pas de marqueur danger.
+		expect(r.body.some((f: { danger?: boolean }) => f.danger)).toBe(false);
 	});
 
 	test("une fonction ; inconnue → 404 ; jeu fermé → unknown", async () => {

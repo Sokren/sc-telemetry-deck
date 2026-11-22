@@ -11,6 +11,11 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 
 ## [Non publié]
 
+### Modifié
+- **Actions sensibles sur les touches et dans l'appli web** : ouvrir / déverrouiller portes et sas, autodestruction, sortie d'urgence et coupure de la puissance générale sont maintenant proposées et envoyées en **un appui** (toujours refusées à l'IA). L'**éjection** demande de **rester appuyé 1,5 s** — un anneau rouge se remplit avec le temps restant, relâcher avant annule (touche Ship Action, tuile de la grille, case des vues).
+- **Ship Toggle** : portes (fermer / ouvrir), verrous (verrouiller / déverrouiller) et puissance générale (allumer / couper) marchent dans les deux sens.
+- **Alerte rouge seulement en état dangereux** (portes ouvertes, verrous ouverts) : contour rouge, ⚠, mot d'état en rouge — rien quand c'est fermé / verrouillé. Désactivable par touche sur Stream Deck (case *Alerte*) ou pour toute l'appli web dans ⚙ Options (par appareil). API : `danger: true` sur les fonctions vaisseau en état dangereux, `hold: true` sur les tuiles de la grille à maintenir. Contrat d'API **1.6.0** (avec aussi la fonction `cruise` et `readOnly`).
+
 ### Ajouté
 - **Croisière** (Alt+C) en fonction vaisseau, **en lecture seule** : ON / OFF sur Ship Toggle, dans l'onglet *Vaisseau* et les vues de l'appli web (contour en pointillés, un appui ne fait rien — le jeu n'a aucune commande pour elle). API : fonction `cruise`, `readOnly: true` sur les fonctions que le jeu ne permet pas de commander. Vérifié en jeu sur le Lightning F8C. La valeur du limiteur de vitesse (molette) et les ailes du Corsair ne sont pas envoyées par le jeu, donc pas affichées.
 - Appli web : bouton **❓ Activer la télémétrie**, affiché tant que le jeu n'envoie rien (aussi dans *À propos*) : tuto pas à pas pour Star Citizen 5.0 (créer `user.cfg` dans le dossier du canal de jeu, ajouter `server.game.telemetry.enabled=1`, lancer le jeu, vérifier `Game.log`) et la commande pour la 4.10.3 LIVE, avec des boutons *Copier*. L'appli ne touche toujours à aucun fichier du jeu.

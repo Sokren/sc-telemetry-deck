@@ -47,29 +47,25 @@ describe("ESP (bascule seulement)", () => {
 	});
 });
 
-describe("fonctions « On seulement » (portes, puissance générale)", () => {
+describe("portes, verrous, puissance générale : dans les deux sens (22/11/2026)", () => {
 	const doors = shipFunction("doors_closed");
+	const locks = shipFunction("doors_locked");
 	const power = shipFunction("power_main");
-	test("tous les modes se comportent comme « On »", () => {
-		for (const mode of ["toggle", "on", "off"] as const) {
-			expect(decidePress(doors, "on", mode)).toEqual({ kind: "noop" });
-			expect(decidePress(doors, "off", mode)).toEqual(send("v_close_all_doors"));
-		}
+	test("bascule selon l'état lu, commandes dédiées", () => {
+		expect(decidePress(doors, "on", "toggle")).toEqual(send("v_open_all_doors"));
+		expect(decidePress(doors, "off", "toggle")).toEqual(send("v_close_all_doors"));
+		expect(decidePress(locks, "on", "toggle")).toEqual(send("v_unlock_all_doors"));
+		expect(decidePress(locks, "off", "on")).toEqual(send("v_lock_all_doors"));
+		expect(decidePress(power, "on", "off")).toEqual(send("v_power_set_off"));
 	});
-	test("état inconnu → commande « On »", () => {
-		expect(decidePress(power, "unknown", "toggle")).toEqual(send("v_power_set_on"));
+	test("état inconnu → bascule du jeu", () => {
+		expect(decidePress(power, "unknown", "toggle")).toEqual(send("v_power_toggle"));
+		expect(decidePress(doors, "unknown", "on")).toEqual(send("v_close_all_doors"));
 	});
 });
 
 describe("garde-fou indépendant de la table", () => {
-	test("une table modifiée avec une commande dangereuse est refusée", () => {
-		const corrupted: ShipFunction = { id: "power_main", on: "v_power_set_on", off: "v_power_set_off", toggle: "v_power_toggle", onlyOn: false };
-		expect(decidePress(corrupted, "on", "toggle").kind).toBe("refuse");
-		expect(decidePress(corrupted, "unknown", "toggle").kind).toBe("refuse");
-		expect(decidePress(corrupted, "on", "off").kind).toBe("refuse");
-	});
-
-	test("aucune combinaison (18 fonctions × 6 états × 3 modes) n'envoie une action dangereuse", () => {
+	test("aucune combinaison (18 fonctions × 6 états × 3 modes) n'envoie l'autodestruction, l'éjection ni la sortie d'urgence", () => {
 		const states: ShipState[] = ["on", "off", "moving-on", "moving-off", "unavailable", "unknown"];
 		let combos = 0;
 		for (const fn of SHIP_FUNCTIONS) {
@@ -77,7 +73,7 @@ describe("garde-fou indépendant de la table", () => {
 				for (const mode of ["toggle", "on", "off"] as const) {
 					combos++;
 					const d = decidePress(fn, state, mode);
-					if (d.kind === "send") expect(DANGEROUS_ACTIONS.has(d.action), `${fn.id}/${state}/${mode}`).toBe(false);
+					if (d.kind === "send") expect(["v_self_destruct", "v_eject", "v_emergency_exit"], `${fn.id}/${state}/${mode}`).not.toContain(d.action);
 				}
 			}
 		}

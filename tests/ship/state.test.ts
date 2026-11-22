@@ -28,22 +28,17 @@ describe("table des fonctions", () => {
 		]);
 	});
 
-	test("chaque commande existe dans le jeu et n'est pas dangereuse", () => {
+	test("chaque commande existe dans le jeu", () => {
 		for (const f of SHIP_FUNCTIONS) {
 			for (const name of [f.on, f.off, f.toggle].filter((n): n is string => !!n)) {
 				expect(actions, `${f.id} : ${name}`).toContain(name);
-				expect(DANGEROUS_ACTIONS.has(name), `${f.id} : ${name}`).toBe(false);
 			}
 		}
 	});
 
-	test("fonctions « On seulement » : puissance générale et portes, sans commande off ni bascule", () => {
-		const onlyOn = SHIP_FUNCTIONS.filter((f) => f.onlyOn).map((f) => f.id);
-		expect(onlyOn).toEqual(["power_main", "doors_closed", "doors_locked"]);
-		for (const f of SHIP_FUNCTIONS.filter((f) => f.onlyOn)) {
-			expect(f.off).toBeUndefined();
-			expect(f.toggle).toBeUndefined();
-		}
+	test("plus aucune fonction « On seulement » : portes, verrous et puissance générale dans les deux sens", () => {
+		expect(SHIP_FUNCTIONS.filter((f) => f.onlyOn)).toEqual([]);
+		expect(shipFunction("doors_locked")).toMatchObject({ on: "v_lock_all_doors", off: "v_unlock_all_doors", toggle: "v_toggle_all_doorlocks" });
 	});
 
 	test("ESP : bascule seulement", () => {

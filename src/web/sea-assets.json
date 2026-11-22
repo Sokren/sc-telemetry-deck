@@ -6,6 +6,7 @@
 	"static/autoswitch.js",
 	"static/shipcard.js",
 	"static/setup.js",
+	"static/hold.js",
 	"static/themes.js",
 	"static/theme-boot.js",
 	"static/i18n.js",

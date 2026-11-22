@@ -15,8 +15,8 @@
 		"power_engines": { "name": "Puissance moteurs", "label": "Moteurs", "on": "ON", "off": "OFF" },
 		"power_weapons": { "name": "Puissance armes", "label": "Armes", "on": "ON", "off": "OFF" },
 		"power_shields": { "name": "Puissance boucliers", "label": "Boucliers", "on": "ON", "off": "OFF" },
-		"power_main": { "name": "Puissance générale (allumer)", "label": "Puissance", "on": "ON", "off": "OFF" },
-		"doors_closed": { "name": "Portes fermées (fermer)", "label": "Portes", "on": "FERMÉES", "off": "OUVERTES" },
-		"doors_locked": { "name": "Portes verrouillées", "label": "Verrous", "on": "FERMÉS", "off": "OUVERTS" }
+		"power_main": { "name": "Puissance générale", "label": "Puissance", "on": "ON", "off": "OFF" },
+		"doors_closed": { "name": "Portes (fermer / ouvrir)", "label": "Portes", "on": "FERMÉES", "off": "OUVERTES" },
+		"doors_locked": { "name": "Verrous des portes (verrouiller / déverrouiller)", "label": "Verrous", "on": "FERMÉS", "off": "OUVERTS" }
 	}
 }

@@ -24,12 +24,15 @@
 				<option value="fill">C — Fond coloré / Filled</option>
 			</sdpi-select>
 		</sdpi-item>
+		<sdpi-item label="Alerte / Warning">
+			<sdpi-checkbox setting="dangerAlert" default="true" label="Rouge si dangereux / Red when dangerous"></sdpi-checkbox>
+		</sdpi-item>
 		<sdpi-item>
 			<p>
 				La touche montre l'état réel du vaisseau ; « — » hors du vaisseau ou si le vaisseau n'a pas la fonction.
-				Puissance générale et portes : toujours « Allumer seulement » (couper, ouvrir et déverrouiller sont exclus).<br />
+				Portes et verrous : contour rouge et ⚠ quand ils sont ouverts (case ci-dessus pour l'enlever).<br />
 				The key shows the ship's real state; "—" outside a ship or if the ship lacks the function.
-				Main power and doors always act as "On only" (turning off, opening and unlocking are excluded).
+				Doors and locks: red outline and ⚠ when open (checkbox above to turn it off).
 			</p>
 		</sdpi-item>
 	</body>

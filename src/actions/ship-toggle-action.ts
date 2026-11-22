@@ -11,7 +11,7 @@ import type { JsonValue } from "@elgato/utils";
 import type { Lang } from "../catalog/labels.js";
 import { failureLog } from "../game/messages.js";
 import type { GameApi } from "../game/types.js";
-import { SHIP_FUNCTIONS, shipFunction, type ShipFunctionId } from "../ship/functions.js";
+import { isDangerState, SHIP_FUNCTIONS, shipFunction, type ShipFunctionId } from "../ship/functions.js";
 import { decidePress, type ShipMode } from "../ship/press.js";
 import { renderShipKey, shipFunctionName, toShipView, type ShipStyle } from "../ship/render.js";
 import { readShipState } from "../ship/state.js";
@@ -22,7 +22,8 @@ import { ThrottledRenderer } from "./throttled-renderer.js";
 export const FUNCTIONS_EVENT = "getFunctions";
 
 /** Réglages enregistrés par touche. */
-export type ShipToggleSettings = { function?: ShipFunctionId; mode?: ShipMode; style?: ShipStyle };
+/** `dangerAlert` : alerte rouge en état dangereux (portes ouvertes…), activée par défaut. */
+export type ShipToggleSettings = { function?: ShipFunctionId; mode?: ShipMode; style?: ShipStyle; dangerAlert?: boolean };
 
 const MODES: readonly ShipMode[] = ["toggle", "on", "off"];
 const STYLES: readonly ShipStyle[] = ["text", "led", "fill"];
@@ -121,7 +122,8 @@ export class ShipToggleAction extends SingletonAction<ShipToggleSettings> {
 				if (!entry) return undefined;
 				const { fn, style } = resolve(entry.settings);
 				const state = readShipState(fn.id, this.deps.hub.section("vehicle"), this.deps.hub.section("actor"));
-				const image = renderShipKey(toShipView(fn.id, state, this.deps.lang()), style);
+				const danger = entry.settings.dangerAlert !== false && isDangerState(fn.id, state);
+				const image = renderShipKey(toShipView(fn.id, state, this.deps.lang()), style, danger);
 				const { action } = entry;
 				return { payload: image, send: async () => (action.isKey() ? action.setImage(image) : undefined) };
 			},

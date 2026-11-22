@@ -30,14 +30,14 @@ const waitFor = async (check: () => Promise<boolean>) => {
 };
 
 describe("GET /api/v1/actions", () => {
-	test("actions du jeu groupées, libellés selon la langue, sans action dangereuse", async () => {
+	test("actions du jeu groupées, libellés selon la langue, actions sensibles comprises", async () => {
 		const s = await start({ game: { actions: ACTIONS } });
 		const fr = await s.call("GET", "/api/v1/actions?lang=fr");
 		expect(fr.status).toBe(200);
 		validateResponse("/api/v1/actions", "GET", 200, fr.body);
 		expect(fr.body.live).toBe(true);
 		const names = fr.body.groups.flatMap((g: { actions: { name: string }[] }) => g.actions.map((a) => a.name));
-		expect(names.sort()).toEqual(["emote_wave", "v_invoke_ping", "v_lights_on"]);
+		expect(names.sort()).toEqual(["emote_wave", "v_invoke_ping", "v_lights_on", "v_self_destruct"]);
 		expect(JSON.stringify(fr.body)).toContain("Faire coucou");
 		const en = await s.call("GET", "/api/v1/actions?lang=en");
 		expect(JSON.stringify(en.body)).toContain("Wave");
@@ -49,7 +49,7 @@ describe("GET /api/v1/actions", () => {
 		const r = await s.call("GET", "/api/v1/actions");
 		expect(r.status).toBe(200);
 		expect(r.body.live).toBe(false);
-		expect(JSON.stringify(r.body)).not.toContain("v_self_destruct");
+		expect(JSON.stringify(r.body)).toContain("v_self_destruct");
 	});
 });
 
@@ -63,15 +63,14 @@ describe("POST /api/v1/actions/{name}/trigger", () => {
 		expect(received).toEqual([{ action_name: "emote_wave" }]);
 	});
 
-	test("action dangereuse → 403, rien envoyé", async () => {
+	test("action sensible → envoyée (refusée seulement à l'IA)", async () => {
 		const received: TriggerRequest[] = [];
 		const s = await start({ game: { trigger: (req) => (received.push(req), { status: 1 }) } });
-		for (const name of ["v_self_destruct", "v_eject", "v_open_all_doors", "v_toggle_all_doorlocks"]) {
+		for (const name of ["v_self_destruct", "v_open_all_doors", "v_toggle_all_doorlocks"]) {
 			const r = await s.call("POST", `/api/v1/actions/${name}/trigger`);
-			expect(r.status, name).toBe(403);
-			validateResponse("/api/v1/actions/{name}/trigger", "POST", 403, r.body);
+			expect(r.status, name).toBe(200);
 		}
-		expect(received).toEqual([]);
+		expect(received.map((r) => r.action_name)).toEqual(["v_self_destruct", "v_open_all_doors", "v_toggle_all_doorlocks"]);
 	});
 
 	test("refus du jeu ou jeu absent → 502 avec la raison", async () => {

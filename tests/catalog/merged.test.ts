@@ -9,12 +9,11 @@ const flat = (items: DataSourceItem[]): { label: string; value: string }[] =>
 	items.flatMap((i) => ("children" in i ? flat(i.children) : [i as { label: string; value: string }]));
 
 describe("commandes regroupées", () => {
-	test("13 regroupements on / off / bascule, sans commande dangereuse", () => {
+	test("16 regroupements on / off / bascule (portes, verrous et puissance générale compris)", () => {
 		expect(MERGED_COMMANDS.map((g) => g.fn)).toEqual([
 			"gear", "lights", "vtol", "transform", "decoupled", "gsafe", "proximity", "advanced_hud",
-			"night_vision", "master_nav", "power_engines", "power_weapons", "power_shields",
+			"night_vision", "master_nav", "power_engines", "power_weapons", "power_shields", "power_main", "doors_closed", "doors_locked",
 		]);
-		for (const g of MERGED_COMMANDS) for (const c of [g.on, g.off, g.toggle]) expect(DANGEROUS_ACTIONS.has(c)).toBe(false);
 	});
 
 	test("commande selon le mode (bascule par défaut)", () => {
@@ -53,13 +52,14 @@ describe("liste de Ship Action avec regroupements", () => {
 		expect(group("group:night_vision")).toBe("Siège");
 		expect(values).toContain("v_flightready");
 		expect(values).toContain("v_ifcs_toggle_esp");
-		expect(values).toContain("v_power_set_on");
+		expect(group("group:power_main")).toBe("Puissance");
+		expect(group("group:doors_closed")).toBe("Vaisseau");
 	});
 
-	test("liste bien plus courte, toujours sans action dangereuse", () => {
+	test("liste bien plus courte ; actions sensibles proposées (autodestruction, éjection…)", () => {
 		const unmerged = flat(buildDropdown(snapshot, SHIP_GROUPS, "fr")).length;
-		expect(values.length).toBe(unmerged - 13 * 2);
-		for (const d of DANGEROUS_ACTIONS) expect(values).not.toContain(d);
+		expect(values.length).toBe(unmerged - 16 * 2);
+		for (const d of ["v_self_destruct", "v_eject", "v_emergency_exit"]) expect(values).toContain(d);
 	});
 
 	test("regroupement enregistré retrouvé (pas « indisponible »)", () => {

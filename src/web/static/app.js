@@ -3,6 +3,7 @@
 import { I18N } from "./i18n.js";
 import { createAutoSwitch, parseAutoSettings, POSITIONS } from "./autoswitch.js";
 import { createLan } from "./lan.js";
+import { holdToPress, HOLD_ACTIONS } from "./hold.js";
 import { createSetup } from "./setup.js";
 import { applyTheme, readTheme, saveTheme, themeAccent, THEMES } from "./themes.js";
 import { shipCard } from "./shipcard.js";
@@ -153,9 +154,19 @@ const setup = createSetup({
 });
 $("setup-open").addEventListener("click", () => setup.open());
 
-// ---------- Options (thème, langue, vue auto, tablette, aide) ----------
+// ---------- Options (thème, alertes, langue, vue auto, tablette, aide) ----------
 let theme = readTheme();
 applyTheme(theme);
+
+// Alerte rouge des états dangereux (portes ouvertes…), par appareil ; activée par défaut.
+const DANGER_KEY = "sctd-danger-alert";
+let dangerAlert = storageGet(DANGER_KEY) !== "0";
+$("opt-danger").addEventListener("change", (e) => {
+	dangerAlert = e.target.checked;
+	storageSet(DANGER_KEY, dangerAlert ? "1" : "0");
+	document.documentElement.classList.toggle("no-danger-alert", !dangerAlert);
+});
+document.documentElement.classList.toggle("no-danger-alert", !dangerAlert);
 
 function setTheme(next) {
 	theme = next;
@@ -169,6 +180,9 @@ function renderOptions() {
 	$("options-title").textContent = t("optionsTitle");
 	$("opt-h-look").textContent = t("optLook");
 	$("opt-h-lang").textContent = t("optLang");
+	$("opt-h-danger").textContent = t("optDanger");
+	$("opt-danger-label").textContent = t("optDangerLabel");
+	$("opt-danger").checked = dangerAlert;
 	$("opt-h-auto").textContent = t("optAuto");
 	$("opt-h-lan").textContent = t("optLan");
 	$("opt-h-help").textContent = t("optHelp");
@@ -354,6 +368,8 @@ function tileButton(index) {
 		b.innerHTML = '<img alt=""><span class="flash"></span>';
 		const i = grid.children.length;
 		b.addEventListener("click", () => press(i));
+		// Tuile d'éjection : il faut rester appuyé (anneau rouge), le clic seul ne fait rien.
+		holdToPress(b, () => press(i), () => b.dataset.hold === "1");
 		grid.append(b);
 		el = grid.children[index];
 	}
@@ -525,6 +541,7 @@ function renderShip(status, functions) {
 		el.dataset.state = f.state;
 		// Lecture seule (ex. croisière) : pas d'appui, une info-bulle explique pourquoi.
 		el.dataset.readonly = f.readOnly ? "1" : "";
+		el.classList.toggle("danger", !!f.danger);
 		el.title = f.readOnly ? t("readOnlyFunction") : "";
 	});
 }
@@ -551,7 +568,8 @@ function connect() {
 		$("notice").hidden = s.actions !== "unsupported";
 	});
 	source.addEventListener("tile", (e) => {
-		const { index, image } = JSON.parse(e.data);
+		const { index, image, hold } = JSON.parse(e.data);
+		tileButton(index).dataset.hold = hold ? "1" : "";
 		const img = tileButton(index).querySelector("img");
 		if (img.src !== image) img.src = image;
 	});
@@ -631,6 +649,8 @@ const myView = createView({
 	card,
 	pressFunction,
 	triggerAction: triggerEmote,
+	holdToPress,
+	holdActions: HOLD_ACTIONS,
 	morse: sendMorse,
 	showMessage,
 	storage: { get: storageGet, set: storageSet },

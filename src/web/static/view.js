@@ -193,6 +193,7 @@ export function createView(ctx) {
 				const update = () => {
 					const f = state?.ship.find((x) => x.id === item.ref);
 					b.dataset.readonly = f?.readOnly ? "1" : "";
+					b.classList.toggle("danger", !!f?.danger);
 					b.title = f?.readOnly ? t("readOnlyFunction") : "";
 					b.querySelector(".label").textContent = f?.label ?? labelOf(item);
 					b.querySelector(".value").textContent = f?.word ?? "—";
@@ -203,9 +204,16 @@ export function createView(ctx) {
 			case "action": {
 				const b = button("card function emote");
 				b.append(el("div", "label"), el("span", "flash"));
+				const hold = ctx.holdActions?.has(item.ref);
 				b.addEventListener("click", () => {
 					if (!unlocked) ctx.triggerAction(item.ref, b);
 				});
+				// Éjection : rester appuyé (anneau rouge) ; en édition, la case se déplace normalement.
+				if (hold) {
+					b.classList.add("hold-action");
+					b.title = t("holdToEject");
+					ctx.holdToPress(b, () => ctx.triggerAction(item.ref, b), () => !unlocked);
+				}
 				box.append(b);
 				const update = () => (b.querySelector(".label").textContent = actionLabel(item.ref));
 				return { box, update };

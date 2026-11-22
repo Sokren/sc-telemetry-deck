@@ -1,7 +1,6 @@
 import { ACTOR_GROUPS, SHIP_GROUPS } from "../../catalog/dropdown.js";
 import { groupLabel, labelFor } from "../../catalog/labels.js";
 import type { ActionSource } from "../../catalog/source.js";
-import { DANGEROUS_ACTIONS } from "../../game/dangerous.js";
 import type { GameApi } from "../../game/types.js";
 import type { Route } from "../http.js";
 
@@ -16,7 +15,7 @@ export function actionRoutes(deps: { game: Pick<GameApi, "trigger">; source: Act
 			path: "/api/v1/actions",
 			handle: async ({ lang }) => {
 				const { actions, live } = await deps.source.getActions();
-				const offered = actions.filter((a) => !DANGEROUS_ACTIONS.has(a.name));
+				const offered = actions;
 				const categories = [...new Set(offered.map((a) => a.category))].sort((a, b) => {
 					const ia = KNOWN_ORDER.indexOf(a);
 					const ib = KNOWN_ORDER.indexOf(b);
@@ -37,7 +36,6 @@ export function actionRoutes(deps: { game: Pick<GameApi, "trigger">; source: Act
 			method: "POST",
 			path: "/api/v1/actions/{name}/trigger",
 			handle: async ({ params }) => {
-				if (DANGEROUS_ACTIONS.has(params.name)) return { status: 403, json: { error: "dangerous_action" } };
 				const result = await deps.game.trigger(params.name, TRIGGER_TIMEOUT_MS);
 				return result.ok ? { status: 200, json: { ok: true } } : { status: 502, json: result };
 			},

@@ -10,7 +10,7 @@ import type { MorseControl } from "./morse-control.js";
 import { characterOf, shipStatusOf } from "./panels.js";
 import { shipStateOf } from "./routes/ship.js";
 import { vitalOf } from "./routes/vitals.js";
-import { renderTile, type TileFeedback } from "./tiles.js";
+import { renderTile, type TileFeedback, tileNeedsHold } from "./tiles.js";
 
 export type EventHubDeps = {
 	hub: Pick<TelemetryHub, "subscribe" | "section">;
@@ -123,7 +123,7 @@ export class EventHub {
 			const image = renderTile(tile, ctx);
 			if (image !== c.tiles[index]) {
 				c.tiles[index] = image;
-				this.#write(c, "tile", { index, image });
+				this.#write(c, "tile", { index, image, ...(tileNeedsHold(tile) ? { hold: true } : {}) });
 			}
 		});
 		const actor = this.deps.hub.section("actor");

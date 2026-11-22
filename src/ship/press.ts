@@ -1,4 +1,3 @@
-import { DANGEROUS_ACTIONS } from "../game/dangerous.js";
 import type { ShipFunction } from "./functions.js";
 import type { ShipState } from "./state.js";
 
@@ -10,7 +9,7 @@ export type PressDecision = { kind: "send"; action: string } | { kind: "noop" } 
 /**
  * Ce qu'un appui doit faire, d'après l'état lu et le mode de la touche.
  * L'état fait foi : on envoie la commande On / Off de l'état voulu plutôt qu'une bascule, sauf si
- * l'état est inconnu ou si la fonction n'a qu'une bascule. Une action dangereuse n'est jamais envoyée.
+ * l'état est inconnu ou si la fonction n'a qu'une bascule.
  */
 export function decidePress(fn: ShipFunction, state: ShipState, mode: ShipMode): PressDecision {
 	const effective: ShipMode = fn.onlyOn ? "on" : mode;
@@ -28,6 +27,5 @@ export function decidePress(fn: ShipFunction, state: ShipState, mode: ShipMode):
 	}
 
 	if (!action) return { kind: "refuse", reason: `${fn.id} : aucune commande pour « ${effective} » (état ${state})` };
-	if (DANGEROUS_ACTIONS.has(action)) return { kind: "refuse", reason: `Action dangereuse refusée : ${action}` };
 	return { kind: "send", action };
 }

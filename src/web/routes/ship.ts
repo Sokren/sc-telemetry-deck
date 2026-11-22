@@ -1,6 +1,6 @@
 import type { Lang } from "../../catalog/labels.js";
 import type { GameApi } from "../../game/types.js";
-import { isReadOnly, SHIP_FUNCTION_IDS, shipFunction, type ShipFunctionId } from "../../ship/functions.js";
+import { isDangerState, isReadOnly, SHIP_FUNCTION_IDS, shipFunction, type ShipFunctionId } from "../../ship/functions.js";
 import { decidePress, type ShipMode } from "../../ship/press.js";
 import { shipFunctionName, toShipView } from "../../ship/render.js";
 import { readShipState, type ShipState } from "../../ship/state.js";
@@ -9,7 +9,8 @@ import type { Route } from "../http.js";
 import { TRIGGER_TIMEOUT_MS } from "./actions.js";
 
 /** `readOnly` (seulement s'il est vrai) : aucune commande du jeu, l'état se lit mais un appui ne fait rien. */
-export type ShipFunctionState = { id: ShipFunctionId; name: string; label: string; state: ShipState; word: string; readOnly?: true };
+/** `danger` (seulement s'il est vrai) : état dangereux, ex. portes ouvertes. */
+export type ShipFunctionState = { id: ShipFunctionId; name: string; label: string; state: ShipState; word: string; readOnly?: true; danger?: true };
 
 const isId = (x: string): x is ShipFunctionId => (SHIP_FUNCTION_IDS as readonly string[]).includes(x);
 const MODES: readonly ShipMode[] = ["toggle", "on", "off"];
@@ -18,7 +19,11 @@ export function shipStateOf(id: ShipFunctionId, hub: Pick<TelemetryHub, "section
 	const state = readShipState(id, hub.section("vehicle"), hub.section("actor"));
 	const view = toShipView(id, state, lang);
 	const base = { id, name: shipFunctionName(id, lang), label: view.label, state, word: view.word };
-	return isReadOnly(shipFunction(id)) ? { ...base, readOnly: true } : base;
+	return {
+		...base,
+		...(isReadOnly(shipFunction(id)) ? { readOnly: true as const } : {}),
+		...(isDangerState(id, state) ? { danger: true as const } : {}),
+	};
 }
 
 /** Code stable d'un refus (indépendant de la langue). */
@@ -48,8 +53,7 @@ export async function pressShipFunction(
 	if (decision.kind === "noop") return { status: 200, json: { decision: "noop" } };
 	if (decision.kind === "refuse") {
 		// La raison de `decidePress` (module partagé) est en français : on expose un code stable et une raison traduite.
-		const code: RefusalCode =
-			state === "unavailable" ? "unavailable" : decision.reason.startsWith("Action dangereuse") ? "dangerous_action" : "no_command";
+		const code: RefusalCode = state === "unavailable" ? "unavailable" : "no_command";
 		return { status: 409, json: { decision: "refused", code, reason: REFUSALS[code][lang] } };
 	}
 	const result = await deps.game.trigger(decision.action, TRIGGER_TIMEOUT_MS);

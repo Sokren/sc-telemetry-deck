@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import type { Lang } from "../catalog/labels.js";
 import { DISPLAY_VALUES } from "../display/values.js";
-import { DANGEROUS_ACTIONS } from "../game/dangerous.js";
 import { morseLight, type MorseLight } from "../morse/lights.js";
 import { SHIP_FUNCTION_IDS } from "../ship/functions.js";
 import { INSTRUMENTS } from "./panels.js";
@@ -135,7 +134,7 @@ function parseItem(x: unknown): ViewItem | undefined {
 	}
 	if (typeof o.ref !== "string") return undefined;
 	if (kind === "action") {
-		if (!ACTION.test(o.ref) || DANGEROUS_ACTIONS.has(o.ref)) return undefined;
+		if (!ACTION.test(o.ref)) return undefined;
 	} else if (!REFS[kind]?.includes(o.ref)) return undefined;
 	return { id: o.id, kind, ref: o.ref, size: o.size };
 }

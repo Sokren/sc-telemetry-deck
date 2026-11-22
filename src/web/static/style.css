@@ -1443,3 +1443,77 @@ dialog .opt-back {
 	cursor: default;
 	border-style: dashed;
 }
+/* État dangereux (portes ouvertes, déverrouillées) : contour rouge, mot en rouge, ⚠ ; désactivable dans ⚙ Options. */
+.function.danger {
+	border-color: var(--bad);
+	box-shadow: 0 0 0 1px var(--bad) inset;
+}
+.function.danger .value {
+	color: var(--bad);
+}
+.function.danger .label::before {
+	content: "⚠ ";
+	color: var(--bad);
+}
+.no-danger-alert .function.danger {
+	border-color: var(--line);
+	box-shadow: none;
+}
+.no-danger-alert .function.danger .value {
+	color: inherit;
+}
+.no-danger-alert .function.danger .label::before {
+	content: none;
+}
+.opt-check {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	font-size: 14px;
+	cursor: pointer;
+}
+.opt-check input {
+	margin-top: 3px;
+}
+/* Appui maintenu (éjection) : anneau rouge qui se remplit, temps restant au centre. */
+.hold-ring {
+	display: none;
+}
+.holding {
+	position: relative;
+}
+.holding .hold-ring {
+	display: flex;
+	position: absolute;
+	inset: 0;
+	align-items: center;
+	justify-content: center;
+	border-radius: inherit;
+	background: color-mix(in srgb, #2a1212 80%, transparent);
+	pointer-events: none;
+	z-index: 2;
+}
+.holding .hold-ring::before {
+	content: "";
+	position: absolute;
+	width: min(70%, 90px);
+	aspect-ratio: 1;
+	border-radius: 50%;
+	background: conic-gradient(var(--bad) calc(var(--hold, 0) * 360deg), color-mix(in srgb, var(--bad) 25%, transparent) 0);
+	-webkit-mask: radial-gradient(circle, transparent 58%, #000 60%);
+	mask: radial-gradient(circle, transparent 58%, #000 60%);
+}
+.holding .hold-ring::after {
+	content: attr(data-left);
+	position: relative;
+	color: #fff;
+	font-weight: 700;
+	font-size: 18px;
+}
+.hold-action {
+	border-color: var(--bad);
+	touch-action: none;
+}
+.tile[data-hold="1"] {
+	touch-action: none;
+}

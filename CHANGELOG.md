@@ -11,6 +11,11 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 
 ## [Unreleased]
 
+### Changed
+- **Sensitive actions on keys and in the web app**: opening / unlocking doors and ports, self-destruct, emergency exit and turning main power off are now offered and sent in **one press** (they stay refused to the AI). **Eject** must be **held 1.5 s** — a red ring fills up with the time left, releasing earlier cancels (Ship Action key, grid tile, view item).
+- **Ship Toggle**: doors (close / open), door locks (lock / unlock) and main power (on / off) now work both ways.
+- **Red warning only in a dangerous state** (doors open, locks open): red outline, ⚠, state word in red — nothing when closed / locked. Turn it off per key on Stream Deck (*Warning* checkbox) or for the whole web app in ⚙ Options (per device). API: `danger: true` on ship functions in a dangerous state, `hold: true` on grid tiles that must be held. API contract **1.6.0** (also: `cruise` function, `readOnly`).
+
 ### Added
 - **Cruise control** (Alt+C) as a ship function, **read only**: ON / OFF on Ship Toggle, in the web app's *Ship* tab and views (dashed outline, a press does nothing — the game has no command for it). API: `cruise` function id, `readOnly: true` on functions the game cannot control. Checked in game on the Lightning F8C. The speed limiter value (mouse wheel) and the Corsair's wings are not sent by the game, so not shown.
 - Web app: **❓ Enable telemetry** button, shown while the game sends nothing (also in *About*): step-by-step guide for Star Citizen 5.0 (create `user.cfg` in the game channel folder, add `server.game.telemetry.enabled=1`, launch the game, check `Game.log`) and the 4.10.3 LIVE command, with *Copy* buttons. The app still never touches the game's files.
