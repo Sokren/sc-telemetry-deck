@@ -9,6 +9,11 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
+## [Non publié]
+
+### Ajouté
+- **Morse Code** (Stream Deck) et API de l'appli web : morse avec les **phares du vaisseau** en plus de la torche (réglage *Lumière*, `light: "ship_lights"` dans `POST /api/v1/morse`, contrat **1.4.0**) ; les phares sont allumés / éteints explicitement et laissés éteints à la fin. Les touches existantes gardent la torche.
+
 ## [0.3.7] — 2026-11-21
 
 ### Ajouté

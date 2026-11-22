@@ -1,15 +1,18 @@
 export type PlayResult = "done" | "stopped" | "failed";
 
+/** Allume (`true`) ou éteint (`false`) la lumière ; une torche sans état lisible se contente de basculer. */
+export type LightSwitch = (on: boolean) => Promise<boolean>;
+
 /**
- * Exécute des bascules de torche à des instants donnés, sur une horloge absolue (la durée des
+ * Exécute des bascules de lumière à des instants donnés, sur une horloge absolue (la durée des
  * appels au jeu ne décale pas la suite). Une seule émission à la fois ; arrêtable. À l'arrêt ou en
- * cas d'échec, si la torche est restée allumée, elle est rebasculée une fois.
+ * cas d'échec, si la lumière est restée allumée, elle est éteinte une fois.
  */
 export class MorsePlayer {
 	#abort: AbortController | undefined;
 
 	constructor(
-		private readonly toggle: () => Promise<boolean>,
+		private readonly toggle: LightSwitch,
 		private readonly wait: (ms: number, signal: AbortSignal) => Promise<void>,
 		private readonly now: () => number = Date.now,
 	) {}
@@ -22,7 +25,8 @@ export class MorsePlayer {
 		this.#abort?.abort();
 	}
 
-	async play(times: number[]): Promise<PlayResult> {
+	/** `light` : autre lumière que celle par défaut (ex. phares du vaisseau) pour cette émission. */
+	async play(times: number[], light: LightSwitch = this.toggle): Promise<PlayResult> {
 		const abort = new AbortController();
 		this.#abort = abort;
 		const start = this.now();
@@ -37,13 +41,13 @@ export class MorsePlayer {
 					result = "stopped";
 					break;
 				}
-				if (!(await this.toggle())) {
+				if (!(await light(!lit))) {
 					result = "failed";
 					break;
 				}
 				lit = !lit;
 			}
-			if (lit) await this.toggle();
+			if (lit) await light(false);
 			return result;
 		} finally {
 			this.#abort = undefined;

@@ -5,10 +5,11 @@ import {
 	type WillAppearEvent,
 } from "@elgato/streamdeck";
 import { normalizeText, toToggleTimes } from "../morse/encode.js";
+import { lightSwitch, morseLight, type MorseLight } from "../morse/lights.js";
 import type { MorsePlayer } from "../morse/player.js";
 
 /** Réglages enregistrés par touche (les champs du panneau peuvent arriver en texte). */
-export type MorseSettings = { text?: string; unitMs?: number; repeat?: number };
+export type MorseSettings = { text?: string; unitMs?: number; repeat?: number; light?: string };
 
 const DEFAULTS = { text: "SOS", unitMs: 400, repeat: 1 };
 
@@ -17,18 +18,21 @@ function bounded(value: unknown, min: number, max: number, fallback: number): nu
 	return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : fallback;
 }
 
-export function readSettings(s: MorseSettings): { text: string; unitMs: number; repeat: number } {
+export function readSettings(s: MorseSettings): { text: string; unitMs: number; repeat: number; light: MorseLight } {
 	return {
 		text: typeof s.text === "string" && s.text.trim() !== "" ? s.text : DEFAULTS.text,
 		unitMs: bounded(s.unitMs, 100, 2000, DEFAULTS.unitMs),
 		repeat: bounded(s.repeat, 1, 10, DEFAULTS.repeat),
+		// Touches existantes (sans réglage) : la torche, comme avant.
+		light: morseLight(s.light),
 	};
 }
 
-export type MorseActionDeps = { player: MorsePlayer; log: (msg: string) => void };
+/** `trigger` : envoie une action au jeu (phares du vaisseau) ; absent → seulement la lumière par défaut du lecteur. */
+export type MorseActionDeps = { player: MorsePlayer; log: (msg: string) => void; trigger?: (action: string) => Promise<boolean> };
 
 /**
- * Fait clignoter la torche en morse. Un appui pendant une émission (sur n'importe quelle touche Morse) l'arrête.
+ * Fait clignoter la torche, ou les phares du vaisseau, en morse. Un appui pendant une émission (sur n'importe quelle touche Morse) l'arrête.
  * L'action enregistrée auprès de Stream Deck est `MorseCodeAction` (morse-code-action.ts).
  */
 export class MorseAction extends SingletonAction<MorseSettings> {
@@ -50,7 +54,7 @@ export class MorseAction extends SingletonAction<MorseSettings> {
 			player.stop();
 			return;
 		}
-		const { text, unitMs, repeat } = readSettings(ev.payload.settings);
+		const { text, unitMs, repeat, light } = readSettings(ev.payload.settings);
 		const times = toToggleTimes(text, unitMs, repeat);
 		const title = normalizeText(text);
 		if (times.length === 0) {
@@ -58,13 +62,17 @@ export class MorseAction extends SingletonAction<MorseSettings> {
 			return;
 		}
 		// Démarrer avant tout await : un 2e appui immédiat voit déjà `playing` et arrête au lieu de relancer.
-		const run = player.play(times);
+		const run = light === "ship_lights" && this.deps.trigger ? player.play(times, lightSwitch(light, this.deps.trigger)) : player.play(times);
 		await ev.action.setTitle(`● ${title}`);
 		const result = await run;
 		await ev.action.setTitle(title);
 		if (result === "done") await ev.action.showOk();
 		if (result === "failed") {
-			this.deps.log(`Morse « ${title} » interrompu : la torche n'a pas pu être basculée (jeu lancé, perso spawné ?)`);
+			this.deps.log(
+				light === "ship_lights"
+					? `Morse « ${title} » interrompu : les phares n'ont pas pu être commandés (assis dans un vaisseau, jeu en 5.0 ?)`
+					: `Morse « ${title} » interrompu : la torche n'a pas pu être basculée (jeu lancé, perso spawné ?)`,
+			);
 			await ev.action.showAlert();
 		}
 	}

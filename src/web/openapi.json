@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.3.0",
+		"version": "1.4.0",
 		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Dangerous actions (self destruct, eject, opening doors…) are always refused. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions dangereuses (autodestruction, éjection, ouverture des portes…) sont toujours refusées.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
@@ -521,7 +521,7 @@
 					"Morse"
 				],
 				"summary": "Flash the flashlight in Morse — torche en morse",
-				"description": "Starts a Morse code emission with the flashlight (A–Z, 0–9, spaces; accents removed). Same limits as the Morse Code key. The flashlight must be off at start (the game does not expose its state). — FR : lance une émission morse avec la torche (A–Z, 0–9, espaces ; accents retirés). Mêmes limites que la touche Morse Code. La torche doit être éteinte au départ (le jeu n'expose pas son état).",
+				"description": "Starts a Morse code emission with the flashlight or the ship’s lights (light; A–Z, 0–9, spaces; accents removed). Same limits as the Morse Code key. The flashlight must be off at start (the game does not expose its state); the ship’s lights are switched on / off explicitly and left off at the end. — FR : lance une émission morse avec la torche ou les phares du vaisseau (light ; A–Z, 0–9, espaces ; accents retirés). Mêmes limites que la touche Morse Code. La torche doit être éteinte au départ (le jeu n’expose pas son état) ; les phares sont allumés / éteints explicitement et laissés éteints à la fin.",
 				"requestBody": {
 					"required": false,
 					"content": {
@@ -1643,6 +1643,15 @@
 						"minimum": 1,
 						"maximum": 10,
 						"default": 1
+					},
+					"light": {
+						"type": "string",
+						"enum": [
+							"flashlight",
+							"ship_lights"
+						],
+						"default": "flashlight",
+						"description": "Light used: the character’s flashlight (toggled, must be off at start) or the ship’s lights (switched on / off, seated in a ship, off at the end) — FR : lumière utilisée : la torche du perso (basculée, éteinte au départ) ou les phares du vaisseau (allumés / éteints, assis dans un vaisseau, éteints à la fin)"
 					}
 				}
 			},
@@ -1651,7 +1660,8 @@
 				"required": [
 					"text",
 					"unitMs",
-					"repeat"
+					"repeat",
+					"light"
 				],
 				"properties": {
 					"text": {
@@ -1662,6 +1672,13 @@
 					},
 					"repeat": {
 						"type": "integer"
+					},
+					"light": {
+						"type": "string",
+						"enum": [
+							"flashlight",
+							"ship_lights"
+						]
 					}
 				}
 			},

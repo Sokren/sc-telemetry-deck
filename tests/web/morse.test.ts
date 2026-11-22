@@ -5,8 +5,8 @@ import { startTestServer, validateResponse, type TestServer } from "./harness.js
 
 describe("MorseControl", () => {
 	test("bornes et défauts identiques à la touche Morse Code", () => {
-		expect(MorseControl.settings({})).toEqual({ text: "SOS", unitMs: 400, repeat: 1 });
-		expect(MorseControl.settings({ text: "a", unitMs: 10, repeat: 99 })).toEqual({ text: "a", unitMs: 100, repeat: 10 });
+		expect(MorseControl.settings({})).toEqual({ text: "SOS", unitMs: 400, repeat: 1, light: "flashlight" });
+		expect(MorseControl.settings({ text: "a", unitMs: 10, repeat: 99 })).toEqual({ text: "a", unitMs: 100, repeat: 10, light: "flashlight" });
 	});
 
 	test("démarre, refuse une 2e émission, s'arrête et remet la torche", async () => {
@@ -32,6 +32,17 @@ describe("MorseControl", () => {
 	});
 });
 
+describe("MorseControl — phares du vaisseau", () => {
+	test("allumer / éteindre explicites, réglage renvoyé", async () => {
+		const sent: string[] = [];
+		const m = new MorseControl({ trigger: async (n) => (sent.push(n), { ok: true }) }, async () => {});
+		expect(MorseControl.settings({ light: "ship_lights" }).light).toBe("ship_lights");
+		expect(m.start({ text: "E", light: "ship_lights" })).toBe("started");
+		while (m.playing) await new Promise((r) => setTimeout(r, 5));
+		expect(sent).toEqual(["v_lights_on", "v_lights_off"]);
+	});
+});
+
 describe("API morse", () => {
 	let s: TestServer | undefined;
 	afterEach(async () => {
@@ -45,7 +56,7 @@ describe("API morse", () => {
 		const r = await s.call("POST", "/api/v1/morse", { body: { text: "SOS", unitMs: 2000 } });
 		expect(r.status).toBe(202);
 		validateResponse("/api/v1/morse", "POST", 202, r.body);
-		expect(r.body).toEqual({ text: "SOS", unitMs: 2000, repeat: 1 });
+		expect(r.body).toEqual({ text: "SOS", unitMs: 2000, repeat: 1, light: "flashlight" });
 		const busy = await s.call("POST", "/api/v1/morse", { body: {} });
 		expect(busy.status).toBe(409);
 		validateResponse("/api/v1/morse", "POST", 409, busy.body);

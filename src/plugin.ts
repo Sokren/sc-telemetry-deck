@@ -41,7 +41,13 @@ const wait = (ms: number, signal: AbortSignal) =>
 
 // Un seul lecteur pour toutes les touches Morse : la torche est commune.
 const morsePlayer = new MorsePlayer(async () => (await game.trigger("toggle_flashlight", TRIGGER_TIMEOUT_MS)).ok, wait);
-streamDeck.actions.registerAction(new MorseCodeAction({ player: morsePlayer, log: (msg) => streamDeck.logger.info(msg) }));
+streamDeck.actions.registerAction(
+	new MorseCodeAction({
+		player: morsePlayer,
+		log: (msg) => streamDeck.logger.info(msg),
+		trigger: async (action) => (await game.trigger(action, TRIGGER_TIMEOUT_MS)).ok,
+	}),
+);
 
 // Un seul flux de télémétrie pour tous les afficheurs ; ouvert seulement s'il y en a un de visible.
 const hub = new TelemetryHub(game);

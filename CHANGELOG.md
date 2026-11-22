@@ -9,6 +9,11 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-streamd
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
+## [Unreleased]
+
+### Added
+- **Morse Code** (Stream Deck) and web app API: Morse code with the **ship's lights** as well as the flashlight (*Light* setting, `light: "ship_lights"` in `POST /api/v1/morse`, contract **1.4.0**); the lights are switched on / off explicitly and left off at the end. Existing keys keep the flashlight.
+
 ## [0.3.7] — 2026-11-21
 
 ### Added

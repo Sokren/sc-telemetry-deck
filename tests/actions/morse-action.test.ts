@@ -39,6 +39,20 @@ function setup(opts: { hold?: boolean; toggleOk?: boolean } = {}) {
 	return { action, logs, player, toggles: () => toggles };
 }
 
+describe("MorseAction — phares du vaisseau", () => {
+	test("réglage « ship_lights » : phares allumés / éteints, pas la torche", async () => {
+		const sent: string[] = [];
+		let t = 0;
+		const player = new MorsePlayer(async () => (sent.push("toggle_flashlight"), true), async (ms) => void (t += ms), () => t);
+		const action = new MorseAction({ player, log: () => {}, trigger: async (a) => (sent.push(a), true) });
+		const key = new FakeKey({ text: "e", light: "ship_lights" });
+		await action.onKeyDown(keyDown(key));
+		expect(sent).toEqual(["v_lights_on", "v_lights_off"]);
+		expect(key.calls).toEqual(["title:● E", "title:E", "ok"]);
+		expect(readSettings({ light: "ship_lights" }).light).toBe("ship_lights");
+	});
+});
+
 describe("MorseAction", () => {
 	test("appui → émission complète, « ● » pendant, ✔ à la fin", async () => {
 		const { action, toggles } = setup();
@@ -103,14 +117,14 @@ describe("MorseAction", () => {
 
 describe("readSettings", () => {
 	test("valeurs par défaut", () => {
-		expect(readSettings({})).toEqual({ text: "SOS", unitMs: 400, repeat: 1 });
+		expect(readSettings({})).toEqual({ text: "SOS", unitMs: 400, repeat: 1, light: "flashlight" });
 	});
 	test("bornes", () => {
-		expect(readSettings({ text: "a", unitMs: 10, repeat: 99 })).toEqual({ text: "a", unitMs: 100, repeat: 10 });
-		expect(readSettings({ unitMs: 5000, repeat: 0 })).toMatchObject({ unitMs: 2000, repeat: 1 });
+		expect(readSettings({ text: "a", unitMs: 10, repeat: 99 })).toEqual({ text: "a", unitMs: 100, repeat: 10, light: "flashlight" });
+		expect(readSettings({ unitMs: 5000, repeat: 0 })).toMatchObject({ unitMs: 2000, repeat: 1, light: "flashlight" });
 	});
 	test("valeurs saisies en texte ou invalides", () => {
 		expect(readSettings({ unitMs: "250" as unknown as number, repeat: "3" as unknown as number })).toMatchObject({ unitMs: 250, repeat: 3 });
-		expect(readSettings({ unitMs: "abc" as unknown as number, text: "  " })).toEqual({ text: "SOS", unitMs: 400, repeat: 1 });
+		expect(readSettings({ unitMs: "abc" as unknown as number, text: "  " })).toEqual({ text: "SOS", unitMs: 400, repeat: 1, light: "flashlight" });
 	});
 });

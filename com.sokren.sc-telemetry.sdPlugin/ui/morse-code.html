@@ -6,6 +6,12 @@
 		<script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
 	</head>
 	<body>
+		<sdpi-item label="Lumière / Light">
+			<sdpi-select setting="light" default="flashlight">
+				<option value="flashlight">Torche / Flashlight</option>
+				<option value="ship_lights">Phares du vaisseau / Ship lights</option>
+			</sdpi-select>
+		</sdpi-item>
 		<sdpi-item label="Texte / Text">
 			<sdpi-textfield setting="text" default="SOS" placeholder="SOS"></sdpi-textfield>
 		</sdpi-item>
@@ -17,9 +23,11 @@
 		</sdpi-item>
 		<sdpi-item>
 			<p>
-				Torche éteinte au départ (le jeu n'indique pas son état). A–Z, 0–9 et espaces ; accents retirés,
-				autres caractères ignorés. Un appui pendant l'émission l'arrête.<br />
-				Flashlight must be off at start. A–Z, 0–9 and spaces. Press again to stop.
+				Torche : éteinte au départ (le jeu n'indique pas son état). Phares : assis dans un vaisseau, commandés
+				en allumer / éteindre, éteints à la fin. A–Z, 0–9 et espaces ; accents retirés, autres caractères
+				ignorés. Un appui pendant l'émission l'arrête.<br />
+				Flashlight: off at start. Ship lights: seated in a ship, switched on / off, off at the end.
+				A–Z, 0–9 and spaces. Press again to stop.
 			</p>
 		</sdpi-item>
 	</body>

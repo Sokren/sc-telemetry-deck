@@ -1,9 +1,10 @@
 import type { GameApi } from "../game/types.js";
 import { normalizeText, toToggleTimes } from "../morse/encode.js";
+import { lightSwitch, morseLight, type MorseLight } from "../morse/lights.js";
 import { MorsePlayer } from "../morse/player.js";
 
-export type MorseRequest = { text?: unknown; unitMs?: unknown; repeat?: unknown };
-export type MorseSettings = { text: string; unitMs: number; repeat: number };
+export type MorseRequest = { text?: unknown; unitMs?: unknown; repeat?: unknown; light?: unknown };
+export type MorseSettings = { text: string; unitMs: number; repeat: number; light: MorseLight };
 
 const TRIGGER_TIMEOUT_MS = 2000;
 
@@ -25,19 +26,22 @@ const abortableWait = (ms: number, signal: AbortSignal) =>
  */
 export class MorseControl {
 	readonly #player: MorsePlayer;
+	readonly #trigger: (action: string) => Promise<boolean>;
 	readonly #listeners = new Set<() => void>();
 	#text = "";
 
 	constructor(game: Pick<GameApi, "trigger">, wait: (ms: number, signal: AbortSignal) => Promise<void> = abortableWait) {
-		this.#player = new MorsePlayer(async () => (await game.trigger("toggle_flashlight", TRIGGER_TIMEOUT_MS)).ok, wait);
+		this.#trigger = async (action) => (await game.trigger(action, TRIGGER_TIMEOUT_MS)).ok;
+		this.#player = new MorsePlayer(lightSwitch("flashlight", this.#trigger), wait);
 	}
 
-	/** Réglages bornés comme la touche : texte « SOS », point 400 ms (100–2000), 1 répétition (1–10). */
+	/** Réglages bornés comme la touche : texte « SOS », point 400 ms (100–2000), 1 répétition (1–10), torche. */
 	static settings(r: MorseRequest): MorseSettings {
 		return {
 			text: typeof r.text === "string" && r.text.trim() !== "" ? r.text : "SOS",
 			unitMs: bounded(r.unitMs, 100, 2000, 400),
 			repeat: bounded(r.repeat, 1, 10, 1),
+			light: morseLight(r.light),
 		};
 	}
 
@@ -61,7 +65,7 @@ export class MorseControl {
 		const times = toToggleTimes(s.text, s.unitMs, s.repeat);
 		if (times.length === 0) return "empty";
 		this.#text = normalizeText(s.text);
-		const run = this.#player.play(times);
+		const run = this.#player.play(times, lightSwitch(s.light, this.#trigger));
 		this.#emit();
 		void run.finally(() => this.#emit());
 		return "started";
