@@ -13,6 +13,8 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-streamd
 
 ### Added
 - **Morse Code** (Stream Deck) and web app API: Morse code with the **ship's lights** as well as the flashlight (*Light* setting, `light: "ship_lights"` in `POST /api/v1/morse`, contract **1.4.0**); the lights are switched on / off explicitly and left off at the end. Existing keys keep the flashlight.
+- Web app: **Morse in your views** — *Morse message* item (saved text, flashlight or ship lights, dot length, repetitions, set with ✏️; lit while it is being sent) and *Free Morse* item (type a message on the spot, flashlight ⇄ ship lights; the last text is kept on the device). Pressing any Morse item during sending stops it. Views API: `settings` on `morse` / `morse_free` items, `morse` in the `state` event (contract **1.5.0**).
+- **Current letter** while sending Morse: the letter and its code (lit sign highlighted, `␣` between words, current round when repeated) show on the Stream Deck **Morse Code** key, in the views' Morse items and on the grid's Morse tile. API: `morse.progress` in the `state` event.
 
 ## [0.3.7] — 2026-11-21
 

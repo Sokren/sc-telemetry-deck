@@ -32,8 +32,8 @@ function lines(label: string, width = 13): string[] {
 	return out;
 }
 
-/** Tuile 144×144 (data URI SVG) : icône du type, libellé sur une ou deux lignes, sous-titre éventuel. */
-export function renderLabelTile(t: { kind: LabelTileKind; label: string; sub?: string; active?: boolean }): string {
+/** Tuile 144×144 (data URI SVG) : icône du type, libellé sur une ou deux lignes, sous-titre éventuel (`bare` : sans « ● » d'activité). */
+export function renderLabelTile(t: { kind: LabelTileKind; label: string; sub?: string; active?: boolean; bare?: boolean }): string {
 	const accent = ACCENT[t.kind];
 	const rows = lines(t.label);
 	const parts = [
@@ -45,7 +45,8 @@ export function renderLabelTile(t: { kind: LabelTileKind; label: string; sub?: s
 		const y = rows.length === 1 ? 88 : 80 + i * 22;
 		parts.push(`<text x="72" y="${y}" font-family="${FONT}" font-size="19" font-weight="bold" fill="${TEXT}" text-anchor="middle">${escapeXml(row)}</text>`);
 	});
-	const sub = t.active ? `● ${t.sub ?? ""}`.trim() : t.sub;
+	// `bare` : sous-titre sans le « ● » d'activité (code morse, dont les signes allumés sont déjà des ●).
+	const sub = t.active && !t.bare ? `● ${t.sub ?? ""}`.trim() : t.sub;
 	if (sub) {
 		parts.push(`<text x="72" y="128" font-family="${FONT}" font-size="16" fill="${t.active ? accent : SUB}" text-anchor="middle">${escapeXml(sub)}</text>`);
 	}

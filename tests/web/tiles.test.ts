@@ -61,6 +61,17 @@ describe("renderTile", () => {
 		c.morse.stop();
 	});
 
+	test("tuile morse : lettre en cours et son code dès le premier allumage", async () => {
+		const c = ctx();
+		const tile: Tile = { type: "morse", settings: { text: "SOS" } };
+		c.morse.start({ text: "SOS", unitMs: 2000 });
+		while (!c.morse.progress) await new Promise((r) => setTimeout(r, 5));
+		const image = svg(renderTile(tile, c));
+		expect(image).toContain(">S<");
+		expect(image).toContain(">●··<");
+		c.morse.stop();
+	});
+
 	test("libellé échappé dans l'image", () => {
 		expect(svg(renderTile({ type: "morse", settings: { text: "A<B" } }, ctx()))).not.toContain("<B");
 	});

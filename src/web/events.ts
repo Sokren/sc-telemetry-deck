@@ -131,6 +131,13 @@ export class EventHub {
 			vitals: DISPLAY_VALUES.map((id) => vitalOf(id, actor, c.lang)),
 			ship: SHIP_FUNCTION_IDS.map((id) => shipStateOf(id, this.deps.hub, c.lang)),
 			character: characterOf(actor, c.lang),
+			// Morse en cours (cases morse des vues : allumées pendant l'envoi, lettre et signe en cours).
+			morse: {
+				playing: this.deps.morse.playing,
+				text: this.deps.morse.text,
+				light: this.deps.morse.light,
+				progress: this.deps.morse.progress ?? null,
+			},
 			shipStatus: shipStatusOf(
 				this.deps.hub.section("vehicle"),
 				actor,

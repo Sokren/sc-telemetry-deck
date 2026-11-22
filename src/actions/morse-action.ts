@@ -4,7 +4,7 @@ import {
 	type KeyDownEvent,
 	type WillAppearEvent,
 } from "@elgato/streamdeck";
-import { normalizeText, toToggleTimes } from "../morse/encode.js";
+import { normalizeText, progressAt, progressLines, toSigns, toToggleTimes, type MorseProgress } from "../morse/encode.js";
 import { lightSwitch, morseLight, type MorseLight } from "../morse/lights.js";
 import type { MorsePlayer } from "../morse/player.js";
 
@@ -26,6 +26,12 @@ export function readSettings(s: MorseSettings): { text: string; unitMs: number; 
 		// Touches existantes (sans réglage) : la torche, comme avant.
 		light: morseLight(s.light),
 	};
+}
+
+/** Titre de la touche pendant l'envoi : lettre en cours, son code (signe allumé en gros), tour si répété. */
+export function progressTitle(p: MorseProgress): string {
+	const [letter, code] = progressLines(p);
+	return [letter, code, p.rounds > 1 ? `${p.round}/${p.rounds}` : ""].filter(Boolean).join("\n");
 }
 
 /** `trigger` : envoie une action au jeu (phares du vaisseau) ; absent → seulement la lumière par défaut du lecteur. */
@@ -61,9 +67,17 @@ export class MorseAction extends SingletonAction<MorseSettings> {
 			await ev.action.showAlert();
 			return;
 		}
+		// Pendant l'envoi, le titre suit la lettre et le signe en cours (envoyé sans attendre : l'horloge du morse ne doit pas attendre Stream Deck).
+		const signs = toSigns(text, repeat);
+		const onToggle = (i: number) => {
+			const p = progressAt(signs, i, repeat);
+			if (p) void ev.action.setTitle(progressTitle(p)).catch(() => undefined);
+		};
 		// Démarrer avant tout await : un 2e appui immédiat voit déjà `playing` et arrête au lieu de relancer.
-		const run = light === "ship_lights" && this.deps.trigger ? player.play(times, lightSwitch(light, this.deps.trigger)) : player.play(times);
-		await ev.action.setTitle(`● ${title}`);
+		const switchLight = light === "ship_lights" && this.deps.trigger ? lightSwitch(light, this.deps.trigger) : undefined;
+		const starting = ev.action.setTitle(`● ${title}`); // envoyé avant la première lettre
+		const run = player.play(times, switchLight, onToggle);
+		await starting;
 		const result = await run;
 		await ev.action.setTitle(title);
 		if (result === "done") await ev.action.showOk();

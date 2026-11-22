@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.4.0",
+		"version": "1.5.0",
 		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Dangerous actions (self destruct, eject, opening doors…) are always refused. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions dangereuses (autodestruction, éjection, ouverture des portes…) sont toujours refusées.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
@@ -1141,7 +1141,7 @@
 					"Realtime"
 				],
 				"summary": "Real-time events (SSE) — événements temps réel (SSE)",
-				"description": "Server-Sent Events stream. Events: status (same object as /status, when it changes), tile {index, image} (only tiles whose image changed), state {vitals, ship, character, shipStatus} (at most 4 per second, only when changed), feedback {index, feedback, detail?} after a tile press, views (same object as GET /views) on connection and whenever a view is created, saved or deleted. A ': ping' comment every 15 s. Browsers' EventSource cannot send headers: pass the token as ?t=. — FR : flux Server-Sent Events. Événements : status (même objet que /status, quand il change), tile {index, image} (seulement les tuiles dont l'image change), state {vitals, ship, character, shipStatus} (au plus 4 par seconde, seulement si changé), feedback {index, feedback, detail?} après un appui de tuile, views (même objet que GET /views) à la connexion et à chaque création, enregistrement ou suppression d’une vue. Un commentaire « : ping » toutes les 15 s. EventSource ne peut pas envoyer d'en-tête : passer le jeton en ?t=.",
+				"description": "Server-Sent Events stream. Events: status (same object as /status, when it changes), tile {index, image} (only tiles whose image changed), state {vitals, ship, character, shipStatus, morse {playing, text, light, progress}} (at most 4 per second, only when changed), feedback {index, feedback, detail?} after a tile press, views (same object as GET /views) on connection and whenever a view is created, saved or deleted. morse.progress: null, or the letter being sent {letter, code ('.' and '-'), sign (index of the lit sign, -1 between signs), round, rounds, wordGap (pause before the next word)}. A ': ping' comment every 15 s. Browsers' EventSource cannot send headers: pass the token as ?t=. — FR : flux Server-Sent Events. Événements : status (même objet que /status, quand il change), tile {index, image} (seulement les tuiles dont l'image change), state {vitals, ship, character, shipStatus, morse {playing, text, light, progress}} (au plus 4 par seconde, seulement si changé), feedback {index, feedback, detail?} après un appui de tuile, views (même objet que GET /views) à la connexion et à chaque création, enregistrement ou suppression d’une vue. morse.progress : null, ou la lettre en cours {letter, code (« . » et « - »), sign (indice du signe allumé, -1 entre deux signes), round, rounds, wordGap (pause avant le mot suivant)}. Un commentaire « : ping » toutes les 15 s. EventSource ne peut pas envoyer d'en-tête : passer le jeton en ?t=.",
 				"parameters": [
 					{
 						"name": "lang",
@@ -2013,18 +2013,53 @@
 							"character_info",
 							"ship_function",
 							"action",
-							"ship_card"
+							"ship_card",
+							"morse",
+							"morse_free"
 						]
 					},
 					"ref": {
 						"type": "string",
-						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost; ship_card: the “My ship” card (no ref); ship_info: name, master_mode, landed; character_info: position, role, seat; ship_function: a ship function id; action: a game action name (dangerous actions refused); none for annunciators — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost ; ship_card : l’encart « Mon vaisseau » (sans ref) ; ship_info : name, master_mode, landed ; character_info : position, role, seat ; ship_function : une fonction vaisseau ; action : nom d’action du jeu (actions dangereuses refusées) ; rien pour annunciators"
+						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost; ship_card: the “My ship” card (no ref); ship_info: name, master_mode, landed; character_info: position, role, seat; ship_function: a ship function id; action: a game action name (dangerous actions refused); none for annunciators, morse and morse_free — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost ; ship_card : l’encart « Mon vaisseau » (sans ref) ; ship_info : name, master_mode, landed ; character_info : position, role, seat ; ship_function : une fonction vaisseau ; action : nom d’action du jeu (actions dangereuses refusées) ; rien pour annunciators, morse et morse_free"
 					},
 					"size": {
 						"enum": [
 							1,
 							2
 						]
+					},
+					"settings": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": [
+							"light",
+							"unitMs",
+							"repeat"
+						],
+						"description": "Only for morse (saved message: text required) and morse_free (message typed on the spot: no text). — FR : seulement pour morse (message enregistré : text obligatoire) et morse_free (message tapé sur le moment : pas de text).",
+						"properties": {
+							"text": {
+								"type": "string",
+								"minLength": 1,
+								"maxLength": 60
+							},
+							"light": {
+								"enum": [
+									"flashlight",
+									"ship_lights"
+								]
+							},
+							"unitMs": {
+								"type": "integer",
+								"minimum": 100,
+								"maximum": 2000
+							},
+							"repeat": {
+								"type": "integer",
+								"minimum": 1,
+								"maximum": 10
+							}
+						}
 					}
 				}
 			},

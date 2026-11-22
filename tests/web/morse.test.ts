@@ -21,12 +21,15 @@ describe("MorseControl", () => {
 		expect(m.start({ text: "E" })).toBe("started");
 		expect(m.playing).toBe(true);
 		expect(m.start({ text: "T" })).toBe("busy");
-		while (toggles.length < 1) await new Promise((r) => setTimeout(r, 5));
+		while (!m.progress) await new Promise((r) => setTimeout(r, 5));
+		// Premier signe allumé : lettre et code en cours.
+		expect(m.progress).toEqual({ letter: "E", code: ".", sign: 0, round: 1, rounds: 1, wordGap: false });
 		expect(m.stop()).toBe(true);
 		release?.();
 		while (m.playing) await new Promise((r) => setTimeout(r, 5));
 		expect(toggles).toEqual(["toggle_flashlight", "toggle_flashlight"]); // allumage + remise en état
-		expect(changes).toEqual([true, false]);
+		expect(changes).toEqual([true, true, false]); // départ, 1er allumage, fin
+		expect(m.progress).toBeUndefined();
 		expect(m.stop()).toBe(false);
 		expect(m.start({ text: "???" })).toBe("empty");
 	});

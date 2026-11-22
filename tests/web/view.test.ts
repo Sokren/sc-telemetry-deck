@@ -72,6 +72,33 @@ describe("parseViewInput", () => {
 		expect(p.sections[0].items.at(-1)).toEqual({ id: "card1", kind: "ship_card", size: 1 });
 	});
 
+	test("morse : message enregistré (texte obligatoire, 60 max) et morse libre (sans texte) ; réglages bornés", () => {
+		const v = input();
+		const ok = { light: "ship_lights", unitMs: 400, repeat: 2 };
+		v.sections[0].items.push({ id: "m1", kind: "morse", ref: "x", size: 1, settings: { text: "  sos  ", ...ok } });
+		v.sections[0].items.push({ id: "m2", kind: "morse_free", size: 2, settings: { text: "ignoré", light: "flashlight", unitMs: 100, repeat: 10 } });
+		const p = parseViewInput(v, "fr")!;
+		expect(p.sections[0].items.at(-2)).toEqual({ id: "m1", kind: "morse", size: 1, settings: { text: "sos", ...ok } });
+		expect(p.sections[0].items.at(-1)).toEqual({ id: "m2", kind: "morse_free", size: 2, settings: { light: "flashlight", unitMs: 100, repeat: 10 } });
+		for (const settings of [
+			undefined,
+			{ ...ok },
+			{ text: "   ", ...ok },
+			{ text: "x".repeat(61), ...ok },
+			{ text: "SOS", ...ok, light: "laser" },
+			{ text: "SOS", ...ok, unitMs: 50 },
+			{ text: "SOS", ...ok, unitMs: 400.5 },
+			{ text: "SOS", ...ok, repeat: 11 },
+		]) {
+			const bad = input();
+			bad.sections[0].items.push({ id: "m", kind: "morse", size: 1, settings });
+			expect(parseViewInput(bad, "fr"), JSON.stringify(settings)).toBeUndefined();
+		}
+		const badFree = input();
+		badFree.sections[0].items.push({ id: "m", kind: "morse_free", size: 1 });
+		expect(parseViewInput(badFree, "fr")).toBeUndefined();
+	});
+
 	test("action normale acceptée, ref ignorée pour les voyants", () => {
 		const v = input();
 		v.sections[0].items.push({ id: "e1", kind: "action", ref: "emote_wave", size: 2 });

@@ -13,6 +13,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 
 ### Ajouté
 - **Morse Code** (Stream Deck) et API de l'appli web : morse avec les **phares du vaisseau** en plus de la torche (réglage *Lumière*, `light: "ship_lights"` dans `POST /api/v1/morse`, contrat **1.4.0**) ; les phares sont allumés / éteints explicitement et laissés éteints à la fin. Les touches existantes gardent la torche.
+- Appli web : **morse dans tes vues** — case *Message morse* (texte enregistré, torche ou phares, durée d'un point, répétitions, réglés avec ✏️ ; allumée pendant l'envoi) et case *Morse libre* (tape un message sur le moment, torche ⇄ phares ; le dernier texte est gardé sur l'appareil). Un appui sur une case morse pendant un envoi l'arrête. API des vues : `settings` sur les cases `morse` / `morse_free`, `morse` dans l'événement `state` (contrat **1.5.0**).
+- **Lettre en cours** pendant un envoi morse : la lettre et son code (signe allumé en surbrillance, `␣` entre deux mots, tour en cours si répété) s'affichent sur la touche **Morse Code** du Stream Deck, dans les cases morse des vues et sur la tuile morse de la grille. API : `morse.progress` dans l'événement `state`.
 
 ## [0.3.7] — 2026-11-21
 

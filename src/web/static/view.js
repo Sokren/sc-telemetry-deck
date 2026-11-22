@@ -14,6 +14,18 @@ const DRAG_THRESHOLD = 6;
 const UNLOCK_KEY = "sctd-view-unlocked";
 const EMOTES = "player_emotes";
 /** Valeurs affichées en jauge (barre), pour le type indiqué dans le menu « Ajouter ». */
+/** Réglages d'une nouvelle case morse (mêmes défauts que la touche Morse Code). */
+const MORSE_DEFAULT = { light: "flashlight", unitMs: 400, repeat: 1 };
+const MAX_MORSE_TEXT = 60;
+/** Texte tel qu'envoyé (comme l'appli) : majuscules, sans accents, A–Z / 0–9 / espaces. */
+const morseText = (s) =>
+	String(s ?? "")
+		.normalize("NFD")
+		.replace(/\p{M}/gu, "")
+		.toUpperCase()
+		.replace(/[^A-Z0-9 ]/g, "")
+		.replace(/ +/g, " ")
+		.trim();
 const GAUGES = ["health", "oxygen", "hunger", "thirst", "body_temperature", "shields", "hull", "decoys", "noise", "weapons_ready", "hydrogen", "quantum"];
 
 const el = (tag, cls, text) => {
@@ -42,6 +54,7 @@ const button = (cls, text, title) => {
  * @param {(item: object) => HTMLElement} ctx.card carte (constante, instrument) commune aux onglets
  * @param {(id: string, el: HTMLElement) => void} ctx.pressFunction
  * @param {(name: string, el: HTMLElement) => void} ctx.triggerAction
+ * @param {(body: object, el: HTMLElement) => void} ctx.morse envoie un message morse (ou arrête celui en cours)
  * @param {(text: string) => void} ctx.showMessage
  * @param {{ get(k: string): string | null, set(k: string, v: string): void }} ctx.storage
  */
@@ -87,10 +100,32 @@ export function createView(ctx) {
 				return t("shipCard");
 			case "action":
 				return actionLabel(item.ref);
+			case "morse":
+				return morseText(item.settings?.text) || t("morseMessage");
+			case "morse_free":
+				return t("morseFree");
 			default:
 				return t(INFO[item.kind][item.ref]);
 		}
 	}
+
+	const lightLabel = (light) => (light === "ship_lights" ? t("morseLightShip") : t("morseLightFlashlight"));
+	const freeKey = (id) => `sctd-morse-free-${id}`;
+	/** Réglages envoyés à l'appli (sans le texte enregistré). */
+	const morseBody = (s, text) => ({ text, light: s.light, unitMs: s.unitMs, repeat: s.repeat });
+
+	/** Lettre en cours d'envoi, son code (signe allumé en surbrillance) et le tour si répété ; caché hors envoi. */
+	const morseNow = () => el("div", "vmorse-now");
+	const showMorseNow = (box, p) => {
+		box.hidden = !p;
+		if (!p) return;
+		const letter = el("b", "vmorse-letter", p.wordGap ? "␣" : p.letter);
+		const code = el("span", "vmorse-code");
+		if (!p.wordGap)
+			[...p.code].forEach((c, i) => code.append(el("span", i === p.sign ? "lit" : "", c === "." ? "·" : "−")));
+		box.replaceChildren(letter, code);
+		if (p.rounds > 1) box.append(el("span", "vmorse-round", `${p.round}/${p.rounds}`));
+	};
 
 	// ---------- Rendu des cases ----------
 	function infoText(item) {
@@ -173,8 +208,127 @@ export function createView(ctx) {
 				const update = () => (b.querySelector(".label").textContent = actionLabel(item.ref));
 				return { box, update };
 			}
+			case "morse": {
+				const b = button("card function morse");
+				const now = morseNow();
+				b.append(el("div", "label"), el("div", "value"), now, el("span", "flash"));
+				b.addEventListener("click", () => {
+					if (!unlocked) ctx.morse(morseBody(item.settings, item.settings.text), b);
+				});
+				box.append(b);
+				const update = () => {
+					const s = item.settings;
+					const text = morseText(s.text);
+					b.querySelector(".label").textContent = `📡 ${text || "—"}`;
+					b.querySelector(".value").textContent = lightLabel(s.light);
+					const m = state?.morse;
+					const mine = !!m?.playing && m.text === text && m.light === s.light;
+					b.dataset.state = mine ? "on" : "idle";
+					// Pendant l'envoi, la lettre et son code remplacent le nom de la lumière.
+					showMorseNow(now, mine ? m.progress : null);
+					b.querySelector(".value").hidden = mine && !!m.progress;
+				};
+				return { box, update };
+			}
+			case "morse_free": {
+				const card = el("div", "card morse-free");
+				const input = el("input", "vmorse-input");
+				input.maxLength = MAX_MORSE_TEXT;
+				input.placeholder = t("morseFreePlaceholder");
+				input.setAttribute("aria-label", t("morseFree"));
+				input.value = ctx.storage.get(freeKey(item.id)) ?? "";
+				// En édition, la case sert de poignée de déplacement.
+				input.disabled = unlocked;
+				input.addEventListener("input", () => ctx.storage.set(freeKey(item.id), input.value));
+				const send = button("vmorse-send", "▶", t("morseSend"));
+				send.append(el("span", "flash"));
+				const go = () => {
+					if (!unlocked) ctx.morse(morseBody(item.settings, input.value), send);
+				};
+				send.addEventListener("click", go);
+				input.addEventListener("keydown", (e) => e.key === "Enter" && go());
+				const light = button("vmorse-light", "", t("morseLightSwitch"));
+				light.addEventListener("click", () => {
+					item.settings.light = item.settings.light === "ship_lights" ? "flashlight" : "ship_lights";
+					update();
+					scheduleSave();
+				});
+				const row = el("div", "vmorse-row");
+				row.append(input, send);
+				const now = morseNow();
+				card.append(el("div", "label", `📡 ${t("morseFree")}`), now, row, light);
+				box.append(card);
+				const update = () => {
+					light.textContent = `${lightLabel(item.settings.light)} ⇄`;
+					const playing = !!state?.morse?.playing;
+					send.firstChild.textContent = playing ? "■" : "▶";
+					card.classList.toggle("playing", playing);
+					showMorseNow(now, playing ? state.morse.progress : null);
+				};
+				return { box, update };
+			}
 		}
 		return { box, update: () => {} };
+	}
+
+	/** Réglages d'une case morse (texte pour un message enregistré, lumière, vitesse, répétitions). */
+	function editMorse(item) {
+		const s = item.settings;
+		const dlg = el("dialog", "vmorse-dlg");
+		dlg.append(el("h2", "", item.kind === "morse" ? t("morseMessage") : t("morseFree")));
+		const field = (label, input) => {
+			const row = el("label", "vmorse-field");
+			row.append(el("span", "", label), input);
+			return row;
+		};
+		const text = el("input");
+		text.maxLength = MAX_MORSE_TEXT;
+		text.value = s.text ?? "";
+		const light = el("select");
+		for (const v of ["flashlight", "ship_lights"]) {
+			const o = el("option", "", lightLabel(v));
+			o.value = v;
+			o.selected = s.light === v;
+			light.append(o);
+		}
+		const number = (value, min, max, step) => {
+			const n = el("input");
+			n.type = "number";
+			Object.assign(n, { min, max, step, value });
+			return n;
+		};
+		const unit = number(s.unitMs, 100, 2000, 50);
+		const repeat = number(s.repeat, 1, 10, 1);
+		if (item.kind === "morse") dlg.append(field(t("morseText"), text));
+		dlg.append(field(t("morseLight"), light), field(t("morseDot"), unit), field(t("morseRepeat"), repeat), el("p", "hint", t("morseHelp")));
+		const error = el("p", "lan-notice");
+		error.hidden = true;
+		const foot = el("div", "lan-foot");
+		const cancel = button("", t("cancel"));
+		cancel.addEventListener("click", () => dlg.close());
+		const ok = button("primary", t("ok"));
+		const clamp = (v, min, max, d) => (Number.isFinite(v) ? Math.min(max, Math.max(min, Math.round(v))) : d);
+		ok.addEventListener("click", () => {
+			if (item.kind === "morse" && !morseText(text.value)) {
+				error.textContent = t("morseTextInvalid");
+				error.hidden = false;
+				return;
+			}
+			item.settings = {
+				...(item.kind === "morse" ? { text: text.value.trim() } : {}),
+				light: light.value,
+				unitMs: clamp(unit.valueAsNumber, 100, 2000, MORSE_DEFAULT.unitMs),
+				repeat: clamp(repeat.valueAsNumber, 1, 10, MORSE_DEFAULT.repeat),
+			};
+			dlg.close();
+			changed();
+		});
+		foot.append(cancel, ok);
+		dlg.append(error, foot);
+		dlg.addEventListener("close", () => dlg.remove());
+		document.body.append(dlg);
+		dlg.showModal();
+		(item.kind === "morse" ? text : light).focus();
 	}
 
 	function renderItem(section, item) {
@@ -194,6 +348,11 @@ export function createView(ctx) {
 				section.items = section.items.filter((i) => i !== item);
 				changed();
 			});
+			if (item.kind === "morse" || item.kind === "morse_free") {
+				const edit = button("", "✏️", t("morseEdit"));
+				edit.addEventListener("click", () => editMorse(item));
+				ctl.append(edit);
+			}
 			ctl.append(size, del);
 			wrap.append(ctl);
 			wrap.addEventListener("pointerdown", (e) => startDrag(e, "item", wrap));
@@ -357,7 +516,8 @@ export function createView(ctx) {
 
 	/** Édition en cours ici : une vue reçue ne doit pas remplacer la vue affichée. */
 	function busy() {
-		const typing = unlocked && document.activeElement?.matches?.(".vtitle-input, .vname-input");
+		// Message morse en cours de frappe : ne pas remplacer la case (texte et focus perdus).
+		const typing = document.activeElement?.matches?.(".vmorse-input") || (unlocked && document.activeElement?.matches?.(".vtitle-input, .vname-input"));
 		return Boolean(drag || saveTimer || typing);
 	}
 
@@ -403,7 +563,7 @@ export function createView(ctx) {
 
 	function menuEntries(tab) {
 		const kindText = (k) => t(k);
-		if (!state && tab !== "actions" && tab !== "emotes") return [];
+		if (!state && tab !== "actions" && tab !== "emotes" && tab !== "morse") return [];
 		switch (tab) {
 			case "character":
 				return [
@@ -429,6 +589,11 @@ export function createView(ctx) {
 					.flatMap((g) => g.actions.map((a) => ({ kind: "action", ref: a.name, label: a.label, type: g.label })));
 			case "emotes":
 				return (actionGroups.find((g) => g.category === EMOTES)?.actions ?? []).map((a) => ({ kind: "action", ref: a.name, label: a.label, type: kindText("kindButton") }));
+			case "morse":
+				return [
+					{ kind: "morse", label: t("morseMessage"), type: kindText("kindButton") },
+					{ kind: "morse_free", label: t("morseFree"), type: kindText("kindField") },
+				];
 		}
 		return [];
 	}
@@ -440,6 +605,7 @@ export function createView(ctx) {
 			["ship", "tabShip"],
 			["actions", "menuActions"],
 			["emotes", "emotes"],
+			["morse", "menuMorse"],
 		]) {
 			const b = button(id === menuTab ? "on" : "", t(key));
 			b.addEventListener("click", () => {
@@ -493,8 +659,12 @@ export function createView(ctx) {
 		if (!section || section.items.length >= MAX_ITEMS) return closeMenu();
 		// Même ordre de clés que la vue renvoyée par l'appli (comparaison des copies sans re-rendu inutile).
 		const item = { id: newId(), kind: entry.kind, ...(entry.ref ? { ref: entry.ref } : {}), size: entry.kind === "annunciators" || entry.kind === "ship_card" ? 2 : 1 };
+		if (entry.kind === "morse") item.settings = { text: "SOS", ...MORSE_DEFAULT };
+		if (entry.kind === "morse_free") item.settings = { ...MORSE_DEFAULT };
 		section.items.push(item);
 		changed();
+		// Message enregistré : réglages ouverts tout de suite.
+		if (entry.kind === "morse") editMorse(item);
 	}
 
 	document.addEventListener("pointerdown", (e) => {

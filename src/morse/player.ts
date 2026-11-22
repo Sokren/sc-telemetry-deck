@@ -25,15 +25,18 @@ export class MorsePlayer {
 		this.#abort?.abort();
 	}
 
-	/** `light` : autre lumière que celle par défaut (ex. phares du vaisseau) pour cette émission. */
-	async play(times: number[], light: LightSwitch = this.toggle): Promise<PlayResult> {
+	/**
+	 * `light` : autre lumière que celle par défaut (ex. phares du vaisseau) pour cette émission.
+	 * `onToggle(i)` : après chaque bascule prévue réussie (`i` = indice dans `times`), pas après la remise à l'arrêt.
+	 */
+	async play(times: number[], light: LightSwitch = this.toggle, onToggle?: (index: number) => void): Promise<PlayResult> {
 		const abort = new AbortController();
 		this.#abort = abort;
 		const start = this.now();
 		let lit = false;
 		let result: PlayResult = "done";
 		try {
-			for (const at of times) {
+			for (const [index, at] of times.entries()) {
 				const delay = start + at - this.now();
 				// Arrêt déjà demandé (pendant la bascule précédente) : ne pas attendre un signal passé.
 				if (delay > 0 && !abort.signal.aborted) await this.wait(delay, abort.signal);
@@ -46,6 +49,7 @@ export class MorsePlayer {
 					break;
 				}
 				lit = !lit;
+				onToggle?.(index);
 			}
 			if (lit) await light(false);
 			return result;

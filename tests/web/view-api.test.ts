@@ -84,6 +84,22 @@ describe("/api/v1/views", () => {
 		expect(file.views).toHaveLength(2);
 	});
 
+	test("PUT : cases morse (message enregistré, morse libre) gardées et conformes au contrat", async () => {
+		const s = await start();
+		const items = [
+			{ id: "m1", kind: "morse", size: 1, settings: { text: "SOS", light: "ship_lights", unitMs: 300, repeat: 2 } },
+			{ id: "m2", kind: "morse_free", size: 2, settings: { light: "flashlight", unitMs: 400, repeat: 1 } },
+		];
+		const r = await s.call("PUT", "/api/v1/views/main", { body: { name: "Morse", sections: [{ id: "s", title: "Morse", width: "full", items }] } });
+		expect(r.status).toBe(200);
+		validateResponse("/api/v1/views/{id}", "PUT", 200, r.body);
+		expect(r.body.sections[0].items).toEqual(items);
+		const bad = await s.call("PUT", "/api/v1/views/main", {
+			body: { name: "Morse", sections: [{ id: "s", title: "Morse", width: "full", items: [{ id: "m", kind: "morse", size: 1, settings: { light: "flashlight", unitMs: 400, repeat: 1 } }] }] },
+		});
+		expect(bad.status).toBe(400);
+	});
+
 	test("PUT avec une action dangereuse : 400, rien d'enregistré ; vue inconnue : 404", async () => {
 		const s = await start();
 		const sections = layout();

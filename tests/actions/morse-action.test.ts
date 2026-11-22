@@ -48,7 +48,7 @@ describe("MorseAction — phares du vaisseau", () => {
 		const key = new FakeKey({ text: "e", light: "ship_lights" });
 		await action.onKeyDown(keyDown(key));
 		expect(sent).toEqual(["v_lights_on", "v_lights_off"]);
-		expect(key.calls).toEqual(["title:● E", "title:E", "ok"]);
+		expect(key.calls).toEqual(["title:● E", "title:E\n●", "title:E\n·", "title:E", "ok"]);
 		expect(readSettings({ light: "ship_lights" }).light).toBe("ship_lights");
 	});
 });
@@ -59,7 +59,11 @@ describe("MorseAction", () => {
 		const key = new FakeKey({ text: "sos" });
 		await action.onKeyDown(keyDown(key));
 		expect(toggles()).toBe(18);
-		expect(key.calls).toEqual(["title:● SOS", "title:SOS", "ok"]);
+		expect(key.calls[0]).toBe("title:● SOS");
+		expect(key.calls.slice(-2)).toEqual(["title:SOS", "ok"]);
+		// Une mise à jour du titre par bascule : lettre, code, signe allumé en gros.
+		expect(key.calls.slice(1, 4)).toEqual(["title:S\n●··", "title:S\n···", "title:S\n·●·"]);
+		expect(key.calls).toContain("title:O\n−▬−");
 	});
 
 	test("réglages vides → SOS par défaut", async () => {
@@ -78,7 +82,7 @@ describe("MorseAction", () => {
 		await first;
 		expect(toggles()).toBe(2); // allumage du 1er signe + remise en état
 		expect(b.calls).toEqual([]);
-		expect(a.calls).toEqual(["title:● E", "title:E"]);
+		expect(a.calls).toEqual(["title:● E", "title:E\n●", "title:E"]);
 	});
 
 	test("double appui immédiat → une seule émission, arrêtée par le 2e appui", async () => {
@@ -103,8 +107,15 @@ describe("MorseAction", () => {
 		const { action, logs } = setup({ toggleOk: false });
 		const key = new FakeKey({ text: "E" });
 		await action.onKeyDown(keyDown(key));
-		expect(key.calls).toEqual(["title:● E", "title:E", "alert"]);
+		expect(key.calls).toEqual(["title:● E", "title:E", "alert"]); // aucune bascule réussie : pas de lettre
 		expect(logs).toHaveLength(1);
+	});
+
+	test("répété : pause entre les tours « ␣ », tour en cours", async () => {
+		const { action } = setup();
+		const key = new FakeKey({ text: "E", repeat: 2 });
+		await action.onKeyDown(keyDown(key));
+		expect(key.calls).toEqual(["title:● E", "title:E\n●\n1/2", "title:␣\n1/2", "title:E\n●\n2/2", "title:E\n·\n2/2", "title:E", "ok"]);
 	});
 
 	test("apparition → titre = texte normalisé", async () => {

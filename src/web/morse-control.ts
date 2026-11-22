@@ -1,5 +1,5 @@
 import type { GameApi } from "../game/types.js";
-import { normalizeText, toToggleTimes } from "../morse/encode.js";
+import { normalizeText, progressAt, toSigns, toToggleTimes, type MorseProgress } from "../morse/encode.js";
 import { lightSwitch, morseLight, type MorseLight } from "../morse/lights.js";
 import { MorsePlayer } from "../morse/player.js";
 
@@ -29,6 +29,8 @@ export class MorseControl {
 	readonly #trigger: (action: string) => Promise<boolean>;
 	readonly #listeners = new Set<() => void>();
 	#text = "";
+	#light: MorseLight = "flashlight";
+	#progress: MorseProgress | undefined;
 
 	constructor(game: Pick<GameApi, "trigger">, wait: (ms: number, signal: AbortSignal) => Promise<void> = abortableWait) {
 		this.#trigger = async (action) => (await game.trigger(action, TRIGGER_TIMEOUT_MS)).ok;
@@ -54,6 +56,16 @@ export class MorseControl {
 		return this.playing ? this.#text : "";
 	}
 
+	/** Lumière de l'émission en cours. */
+	get light(): MorseLight {
+		return this.#light;
+	}
+
+	/** Lettre et signe en cours d'émission ; `undefined` hors émission ou avant le premier allumage. */
+	get progress(): MorseProgress | undefined {
+		return this.playing ? this.#progress : undefined;
+	}
+
 	onChange(listener: () => void): () => void {
 		this.#listeners.add(listener);
 		return () => void this.#listeners.delete(listener);
@@ -65,7 +77,13 @@ export class MorseControl {
 		const times = toToggleTimes(s.text, s.unitMs, s.repeat);
 		if (times.length === 0) return "empty";
 		this.#text = normalizeText(s.text);
-		const run = this.#player.play(times, lightSwitch(s.light, this.#trigger));
+		this.#light = s.light;
+		this.#progress = undefined;
+		const signs = toSigns(s.text, s.repeat);
+		const run = this.#player.play(times, lightSwitch(s.light, this.#trigger), (i) => {
+			this.#progress = progressAt(signs, i, s.repeat);
+			this.#emit();
+		});
 		this.#emit();
 		void run.finally(() => this.#emit());
 		return "started";

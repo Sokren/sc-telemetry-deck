@@ -2,14 +2,32 @@ import fs from "node:fs";
 import type { Lang } from "../catalog/labels.js";
 import { DISPLAY_VALUES } from "../display/values.js";
 import { DANGEROUS_ACTIONS } from "../game/dangerous.js";
+import { morseLight, type MorseLight } from "../morse/lights.js";
 import { SHIP_FUNCTION_IDS } from "../ship/functions.js";
 import { INSTRUMENTS } from "./panels.js";
 
 /** « Ma vue » : vues nommées (un onglet chacune), faites de sections contenant des cases, enregistrées dans `view.json`. */
-export const ITEM_KINDS = ["vital", "instrument", "annunciators", "ship_info", "character_info", "ship_function", "action", "ship_card"] as const;
+export const ITEM_KINDS = [
+	"vital",
+	"instrument",
+	"annunciators",
+	"ship_info",
+	"character_info",
+	"ship_function",
+	"action",
+	"ship_card",
+	"morse",
+	"morse_free",
+] as const;
 export type ItemKind = (typeof ITEM_KINDS)[number];
 
-export type ViewItem = { id: string; kind: ItemKind; ref?: string; size: 1 | 2 };
+/**
+ * Réglages d'une case morse : `morse` = message enregistré (`text`), `morse_free` = message tapé sur le moment (pas de
+ * `text` enregistré). Mêmes bornes que la touche Morse Code.
+ */
+export type MorseItemSettings = { text?: string; light: MorseLight; unitMs: number; repeat: number };
+
+export type ViewItem = { id: string; kind: ItemKind; ref?: string; size: 1 | 2; settings?: MorseItemSettings };
 export type ViewSection = { id: string; title: string; width: "half" | "full"; items: ViewItem[] };
 export type Layout = { sections: ViewSection[] };
 export type ViewInput = { name: string; sections: ViewSection[] };
@@ -21,6 +39,7 @@ export const MAX_ITEMS = 40;
 export const MAX_TITLE = 40;
 export const MAX_NAME = 24;
 export const MAIN_ID = "main";
+export const MAX_MORSE_TEXT = 60;
 
 const ID = /^[A-Za-z0-9_-]{1,32}$/;
 const ACTION = /^[a-z0-9_]{1,64}$/;
@@ -84,6 +103,24 @@ export function defaultLayout(lang: Lang): Layout {
 type Obj = Record<string, unknown>;
 const obj = (x: unknown): Obj | undefined => (x && typeof x === "object" && !Array.isArray(x) ? (x as Obj) : undefined);
 
+const intIn = (x: unknown, min: number, max: number): number | undefined =>
+	typeof x === "number" && Number.isInteger(x) && x >= min && x <= max ? x : undefined;
+
+/** Réglages morse ; `withText` : message enregistré obligatoire (1 à 60 caractères, sans espaces autour). */
+function parseMorseSettings(x: unknown, withText: boolean): MorseItemSettings | undefined {
+	const o = obj(x);
+	if (!o) return undefined;
+	if (o.light !== "flashlight" && o.light !== "ship_lights") return undefined;
+	const unitMs = intIn(o.unitMs, 100, 2000);
+	const repeat = intIn(o.repeat, 1, 10);
+	if (unitMs === undefined || repeat === undefined) return undefined;
+	const settings: MorseItemSettings = { light: morseLight(o.light), unitMs, repeat };
+	if (!withText) return settings;
+	const text = typeof o.text === "string" ? o.text.trim() : "";
+	if (!text || text.length > MAX_MORSE_TEXT) return undefined;
+	return { text, ...settings };
+}
+
 function parseItem(x: unknown): ViewItem | undefined {
 	const o = obj(x);
 	if (!o || typeof o.id !== "string" || !ID.test(o.id)) return undefined;
@@ -92,6 +129,10 @@ function parseItem(x: unknown): ViewItem | undefined {
 	const kind = o.kind as ItemKind;
 	// Cases sans `ref` : voyants, encart « Mon vaisseau ».
 	if (kind === "annunciators" || kind === "ship_card") return { id: o.id, kind, size: o.size };
+	if (kind === "morse" || kind === "morse_free") {
+		const settings = parseMorseSettings(o.settings, kind === "morse");
+		return settings ? { id: o.id, kind, size: o.size, settings } : undefined;
+	}
 	if (typeof o.ref !== "string") return undefined;
 	if (kind === "action") {
 		if (!ACTION.test(o.ref) || DANGEROUS_ACTIONS.has(o.ref)) return undefined;

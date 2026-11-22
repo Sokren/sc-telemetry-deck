@@ -5,7 +5,7 @@ import { renderKeySvg } from "../display/render.js";
 import { isDisplayValueId, readValue } from "../display/values.js";
 import { DANGEROUS_ACTIONS } from "../game/dangerous.js";
 import type { GameApi } from "../game/types.js";
-import { normalizeText } from "../morse/encode.js";
+import { normalizeText, progressLines } from "../morse/encode.js";
 import { SHIP_FUNCTION_IDS, type ShipFunctionId } from "../ship/functions.js";
 import type { ShipMode } from "../ship/press.js";
 import { renderShipKey, toShipView, type ShipStyle } from "../ship/render.js";
@@ -56,6 +56,12 @@ export function renderTile(tile: Tile, ctx: Omit<TileContext, "game">): string {
 		case "morse": {
 			const text = normalizeText(str(tile.settings.text) ?? "SOS") || "SOS";
 			const active = ctx.morse.playing && ctx.morse.text === text;
+			// Pendant l'envoi : la lettre en cours et son code.
+			const p = active ? ctx.morse.progress : undefined;
+			if (p) {
+				const [letter, code] = progressLines(p);
+				return renderLabelTile({ kind: "morse", label: letter, sub: code, active, bare: true });
+			}
 			return renderLabelTile({ kind: "morse", label: text, sub: "Morse", active });
 		}
 		case "ship-action": {

@@ -332,6 +332,24 @@ async function triggerEmote(name, el) {
 	}
 }
 
+// ---------- Morse (cases des vues) ----------
+/** Envoie un message morse ; un appui pendant un envoi l'arrête (comme la touche Morse Code). */
+async function sendMorse(body, el) {
+	try {
+		const playing = !!lastState?.morse?.playing;
+		const r = await fetch("/api/v1/morse", {
+			method: playing ? "DELETE" : "POST",
+			headers: { authorization: `Bearer ${token}`, ...(playing ? {} : { "content-type": "application/json" }) },
+			...(playing ? {} : { body: JSON.stringify(body) }),
+		});
+		if (r.status === 401) return showMessage(t("badToken"));
+		// Arrêt : message déjà terminé (404) = rien à arrêter, pas une erreur.
+		flashOn(el, r.ok || (playing && r.status === 404) ? "ok" : "alert");
+	} catch {
+		flashOn(el, "alert");
+	}
+}
+
 // ---------- Vaisseau ----------
 async function pressFunction(id, el) {
 	try {
@@ -481,6 +499,7 @@ const myView = createView({
 	card,
 	pressFunction,
 	triggerAction: triggerEmote,
+	morse: sendMorse,
 	showMessage,
 	storage: { get: storageGet, set: storageSet },
 });

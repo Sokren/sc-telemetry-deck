@@ -26,6 +26,17 @@ describe("MorsePlayer", () => {
 		expect(toggledAt).toEqual([0, 100, 200, 300]);
 	});
 
+	test("onToggle après chaque bascule prévue réussie, pas après la remise", async () => {
+		const seen: number[] = [];
+		const ok = harness();
+		await ok.player.play([0, 100, 200, 300], undefined, (i) => seen.push(i));
+		expect(seen).toEqual([0, 1, 2, 3]);
+		const stopped = harness({ stopAfterToggles: 1 });
+		const seen2: number[] = [];
+		await stopped.player.play([0, 100, 200, 300], undefined, (i) => seen2.push(i));
+		expect(seen2).toEqual([0]); // la remise (2e bascule) n'est pas signalée
+	});
+
 	test("playing vrai pendant l'émission, faux après", async () => {
 		const { player } = harness();
 		const run = player.play([0, 100]);

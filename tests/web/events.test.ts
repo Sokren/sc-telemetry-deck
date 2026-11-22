@@ -81,6 +81,7 @@ describe("EventHub", () => {
 		expect(state.ship).toHaveLength(17);
 		expect(state.character).toMatchObject({ available: false, locomotion: "unknown" });
 		expect(state.shipStatus).toMatchObject({ available: false, instruments: expect.any(Array), annunciators: expect.any(Array) });
+		expect(state.morse).toEqual({ playing: false, text: "", light: "flashlight", progress: null });
 	});
 
 	test("changement du flux → seulement les tuiles qui changent, + état", () => {
