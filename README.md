@@ -42,7 +42,7 @@ Stream Deck plugin **and standalone web app** for **Star Citizen**, built on the
 
 ## Enabling telemetry in Star Citizen
 
-The local telemetry server is **disabled by default**. How to turn it on depends on the game version.
+The local telemetry server is **disabled by default**. How to turn it on depends on the game version. These steps are also in the web app: **❓ Enable telemetry** button, shown while the game sends nothing.
 
 ### Star Citizen 4.10.3 (LIVE) — environment variable
 

@@ -12,6 +12,7 @@
 			<h1 id="title">SC Telemetry Deck</h1>
 			<span id="version" class="version"></span>
 			<span id="status" class="status"><span class="dot"></span><span id="status-text"></span></span>
+			<button id="setup-open" class="setup-open" type="button" hidden></button>
 			<nav>
 				<button id="auto-open" class="auto-open" type="button"></button>
 				<button id="lan-open" class="lan-open" type="button" hidden></button>
@@ -70,6 +71,7 @@
 			<p id="about-links" class="links"></p>
 			<form method="dialog"><button id="about-close" type="submit"></button></form>
 		</dialog>
+		<dialog id="setup" class="setup" aria-labelledby="setup-title"></dialog>
 		<script type="module" src="app.js"></script>
 	</body>
 </html>

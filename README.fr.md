@@ -42,7 +42,7 @@ Plugin Stream Deck **et appli web autonome** pour **Star Citizen**, basés sur l
 
 ## Activer la télémétrie dans Star Citizen
 
-Le serveur de télémétrie local est **désactivé par défaut**. La façon de l'activer dépend de la version du jeu.
+Le serveur de télémétrie local est **désactivé par défaut**. La façon de l'activer dépend de la version du jeu. Ces étapes sont aussi dans l'appli web : bouton **❓ Activer la télémétrie**, affiché tant que le jeu n'envoie rien.
 
 ### Star Citizen 4.10.3 (LIVE) — variable d'environnement
 

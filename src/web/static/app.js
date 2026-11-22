@@ -3,6 +3,7 @@
 import { I18N } from "./i18n.js";
 import { createAutoSwitch, parseAutoSettings, POSITIONS } from "./autoswitch.js";
 import { createLan } from "./lan.js";
+import { createSetup } from "./setup.js";
 import { shipCard } from "./shipcard.js";
 import { createView } from "./view.js";
 
@@ -77,6 +78,8 @@ function applyTexts() {
 	$("about-open").textContent = t("about");
 	$("about-close").textContent = t("close");
 	renderAbout();
+	$("setup-open").textContent = t("setupOpen");
+	setup?.applyTexts();
 	$("emotes-hint").textContent = t("emotesHint");
 	myView?.applyTexts();
 	lanPanel?.applyTexts();
@@ -114,7 +117,16 @@ function renderAbout() {
 			return li;
 		}),
 	);
+	const howTo = document.createElement("a");
+	howTo.href = "#";
+	howTo.textContent = t("setupOpen");
+	howTo.addEventListener("click", (e) => {
+		e.preventDefault();
+		$("about").close();
+		setup.open();
+	});
 	$("about-links").replaceChildren(
+		howTo,
 		...[
 			[t("aboutGithub"), REPO],
 			[t("aboutIssues"), `${REPO}/issues`],
@@ -128,6 +140,14 @@ function renderAbout() {
 		}),
 	);
 }
+
+// ---------- Tuto « Activer la télémétrie » ----------
+const setup = createSetup({
+	dialog: $("setup"),
+	t: (k) => t(k),
+	readme: () => (lang === "fr" ? `${REPO}/blob/main/README.fr.md#activer-la-télémétrie-dans-star-citizen` : `${REPO}#enabling-telemetry-in-star-citizen`),
+});
+$("setup-open").addEventListener("click", () => setup.open());
 $("about-open").addEventListener("click", () => {
 	renderAbout();
 	$("about").showModal();
@@ -413,6 +433,8 @@ function connect() {
 		$("version").textContent = s.version ? `v${s.version}` : "";
 		$("version").title = s.schema ? `${t("gameSchema")} ${s.schema}` : "";
 		setStatus(s.telemetry === "live" ? "live" : "", s.telemetry === "live" ? t("live") : t("noData"));
+		// Pas de données : bouton vers le tuto d'activation.
+		$("setup-open").hidden = s.telemetry === "live";
 		if (s.telemetry === "live" && !emotesLoaded) loadEmotes();
 		// Jeu sans commandes d'actions (ex. 4.10) : l'affichage marche, pas les boutons.
 		$("notice").textContent = t("actionsUnsupported");

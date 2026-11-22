@@ -9,6 +9,14 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
+## [Unreleased]
+
+### Added
+- Web app: **❓ Enable telemetry** button, shown while the game sends nothing (also in *About*): step-by-step guide for Star Citizen 5.0 (create `user.cfg` in the game channel folder, add `server.game.telemetry.enabled=1`, launch the game, check `Game.log`) and the 4.10.3 LIVE command, with *Copy* buttons. The app still never touches the game's files.
+
+### Fixed
+- Web app: the header buttons overflowed the screen on phones; they now wrap.
+
 ## [0.3.8] — 2026-11-22
 
 ### Added

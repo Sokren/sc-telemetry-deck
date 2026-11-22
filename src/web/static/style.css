@@ -57,8 +57,10 @@ h1 {
 }
 nav {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 10px;
 	align-items: center;
+	min-width: 0;
 }
 nav button,
 nav a {
@@ -1158,4 +1160,82 @@ nav .auto-open.on {
 .shipcard.s1 .sc-name {
 	white-space: normal;
 	overflow-wrap: anywhere;
+}
+
+/* ---------- Tuto « Activer la télémétrie » ---------- */
+.setup-open {
+	border-color: var(--warn);
+	color: var(--warn);
+}
+.setup-open[hidden] {
+	display: none;
+}
+dialog.setup {
+	box-sizing: border-box;
+	width: min(620px, calc(100vw - 32px));
+	max-width: none;
+	font-size: 14px;
+	line-height: 1.45;
+}
+.setup-intro,
+.setup-note {
+	color: var(--muted);
+	margin: 0 0 12px;
+}
+.setup-steps {
+	margin: 0 0 12px;
+	padding-left: 22px;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 8px;
+}
+.setup-steps li {
+	min-width: 0;
+}
+.setup-steps small {
+	display: block;
+	color: var(--muted);
+}
+.setup-copy {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 4px 0;
+	min-width: 0;
+}
+.setup-copy code,
+.setup-check code {
+	background: #0f1318;
+	border: 1px solid #2a3038;
+	border-radius: 6px;
+	padding: 4px 8px;
+	overflow-x: auto;
+	white-space: nowrap;
+	min-width: 0;
+	user-select: all;
+}
+.setup-copy code {
+	flex: 1;
+}
+.setup-copy button {
+	flex: none;
+	padding: 4px 10px;
+}
+.setup-check code {
+	display: inline-block;
+	max-width: 100%;
+	vertical-align: middle;
+}
+.setup-live {
+	border-top: 1px solid #2a3038;
+	padding-top: 10px;
+	margin-bottom: 12px;
+}
+.setup-live h3 {
+	margin: 0 0 4px;
+	font-size: 15px;
+}
+.setup-live p {
+	margin: 0 0 4px;
+	color: var(--muted);
 }
