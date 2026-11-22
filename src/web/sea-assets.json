@@ -6,6 +6,8 @@
 	"static/autoswitch.js",
 	"static/shipcard.js",
 	"static/setup.js",
+	"static/themes.js",
+	"static/theme-boot.js",
 	"static/i18n.js",
 	"static/style.css",
 	"openapi.json",

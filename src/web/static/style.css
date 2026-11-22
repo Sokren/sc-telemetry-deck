@@ -1,13 +1,146 @@
 :root {
+	/* Thème « Actuel » (défaut). Les autres thèmes remplacent ces variables (static/themes.js). */
 	--bg: #0a0d11;
 	--panel: #151a20;
+	--card: #1b2129;
+	--field: #0a0d11;
+	--inset: #0f1318;
+	--line: #2a3038;
+	--line-strong: #4a5563;
+	--raised: #232b35;
+	--raised-line: #3a4552;
+	--hover: #2f3944;
+	--active: #38434f;
 	--text: #e6eaef;
 	--muted: #9aa4b2;
+	--faint: #5f5e5a;
+	--faint-2: #888780;
+	--accent: #e2b84a;
+	--link: #7fd1ff;
 	--ok: #1d9e75;
+	--ok-text: #5dcaa5;
+	--ok-line: #0f6e56;
 	--warn: #ef9f27;
+	--warn-line: #854f0b;
 	--bad: #e24b4a;
+	--bad-strong: #a32d2d;
+	--bad-text: #f09595;
 	color-scheme: dark;
 }
+/* ---------- Thèmes tout faits (choisis par appareil : static/themes.js, theme-boot.js) ---------- */
+:root[data-theme="green"] {
+	color-scheme: dark;
+	--bg: #050a07;
+	--panel: #0b1610;
+	--card: #10201a;
+	--field: #050a07;
+	--inset: #08120d;
+	--line: #1d3a2a;
+	--line-strong: #2f5a43;
+	--raised: #132a1f;
+	--raised-line: #2a4d3a;
+	--hover: #1a3628;
+	--active: #21432f;
+	--text: #c8f5d6;
+	--muted: #6fa585;
+	--faint: #4c6b58;
+	--faint-2: #6a8a76;
+	--accent: #3ddc84;
+	--link: #7fe8b0;
+	--ok: #22b36a;
+	--ok-text: #5fe39b;
+	--ok-line: #14703f;
+	--warn: #e8c13a;
+	--warn-line: #7a6410;
+	--bad: #ff5a4f;
+	--bad-strong: #a8302a;
+	--bad-text: #ff9b94;
+}
+:root[data-theme="amber"] {
+	color-scheme: dark;
+	--bg: #0d0904;
+	--panel: #1a1208;
+	--card: #22180b;
+	--field: #0d0904;
+	--inset: #120c05;
+	--line: #3a2a14;
+	--line-strong: #5c4422;
+	--raised: #2a1d0d;
+	--raised-line: #4a3518;
+	--hover: #352611;
+	--active: #3f2d14;
+	--text: #f3e2c4;
+	--muted: #b39668;
+	--faint: #7a6446;
+	--faint-2: #97805e;
+	--accent: #ffb238;
+	--link: #ffd08a;
+	--ok: #7fb34a;
+	--ok-text: #a8d87a;
+	--ok-line: #4c6e2a;
+	--warn: #ff9f1c;
+	--warn-line: #8a5208;
+	--bad: #ff5e3a;
+	--bad-strong: #a8341c;
+	--bad-text: #ffa08a;
+}
+:root[data-theme="blue"] {
+	color-scheme: dark;
+	--bg: #060b18;
+	--panel: #0e1730;
+	--card: #131f3d;
+	--field: #060b18;
+	--inset: #0a1226;
+	--line: #22305a;
+	--line-strong: #38487a;
+	--raised: #16234a;
+	--raised-line: #33467c;
+	--hover: #1d2c5a;
+	--active: #253668;
+	--text: #dbe6ff;
+	--muted: #8394bd;
+	--faint: #56648a;
+	--faint-2: #7180a6;
+	--accent: #5aa9ff;
+	--link: #8cc6ff;
+	--ok: #2bb3a5;
+	--ok-text: #62d6c9;
+	--ok-line: #16706a;
+	--warn: #f2a93b;
+	--warn-line: #8a5a10;
+	--bad: #f2545b;
+	--bad-strong: #a3303a;
+	--bad-text: #f8a0a4;
+}
+:root[data-theme="light"] {
+	color-scheme: light;
+	--bg: #eef1f4;
+	--panel: #ffffff;
+	--card: #f6f8fa;
+	--field: #ffffff;
+	--inset: #f1f4f7;
+	--line: #d3d9e0;
+	--line-strong: #a9b3bf;
+	--raised: #ffffff;
+	--raised-line: #c5ced8;
+	--hover: #e8edf2;
+	--active: #dde4eb;
+	--text: #1b2129;
+	--muted: #5d6876;
+	--faint: #8a939e;
+	--faint-2: #76808c;
+	--accent: #0b6bcb;
+	--link: #0b6bcb;
+	--ok: #13805e;
+	--ok-text: #0f6e50;
+	--ok-line: #7cc4a8;
+	--warn: #b86a00;
+	--warn-line: #e0b46a;
+	--bad: #c62f2e;
+	--bad-strong: #a32d2d;
+	--bad-text: #b02a2a;
+}
+
 * {
 	box-sizing: border-box;
 }
@@ -66,7 +199,7 @@ nav button,
 nav a {
 	background: transparent;
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 8px;
 	padding: 6px 10px;
 	font: inherit;
@@ -136,7 +269,7 @@ main {
 	gap: 6px;
 	padding: 10px 16px 0;
 	background: var(--panel);
-	border-bottom: 1px solid #2a3038;
+	border-bottom: 1px solid var(--line);
 }
 .tabs button {
 	background: transparent;
@@ -179,7 +312,7 @@ h2 {
 	position: relative;
 	overflow: hidden;
 	background: var(--panel);
-	border: 1px solid #1d232a;
+	border: 1px solid var(--line);
 	border-radius: 12px;
 	padding: 10px 12px;
 	color: var(--text);
@@ -198,7 +331,7 @@ h2 {
 .card .bar {
 	height: 6px;
 	border-radius: 3px;
-	background: #2a3038;
+	background: var(--line);
 }
 .card .bar i {
 	display: block;
@@ -229,17 +362,17 @@ h2 {
 	transform: scale(0.97);
 }
 .function[data-state="on"] .value {
-	color: #5dcaa5;
+	color: var(--ok-text);
 }
 .function[data-state="off"] .value {
-	color: #888780;
+	color: var(--faint-2);
 }
 .function[data-state^="moving"] .value {
 	color: var(--warn);
 }
 .function[data-state="unknown"] .value,
 .function[data-state="unavailable"] .value {
-	color: #5f5e5a;
+	color: var(--faint);
 }
 .card .flash {
 	position: absolute;
@@ -255,12 +388,12 @@ h2 {
 }
 .card .flash.ok {
 	color: var(--ok);
-	background: rgba(21, 26, 32, 0.7);
+	background: color-mix(in srgb, var(--panel) 70%, transparent);
 	opacity: 1;
 }
 .card .flash.alert {
 	color: var(--warn);
-	background: rgba(21, 26, 32, 0.7);
+	background: color-mix(in srgb, var(--panel) 70%, transparent);
 	opacity: 1;
 }
 
@@ -275,20 +408,20 @@ h2 {
 	font-size: 13px;
 	padding: 5px 10px;
 	border-radius: 6px;
-	border: 1px solid #2a3038;
-	color: #5f5e5a;
+	border: 1px solid var(--line);
+	color: var(--faint);
 }
 .light-nominal {
-	color: #5dcaa5;
-	border-color: #0f6e56;
+	color: var(--ok-text);
+	border-color: var(--ok-line);
 }
 .light-minor {
 	color: var(--warn);
-	border-color: #854f0b;
+	border-color: var(--warn-line);
 }
 .light-major {
 	color: #fff;
-	background: #a32d2d;
+	background: var(--bad-strong);
 	border-color: var(--bad);
 }
 .light.flashing {
@@ -305,10 +438,10 @@ h2 {
 	max-width: 1100px;
 	margin: 0 0 12px;
 	padding: 10px 12px;
-	border: 1px solid #854f0b;
+	border: 1px solid var(--warn-line);
 	border-radius: 10px;
 	color: var(--warn);
-	background: rgba(133, 79, 11, 0.15);
+	background: color-mix(in srgb, var(--warn-line) 15%, transparent);
 }
 
 /* ---------- Émotes ---------- */
@@ -329,7 +462,7 @@ h2 {
 dialog {
 	background: var(--panel);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 12px;
 	padding: 20px 22px;
 	max-width: min(560px, calc(100vw - 32px));
@@ -369,7 +502,7 @@ dialog .links {
 	font-size: 14px;
 }
 dialog .links a {
-	color: #7fd1ff;
+	color: var(--link);
 }
 dialog form {
 	text-align: right;
@@ -377,7 +510,7 @@ dialog form {
 dialog button {
 	background: transparent;
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 8px;
 	padding: 6px 14px;
 	font: inherit;
@@ -385,7 +518,7 @@ dialog button {
 }
 
 /* ---------- Ma vue ---------- */
-nav .lock.open {
+.lock.open {
 	border-color: var(--warn);
 	color: var(--warn);
 }
@@ -407,7 +540,7 @@ nav .lock.open {
 	grid-column: 1 / -1;
 }
 .editing .vsec {
-	border: 1px dashed #4a5563;
+	border: 1px dashed var(--line-strong);
 }
 .vhead {
 	display: flex;
@@ -425,9 +558,9 @@ nav .lock.open {
 .vtitle-input {
 	flex: 1;
 	min-width: 0;
-	background: #0a0d11;
+	background: var(--field);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	padding: 5px 8px;
 	font: inherit;
@@ -445,9 +578,9 @@ nav .lock.open {
 .vadd,
 .vnewsec,
 .vmenu button {
-	background: #1b2129;
+	background: var(--card);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	font: inherit;
 	font-size: 13px;
@@ -482,7 +615,7 @@ nav .lock.open {
 	width: 100%;
 }
 .vcontent > .card {
-	background: #1b2129;
+	background: var(--card);
 	min-height: 84px;
 }
 .vcontent > .card.emote {
@@ -498,7 +631,7 @@ nav .lock.open {
 	user-select: none;
 }
 .editing .vitem .card {
-	outline: 1px dashed #4a5563;
+	outline: 1px dashed var(--line-strong);
 	pointer-events: none;
 }
 .vctl {
@@ -514,8 +647,8 @@ nav .lock.open {
 
 /* ---------- Cases morse ---------- */
 .morse[data-state="on"] {
-	border-color: #e2b84a;
-	box-shadow: 0 0 0 1px #e2b84a inset;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 1px var(--accent) inset;
 }
 .morse .value {
 	font-size: 14px;
@@ -526,7 +659,7 @@ nav .lock.open {
 	gap: 6px;
 }
 .morse-free.playing {
-	border-color: #e2b84a;
+	border-color: var(--accent);
 }
 .vmorse-row {
 	display: flex;
@@ -536,9 +669,9 @@ nav .lock.open {
 	flex: 1;
 	min-width: 0;
 	width: 100%;
-	background: #0a0d11;
+	background: var(--field);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	padding: 6px 8px;
 	font: inherit;
@@ -547,9 +680,9 @@ nav .lock.open {
 .vmorse-send,
 .vmorse-light {
 	position: relative;
-	background: #1b2129;
+	background: var(--card);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	font: inherit;
 	padding: 4px 12px;
@@ -582,7 +715,7 @@ nav .lock.open {
 }
 .vmorse-code .lit {
 	opacity: 1;
-	color: #e2b84a;
+	color: var(--accent);
 	font-weight: bold;
 	text-shadow: 0 0 6px currentColor;
 }
@@ -603,9 +736,9 @@ nav .lock.open {
 }
 .vmorse-field input,
 .vmorse-field select {
-	background: #0a0d11;
+	background: var(--field);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	padding: 6px 8px;
 	font: inherit;
@@ -654,8 +787,8 @@ nav .lock.open {
 .vmenu {
 	position: absolute;
 	z-index: 40;
-	background: #232b35;
-	border: 1px solid #3a4552;
+	background: var(--raised);
+	border: 1px solid var(--raised-line);
 	border-radius: 10px;
 	padding: 10px;
 	box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
@@ -673,15 +806,15 @@ nav .lock.open {
 	color: var(--muted);
 }
 .vmtabs button.on {
-	background: #38434f;
+	background: var(--active);
 	color: var(--text);
 }
 .vmsearch {
 	width: 100%;
 	box-sizing: border-box;
-	background: #1b2129;
+	background: var(--card);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	padding: 7px 10px;
 	font: inherit;
@@ -706,7 +839,7 @@ nav .lock.open {
 }
 .vmenu .vmi:hover,
 .vmenu .vmi:focus-visible {
-	background: #2f3944;
+	background: var(--hover);
 }
 .vmi small {
 	color: var(--muted);
@@ -754,9 +887,9 @@ nav .lock.open {
 .vname-input {
 	flex: 0 1 320px;
 	min-width: 0;
-	background: #0a0d11;
+	background: var(--field);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	padding: 6px 10px;
 	font: inherit;
@@ -784,9 +917,9 @@ nav .lock.open {
 	.tab-select {
 		display: block;
 		flex: 1;
-		background: #0a0d11;
+		background: var(--field);
 		color: var(--text);
-		border: 1px solid #2a3038;
+		border: 1px solid var(--line);
 		border-radius: 6px;
 		padding: 8px 10px;
 		font: inherit;
@@ -795,9 +928,9 @@ nav .lock.open {
 }
 
 /* ---------- Tablette / téléphone ---------- */
-nav .lan-open {
+.lan-open {
 	border-color: var(--ok);
-	color: #5dcaa5;
+	color: var(--ok-text);
 }
 dialog.lan {
 	width: min(640px, calc(100vw - 32px));
@@ -813,7 +946,7 @@ dialog.lan {
 	display: flex;
 	align-items: center;
 	gap: 14px;
-	background: #0f1318;
+	background: var(--inset);
 	border-radius: 10px;
 	padding: 14px 16px;
 	cursor: pointer;
@@ -828,7 +961,7 @@ dialog.lan {
 	width: 46px;
 	height: 26px;
 	border-radius: 13px;
-	background: #3a4552;
+	background: var(--raised-line);
 	position: relative;
 	flex: none;
 }
@@ -905,7 +1038,7 @@ dialog.lan {
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
-	background: rgba(21, 26, 32, 0.85);
+	background: color-mix(in srgb, var(--panel) 85%, transparent);
 	font-size: 13px;
 	text-align: center;
 }
@@ -928,8 +1061,8 @@ dialog.lan {
 	min-width: 0;
 	font-family: Consolas, monospace;
 	font-size: 13px;
-	background: #0a0d11;
-	border: 1px solid #2a3038;
+	background: var(--field);
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	padding: 8px 10px;
 	word-break: break-all;
@@ -947,9 +1080,9 @@ dialog.lan {
 	color: var(--muted);
 }
 .lan-opts select {
-	background: #0a0d11;
+	background: var(--field);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	padding: 4px 6px;
 	font: inherit;
@@ -975,14 +1108,14 @@ dialog.lan {
 	margin-top: 8px;
 }
 .lan-warn {
-	color: #f09595;
+	color: var(--bad-text);
 	margin: 6px 0 0;
 }
 .lan-note {
 	margin-top: 14px;
 	font-size: 13px;
 	color: var(--muted);
-	border-top: 1px solid #2a3038;
+	border-top: 1px solid var(--line);
 	padding-top: 12px;
 }
 .lan-note div {
@@ -1001,9 +1134,9 @@ dialog.lan {
 }
 
 /* ---------- Changement de vue automatique ---------- */
-nav .auto-open.on {
+.auto-open.on {
 	border-color: var(--ok);
-	color: #5dcaa5;
+	color: var(--ok-text);
 }
 .auto-rows {
 	display: grid;
@@ -1022,9 +1155,9 @@ nav .auto-open.on {
 	flex: 1 1 200px;
 	max-width: 100%;
 	min-width: 0;
-	background: #0a0d11;
+	background: var(--field);
 	color: var(--text);
-	border: 1px solid #2a3038;
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	padding: 6px 8px;
 	font: inherit;
@@ -1036,8 +1169,8 @@ nav .auto-open.on {
 	margin: 4px 0 6px;
 }
 .shipcard {
-	background: var(--card, #1b2129);
-	border: 1px solid #2a3038;
+	background: var(--card);
+	border: 1px solid var(--line);
 	border-radius: 12px;
 	padding: 14px 16px;
 }
@@ -1054,14 +1187,14 @@ nav .auto-open.on {
 	height: 48px;
 	flex: none;
 	border-radius: 10px;
-	background: #0f1318;
-	border: 1px solid #2a3038;
+	background: var(--inset);
+	border: 1px solid var(--line);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-weight: 800;
 	font-size: 12px;
-	color: #5dcaa5;
+	color: var(--ok-text);
 	letter-spacing: 0.5px;
 }
 .sc-who {
@@ -1093,12 +1226,12 @@ nav .auto-open.on {
 	font-size: 12px;
 	padding: 3px 9px;
 	border-radius: 999px;
-	border: 1px solid #2a3038;
-	background: #0f1318;
+	border: 1px solid var(--line);
+	background: var(--inset);
 }
 .sc-pill.ok {
 	border-color: var(--ok);
-	color: #5dcaa5;
+	color: var(--ok-text);
 }
 .sc-pill.warn {
 	border-color: var(--warn);
@@ -1111,7 +1244,7 @@ nav .auto-open.on {
 	margin-top: 12px;
 }
 .sc-mini {
-	background: #0f1318;
+	background: var(--inset);
 	border-radius: 8px;
 	padding: 8px 10px;
 }
@@ -1127,7 +1260,7 @@ nav .auto-open.on {
 .sc-bar {
 	height: 5px;
 	border-radius: 3px;
-	background: #2a3038;
+	background: var(--line);
 	margin-top: 6px;
 }
 .sc-bar i {
@@ -1143,7 +1276,7 @@ nav .auto-open.on {
 	background: var(--warn);
 }
 .sc-bar.level-bad i {
-	background: #e24b4a;
+	background: var(--bad);
 }
 .sc-seat {
 	font-size: 12px;
@@ -1205,8 +1338,8 @@ dialog.setup {
 }
 .setup-copy code,
 .setup-check code {
-	background: #0f1318;
-	border: 1px solid #2a3038;
+	background: var(--inset);
+	border: 1px solid var(--line);
 	border-radius: 6px;
 	padding: 4px 8px;
 	overflow-x: auto;
@@ -1227,7 +1360,7 @@ dialog.setup {
 	vertical-align: middle;
 }
 .setup-live {
-	border-top: 1px solid #2a3038;
+	border-top: 1px solid var(--line);
 	padding-top: 10px;
 	margin-bottom: 12px;
 }
@@ -1238,4 +1371,71 @@ dialog.setup {
 .setup-live p {
 	margin: 0 0 4px;
 	color: var(--muted);
+}
+
+/* ---------- Options ---------- */
+.options-open {
+	border-color: var(--accent) !important;
+	color: var(--accent) !important;
+}
+dialog.options {
+	box-sizing: border-box;
+	width: min(520px, calc(100vw - 32px));
+	max-width: none;
+}
+.opt-section {
+	border-top: 1px solid var(--line);
+	padding: 12px 0;
+}
+.opt-section h3 {
+	margin: 0 0 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--muted);
+}
+.opt-lan:has(#lan-open[hidden]) {
+	display: none;
+}
+.opt-row,
+.opt-themes {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+.opt-row a {
+	color: var(--text);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 6px 14px;
+	text-decoration: none;
+	font-size: 14px;
+}
+.opt-row input[type="color"] {
+	width: 44px;
+	height: 32px;
+	padding: 2px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: var(--field);
+	cursor: pointer;
+}
+.opt-theme {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+.opt-theme[aria-checked="true"] {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 1px var(--accent) inset;
+}
+.opt-dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	flex: none;
+	border: 1px solid var(--line);
+}
+dialog .opt-back {
+	margin-right: 8px;
 }

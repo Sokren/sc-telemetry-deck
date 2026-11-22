@@ -13,6 +13,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 
 ### Ajouté
 - Appli web : bouton **❓ Activer la télémétrie**, affiché tant que le jeu n'envoie rien (aussi dans *À propos*) : tuto pas à pas pour Star Citizen 5.0 (créer `user.cfg` dans le dossier du canal de jeu, ajouter `server.game.telemetry.enabled=1`, lancer le jeu, vérifier `Game.log`) et la commande pour la 4.10.3 LIVE, avec des boutons *Copier*. L'appli ne touche toujours à aucun fichier du jeu.
+- Appli web : **thèmes de couleurs** — Actuel, Cockpit vert, Ambre, Bleu nuit et Clair (jour), plus une couleur d'accent au choix, retenus par appareil (ta tablette peut être différente de ton PC). Les couleurs OK / attention / danger restent lisibles dans chaque thème.
+- Appli web : fenêtre **⚙ Options** qui regroupe apparence, langue, vue automatique, accès tablette / téléphone et aide (activer la télémétrie, À propos, API) ; la barre du haut ne garde que l'état du jeu, le cadenas des vues et ⚙ Options.
 
 ### Corrigé
 - Appli web : sur téléphone, les boutons du haut débordaient de l'écran ; ils passent maintenant à la ligne.

@@ -4,6 +4,7 @@ import { I18N } from "./i18n.js";
 import { createAutoSwitch, parseAutoSettings, POSITIONS } from "./autoswitch.js";
 import { createLan } from "./lan.js";
 import { createSetup } from "./setup.js";
+import { applyTheme, readTheme, saveTheme, themeAccent, THEMES } from "./themes.js";
 import { shipCard } from "./shipcard.js";
 import { createView } from "./view.js";
 
@@ -79,6 +80,7 @@ function applyTexts() {
 	$("about-close").textContent = t("close");
 	renderAbout();
 	$("setup-open").textContent = t("setupOpen");
+	renderOptions();
 	setup?.applyTexts();
 	$("emotes-hint").textContent = t("emotesHint");
 	myView?.applyTexts();
@@ -122,6 +124,8 @@ function renderAbout() {
 	howTo.textContent = t("setupOpen");
 	howTo.addEventListener("click", (e) => {
 		e.preventDefault();
+		// Venu des Options par À propos : le tuto y ramène aussi.
+		if ($("about").dataset.fromOptions) markFromOptions($("setup"));
 		$("about").close();
 		setup.open();
 	});
@@ -148,6 +152,107 @@ const setup = createSetup({
 	readme: () => (lang === "fr" ? `${REPO}/blob/main/README.fr.md#activer-la-télémétrie-dans-star-citizen` : `${REPO}#enabling-telemetry-in-star-citizen`),
 });
 $("setup-open").addEventListener("click", () => setup.open());
+
+// ---------- Options (thème, langue, vue auto, tablette, aide) ----------
+let theme = readTheme();
+applyTheme(theme);
+
+function setTheme(next) {
+	theme = next;
+	applyTheme(theme);
+	saveTheme(theme);
+	renderOptions();
+}
+
+function renderOptions() {
+	$("options-open").textContent = t("optionsButton");
+	$("options-title").textContent = t("optionsTitle");
+	$("opt-h-look").textContent = t("optLook");
+	$("opt-h-lang").textContent = t("optLang");
+	$("opt-h-auto").textContent = t("optAuto");
+	$("opt-h-lan").textContent = t("optLan");
+	$("opt-h-help").textContent = t("optHelp");
+	$("opt-setup").textContent = t("setupOpen");
+	$("options-close").textContent = t("close");
+	$("opt-themes").setAttribute("aria-label", t("optLook"));
+	$("opt-themes").replaceChildren(
+		...THEMES.map(({ id, accent }) => {
+			const b = document.createElement("button");
+			b.type = "button";
+			b.className = "opt-theme";
+			b.setAttribute("role", "radio");
+			b.setAttribute("aria-checked", String(theme.id === id));
+			const dot = document.createElement("span");
+			dot.className = "opt-dot";
+			dot.style.background = accent;
+			b.append(dot, t(`theme_${id}`));
+			// Changer de thème remet l'accent de ce thème.
+			b.addEventListener("click", () => setTheme({ id, accent: "" }));
+			return b;
+		}),
+	);
+	$("opt-accent-label").textContent = t("optAccent");
+	$("opt-accent").value = theme.accent || themeAccent(theme.id);
+	$("opt-accent-reset").textContent = t("optAccentReset");
+	$("opt-accent-reset").hidden = !theme.accent;
+}
+$("opt-accent").addEventListener("input", (e) => setTheme({ id: theme.id, accent: e.target.value }));
+$("opt-accent-reset").addEventListener("click", () => setTheme({ id: theme.id, accent: "" }));
+$("opt-setup").addEventListener("click", () => setup.open());
+$("options-open").addEventListener("click", () => {
+	renderOptions();
+	$("options").showModal();
+});
+// Boutons qui ouvrent une autre fenêtre (À propos, QR code, vue auto, tuto) : fermer d'abord les options (avant
+// leur propre action). Cette fenêtre reçoit, à côté de « Fermer », un bouton « ← Options » qui y ramène ;
+// « Fermer » et Échap ferment toujours tout.
+$("options").addEventListener(
+	"click",
+	(e) => {
+		const leave = e.target.closest?.("[data-leave]");
+		if (!leave) return;
+		markFromOptions($(leave.dataset.leave));
+		$("options").close();
+	},
+	true,
+);
+
+function markFromOptions(dialog) {
+	dialog.dataset.fromOptions = "1";
+	if (dialog.open) addBackButton(dialog);
+}
+
+function addBackButton(dialog) {
+	const forms = dialog.querySelectorAll('form[method="dialog"]');
+	const foot = forms[forms.length - 1];
+	if (!foot || foot.querySelector(".opt-back")) return;
+	const back = document.createElement("button");
+	back.type = "button";
+	back.className = "opt-back";
+	back.textContent = t("backToOptions");
+	back.addEventListener("click", () => {
+		dialog.dataset.backToOptions = "1";
+		dialog.close();
+	});
+	foot.prepend(back);
+}
+
+for (const id of ["about", "lan", "auto", "setup"]) {
+	const dialog = $(id);
+	// Ouverture (parfois après un chargement, ex. QR code) et contenu refait (langue) : remettre le bouton.
+	new MutationObserver(() => {
+		if (dialog.open && dialog.dataset.fromOptions) addBackButton(dialog);
+	}).observe(dialog, { attributes: true, attributeFilter: ["open"], childList: true, subtree: true });
+	dialog.addEventListener("close", () => {
+		const back = dialog.dataset.backToOptions;
+		delete dialog.dataset.fromOptions;
+		delete dialog.dataset.backToOptions;
+		dialog.querySelector(".opt-back")?.remove();
+		if (!back) return;
+		renderOptions();
+		$("options").showModal();
+	});
+}
 $("about-open").addEventListener("click", () => {
 	renderAbout();
 	$("about").showModal();

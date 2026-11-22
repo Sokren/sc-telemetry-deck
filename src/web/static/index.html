@@ -6,6 +6,7 @@
 		<meta name="color-scheme" content="dark" />
 		<title>SC Telemetry Deck</title>
 		<link rel="stylesheet" href="style.css" />
+		<script src="theme-boot.js"></script>
 	</head>
 	<body>
 		<header>
@@ -14,12 +15,8 @@
 			<span id="status" class="status"><span class="dot"></span><span id="status-text"></span></span>
 			<button id="setup-open" class="setup-open" type="button" hidden></button>
 			<nav>
-				<button id="auto-open" class="auto-open" type="button"></button>
-				<button id="lan-open" class="lan-open" type="button" hidden></button>
 				<button id="view-lock" class="lock" type="button" hidden></button>
-				<button id="about-open" type="button"></button>
-				<button id="lang" type="button"></button>
-				<a id="api" href="/api/docs" target="_blank" rel="noopener"></a>
+				<button id="options-open" class="options-open" type="button"></button>
 			</nav>
 		</header>
 		<div class="tabs" role="tablist">
@@ -72,6 +69,39 @@
 			<form method="dialog"><button id="about-close" type="submit"></button></form>
 		</dialog>
 		<dialog id="setup" class="setup" aria-labelledby="setup-title"></dialog>
+		<dialog id="options" class="options" aria-labelledby="options-title">
+			<h2 id="options-title"></h2>
+			<section class="opt-section">
+				<h3 id="opt-h-look"></h3>
+				<div id="opt-themes" class="opt-themes" role="radiogroup"></div>
+				<div class="opt-row">
+					<label for="opt-accent" id="opt-accent-label"></label>
+					<input type="color" id="opt-accent" />
+					<button id="opt-accent-reset" type="button"></button>
+				</div>
+			</section>
+			<section class="opt-section">
+				<h3 id="opt-h-lang"></h3>
+				<div class="opt-row"><button id="lang" type="button"></button></div>
+			</section>
+			<section class="opt-section">
+				<h3 id="opt-h-auto"></h3>
+				<div class="opt-row"><button id="auto-open" class="auto-open" type="button" data-leave="auto"></button></div>
+			</section>
+			<section class="opt-section opt-lan">
+				<h3 id="opt-h-lan"></h3>
+				<div class="opt-row"><button id="lan-open" class="lan-open" type="button" data-leave="lan" hidden></button></div>
+			</section>
+			<section class="opt-section">
+				<h3 id="opt-h-help"></h3>
+				<div class="opt-row">
+					<button id="opt-setup" type="button" data-leave="setup"></button>
+					<button id="about-open" type="button" data-leave="about"></button>
+					<a id="api" href="/api/docs" target="_blank" rel="noopener"></a>
+				</div>
+			</section>
+			<form method="dialog"><button id="options-close" type="submit"></button></form>
+		</dialog>
 		<script type="module" src="app.js"></script>
 	</body>
 </html>
