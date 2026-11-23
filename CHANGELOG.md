@@ -9,7 +9,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
-## [Unreleased]
+## [0.3.10] — 2026-11-23
 
 ### Added
 - Web app: **🐞 Debug mode** (⚙ Options → *Advanced*, per device) — a **Debug** tab with everything the game sends, raw and read only: sections with their age or **All** at once, full tree with the schema fields the game does not send in grey, filter, freeze, copy JSON / path, last events, frames per second, and **⏺ Record** to download every raw frame as `.json` (up to 10 000 frames) for a bug report. API contract **1.7.0**: `GET /api/v1/debug`, `POST` / `DELETE /api/v1/debug/recording`.
@@ -150,6 +150,7 @@ First release.
 ### Known issues
 - In 5.0 PTU the game accepts the `mobiglas` action but does not open the mobiGlas.
 
+[0.3.10]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.10
 [0.3.9]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.9
 [0.3.8]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.8
 [0.3.7]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.7

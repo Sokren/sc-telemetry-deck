@@ -9,7 +9,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
-## [Non publié]
+## [0.3.10] — 2026-11-23
 
 ### Ajouté
 - Appli web : **🐞 Mode debug** (⚙ Options → *Avancé*, par appareil) — un onglet **Debug** avec tout ce que le jeu envoie, brut et en lecture seule : sections avec leur âge ou **Tout** d'un coup, arbre complet avec en gris les champs du schéma que le jeu n'envoie pas, filtrer, figer, copier le JSON / un chemin, derniers événements, trames par seconde, et **⏺ Enregistrer** pour télécharger chaque trame brute en `.json` (jusqu'à 10 000 trames) pour un rapport de bug. Contrat d'API **1.7.0** : `GET /api/v1/debug`, `POST` / `DELETE /api/v1/debug/recording`.
@@ -157,6 +157,7 @@ Première version.
 ### Problèmes connus
 - En 5.0 PTU, le jeu accepte l'action `mobiglas` mais n'ouvre pas le mobiGlas.
 
+[0.3.10]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.10
 [0.3.9]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.9
 [0.3.8]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.8
 [0.3.7]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.7
