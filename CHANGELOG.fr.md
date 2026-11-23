@@ -9,6 +9,22 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
+## [Non publié]
+
+### Ajouté
+- Appli web : **personnaliser une vue** (cadenas ouvert). **Habillage** de la vue *Standard* ou *HUD vaisseau* (cadres d'écran de bord, chiffres à chasse fixe, aux couleurs du thème). Bouton **⚙** sur chaque case : **nom affiché** au choix (toute langue, emojis ; l'API et le Stream Deck gardent les noms du jeu) et **style** des jauges — carte, anneau, arc, barre, barre verticale, segments, segments verticaux ou chiffre en gros. Pour le solde, **échelle** au choix : auto (15,0 M), milliers (15 021 k), millions (15,02 M) ou tous les chiffres.
+- Appli web : **largeur des cases en emplacements** (1, 2, 3, 4, 6 ou 8 ; 8 par ligne en pleine largeur, 4 en demi-section ou sur téléphone), bouton « 2 → 3 » comme celui des sections. Les vues existantes gardent leur disposition.
+- Appli web : **format des nombres** par appareil dans ⚙ Options (selon la langue, 1 234,5 ou 1,234.5), indépendant de la langue de la page.
+- Contrat d'API **1.10.0** : `look` sur une vue ; `label`, `display` (`style`, `length`) et largeurs 0.5 à 4 (`size`) sur une case ; `amount` (montant brut) sur le solde.
+
+### Modifié
+- **Pourcentages tronqués comme dans le jeu** (98,87 % → 98 %, au lieu de 99), sur les touches Stream Deck comme dans l'appli web.
+- Appli web : la **langue** se choisit avec un bouton par langue (Français / English) dans ⚙ Options.
+- Appli web : en édition, les boutons d'une case forment une barre au-dessus du contenu au lieu de le recouvrir.
+
+### Corrigé
+- Contrat d'API : les textes disaient encore que les actions dangereuses étaient refusées (faux depuis la 0.3.9) ; le code de refus `dangerous_action`, jamais renvoyé, est retiré.
+
 ## [0.3.12] — 2026-11-23
 
 ### Ajouté

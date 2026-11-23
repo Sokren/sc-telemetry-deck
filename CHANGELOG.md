@@ -9,6 +9,22 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
+## [Unreleased]
+
+### Added
+- Web app: **customize a view** (padlock open). View **look**: *Standard* or *Ship HUD* (cockpit-screen frames, monospaced figures, in your theme's colors). A **⚙** button on each item: a custom **display name** (any language, emojis; the API and the Stream Deck keep the game names) and a gauge **style** — card, ring, arc, bar, vertical bar, segments, vertical segments or big number. For the balance, a **scale**: auto (15.0M), thousands (15,021k), millions (15.02M) or every digit.
+- Web app: **item width in slots** (1, 2, 3, 4, 6 or 8; 8 per row in a full-width section, 4 in a half section or on a phone), with a “2 → 3” button like the sections'. Existing views keep their layout.
+- Web app: per-device **number format** in ⚙ Options (same as language, 1 234,5 or 1,234.5), independent of the page language.
+- API contract **1.10.0**: `look` on a view; `label`, `display` (`style`, `length`) and widths 0.5 to 4 (`size`) on an item; `amount` (raw amount) on the balance.
+
+### Changed
+- **Percentages truncated like in the game** (98.87% → 98%, instead of 99), on Stream Deck keys and in the web app.
+- Web app: the **language** is picked with one button per language (Français / English) in ⚙ Options.
+- Web app: in edit mode, an item's buttons form a bar above its content instead of covering it.
+
+### Fixed
+- API contract: the texts still said dangerous actions were refused (wrong since 0.3.9); the `dangerous_action` refusal code, never returned, is removed.
+
 ## [0.3.12] — 2026-11-23
 
 ### Added
