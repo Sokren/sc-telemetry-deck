@@ -112,7 +112,7 @@ Merci à l'auteur de l'[issue n°1](../../issues/1). En 4.10.3 LIVE, la variable
    wineserver -k
    ```
 
-En 5.0 PTU, la ligne de `user.cfg` ci-dessus suffit (le fichier est dans le dossier du jeu, à l'intérieur du préfixe). Le plugin Stream Deck est réservé à Windows ; sous Linux, utilisez l'appli web : lancez `sc-telemetry-web.exe` avec Wine, dans le même préfixe.
+En 5.0 PTU, la ligne de `user.cfg` ci-dessus devrait suffire, puisque le fichier est dans le dossier du jeu, à l'intérieur du préfixe (pas encore testé sous Linux). Le plugin Stream Deck est réservé à Windows ; sous Linux, utilisez l'appli web : lancez `sc-telemetry-web.exe` avec Wine, dans le même préfixe.
 
 ## Actions Stream Deck
 

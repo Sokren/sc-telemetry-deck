@@ -112,7 +112,7 @@ Thanks to the reporter of [issue #1](../../issues/1). On 4.10.3 LIVE the environ
    wineserver -k
    ```
 
-On 5.0 PTU, the `user.cfg` line above is enough (the file is in the game folder inside the prefix). The Stream Deck plugin is Windows only; on Linux, use the web app: run `sc-telemetry-web.exe` with Wine, in the same prefix.
+On 5.0 PTU, the `user.cfg` line above should be enough, since the file is in the game folder inside the prefix (not tested on Linux yet). The Stream Deck plugin is Windows only; on Linux, use the web app: run `sc-telemetry-web.exe` with Wine, in the same prefix.
 
 ## Stream Deck actions
 
