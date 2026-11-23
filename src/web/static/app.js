@@ -5,6 +5,7 @@ import { createAutoSwitch, parseAutoSettings, POSITIONS } from "./autoswitch.js"
 import { createLan } from "./lan.js";
 import { holdToPress, HOLD_ACTIONS } from "./hold.js";
 import { createSetup } from "./setup.js";
+import { createDebug } from "./debug.js";
 import { applyTheme, readTheme, saveTheme, themeAccent, THEMES } from "./themes.js";
 import { shipCard } from "./shipcard.js";
 import { createView } from "./view.js";
@@ -67,6 +68,7 @@ function applyTexts() {
 	$("tab-grid").textContent = t("tabGrid");
 	$("tab-character").textContent = t("tabCharacter");
 	$("tab-ship").textContent = t("tabShip");
+	$("tab-debug").textContent = `🐞 ${t("tabDebug")}`;
 	$("view-add").title = t("addView");
 	$("view-add").setAttribute("aria-label", t("addView"));
 	$("tab-select").setAttribute("aria-label", t("tabs"));
@@ -83,6 +85,7 @@ function applyTexts() {
 	$("setup-open").textContent = t("setupOpen");
 	renderOptions();
 	setup?.applyTexts();
+	debugTab?.applyTexts();
 	$("emotes-hint").textContent = t("emotesHint");
 	myView?.applyTexts();
 	lanPanel?.applyTexts();
@@ -168,6 +171,24 @@ $("opt-danger").addEventListener("change", (e) => {
 });
 document.documentElement.classList.toggle("no-danger-alert", !dangerAlert);
 
+// Mode debug (par appareil) : ajoute l'onglet 🐞 Debug, tout le flux brut du jeu.
+const DEBUG_KEY = "sctd-debug";
+let debugOn = storageGet(DEBUG_KEY) === "1";
+const debugTab = createDebug({
+	panel: $("panel-debug"),
+	t: (k) => t(k),
+	request: (method, url) => fetch(url, { method, headers: { authorization: `Bearer ${token}` } }),
+	onUnauthorized: () => showMessage(t("badToken")),
+});
+$("tab-debug").hidden = !debugOn;
+$("opt-debug").addEventListener("change", (e) => {
+	debugOn = e.target.checked;
+	storageSet(DEBUG_KEY, debugOn ? "1" : "0");
+	$("tab-debug").hidden = !debugOn;
+	if (!debugOn && currentTab === "debug") showTab("grid");
+	else renderTabs();
+});
+
 function setTheme(next) {
 	theme = next;
 	applyTheme(theme);
@@ -183,6 +204,9 @@ function renderOptions() {
 	$("opt-h-danger").textContent = t("optDanger");
 	$("opt-danger-label").textContent = t("optDangerLabel");
 	$("opt-danger").checked = dangerAlert;
+	$("opt-h-advanced").textContent = t("optAdvanced");
+	$("opt-debug-label").textContent = t("optDebugLabel");
+	$("opt-debug").checked = debugOn;
 	$("opt-h-auto").textContent = t("optAuto");
 	$("opt-h-lan").textContent = t("optLan");
 	$("opt-h-help").textContent = t("optHelp");
@@ -274,8 +298,8 @@ $("about-open").addEventListener("click", () => {
 
 // ---------- Onglets ----------
 // Onglets fixes, puis un onglet par vue (« view:<id> ») ; « ＋ » crée une vue. Téléphone : liste déroulante.
-const TABS = ["grid", "character", "ship"];
-const TAB_TEXT = { grid: "tabGrid", character: "tabCharacter", ship: "tabShip" };
+const TABS = ["grid", "character", "ship", "debug"];
+const TAB_TEXT = { grid: "tabGrid", character: "tabCharacter", ship: "tabShip", debug: "tabDebug" };
 const MAX_VIEWS = 10;
 const ADD = "__add";
 /** Vues connues (nom et id), dans l'ordre des onglets ; `null` tant que l'appli ne les a pas envoyées. */
@@ -313,7 +337,7 @@ function renderTabs() {
 	if (shown) $("panel-myview").setAttribute("aria-labelledby", `tab-view-${shown}`);
 	$("view-add").hidden = !viewTabs || viewTabs.length >= MAX_VIEWS;
 	const select = $("tab-select");
-	const options = [...TABS.map((tab) => [tab, t(TAB_TEXT[tab])]), ...(viewTabs ?? []).map((v) => [`view:${v.id}`, v.name || t("viewNameEmpty")])];
+	const options = [...TABS.filter((tab) => tab !== "debug" || debugOn).map((tab) => [tab, t(TAB_TEXT[tab])]), ...(viewTabs ?? []).map((v) => [`view:${v.id}`, v.name || t("viewNameEmpty")])];
 	if (viewTabs && viewTabs.length < MAX_VIEWS) options.push([ADD, `＋ ${t("addView")}`]);
 	select.replaceChildren(
 		...options.map(([value, text]) => {
@@ -328,7 +352,7 @@ function renderTabs() {
 
 function showTab(name) {
 	const id = viewId(name);
-	if (!TABS.includes(name) && id === null) name = "grid";
+	if ((!TABS.includes(name) && id === null) || (name === "debug" && !debugOn)) name = "grid";
 	// Vue inconnue (supprimée, lien périmé) : première vue, dès que la liste est connue.
 	if (id !== null && viewTabs && !viewTabs.some((v) => v.id === id)) name = viewTabs[0] ? `view:${viewTabs[0].id}` : "grid";
 	currentTab = name;
@@ -341,6 +365,7 @@ function showTab(name) {
 	renderTabs();
 	myView?.show(viewId(name));
 	myView?.setVisible(viewId(name) !== null);
+	debugTab.setVisible(name === "debug");
 }
 /** Onglet choisi à la main : le changement de vue automatique le respecte jusqu'au prochain changement de position. */
 function userShowTab(name) {

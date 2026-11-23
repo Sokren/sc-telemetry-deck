@@ -140,3 +140,20 @@ describe("TelemetryHub — reconnexion", () => {
 		expect(game.opened).toHaveLength(1);
 	});
 });
+
+describe("TelemetryHub — mode debug", () => {
+	test("onFrame reçoit chaque frame brute avec son heure ; sections() garde aussi les périmées", () => {
+		const seen: TelemetryFrame[] = [];
+		const off = hub.onFrame((f) => seen.push(f));
+		hub.subscribe(() => {});
+		game.last.onFrame({ actor: { a: 1 } });
+		game.last.onFrame({ vehicle: { v: 2 } });
+		expect(seen).toEqual([{ actor: { a: 1 } }, { vehicle: { v: 2 } }]);
+		vi.advanceTimersByTime(5000);
+		expect(hub.section("actor")).toBeUndefined();
+		expect(hub.sections().map((s) => s.name)).toEqual(["actor", "vehicle"]);
+		off();
+		game.last.onFrame({ actor: { a: 3 } });
+		expect(seen).toHaveLength(2);
+	});
+});

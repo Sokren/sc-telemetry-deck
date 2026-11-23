@@ -8,6 +8,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 import { ActionSource, readSnapshot } from "../../src/catalog/source.js";
 import { GameClient } from "../../src/game/client.js";
 import { loadSchema } from "../../src/game/schema.js";
+import { streamSchemaTree } from "../../src/game/schema-tree.js";
 import type { GameApi } from "../../src/game/types.js";
 import { TelemetryHub } from "../../src/telemetry/hub.js";
 import { createApp, type AppDeps } from "../../src/web/app.js";
@@ -43,6 +44,7 @@ export async function startTestServer(opts: { game?: FakeHandlers | null; extra?
 		hub,
 		source: new ActionSource(game, () => readSnapshot(SNAPSHOT)),
 		viewFile: path.join(dir, "view.json"),
+		debugSchema: streamSchemaTree(loadSchema(fileURLToPath(DESC_PATH))),
 		...opts.extra,
 	};
 	const app = createApp(deps);

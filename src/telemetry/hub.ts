@@ -26,6 +26,7 @@ export class TelemetryHub {
 	readonly #now: () => number;
 
 	readonly #listeners = new Set<() => void>();
+	readonly #frameListeners = new Set<(frame: TelemetryFrame, at: number) => void>();
 	readonly #sections = new Map<string, { value: Record<string, unknown>; at: number; stale: boolean }>();
 	#stream: StreamSubscription | undefined;
 	#retryTimer: ReturnType<typeof setTimeout> | undefined;
@@ -52,6 +53,20 @@ export class TelemetryHub {
 			if (!this.#listeners.delete(wrapped)) return;
 			if (this.#listeners.size === 0) this.#stop();
 		};
+	}
+
+	/**
+	 * Écoute chaque frame brute telle que reçue, avec son heure (mode debug, enregistrement). N'ouvre pas le flux :
+	 * il faut aussi un abonné `subscribe`. Renvoie le désabonnement.
+	 */
+	onFrame(listener: (frame: TelemetryFrame, at: number) => void): () => void {
+		this.#frameListeners.add(listener);
+		return () => void this.#frameListeners.delete(listener);
+	}
+
+	/** Toutes les sections déjà reçues, même périmées, avec leur heure de réception (mode debug). */
+	sections(): { name: string; value: Record<string, unknown>; at: number }[] {
+		return [...this.#sections].map(([name, s]) => ({ name, value: s.value, at: s.at }));
 	}
 
 	/** Dernière valeur reçue de la section si elle est assez récente, sinon `undefined`. */
@@ -92,6 +107,7 @@ export class TelemetryHub {
 		for (const [name, value] of Object.entries(frame)) {
 			if (value && typeof value === "object") this.#sections.set(name, { value: value as Record<string, unknown>, at, stale: false });
 		}
+		for (const l of this.#frameListeners) l(frame, at);
 		this.#notify();
 	}
 

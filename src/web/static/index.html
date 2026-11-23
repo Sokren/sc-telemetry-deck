@@ -23,6 +23,7 @@
 			<button type="button" role="tab" data-tab="grid" id="tab-grid"></button>
 			<button type="button" role="tab" data-tab="character" id="tab-character"></button>
 			<button type="button" role="tab" data-tab="ship" id="tab-ship"></button>
+			<button type="button" role="tab" data-tab="debug" id="tab-debug" class="tab-debug" hidden></button>
 			<span id="view-tabs" class="view-tabs"></span>
 			<button type="button" id="view-add" class="tab-add" hidden>＋</button>
 			<select id="tab-select" class="tab-select"></select>
@@ -55,6 +56,7 @@
 				<p id="functions-hint" class="hint"></p>
 				<div id="ship-functions" class="cards functions"></div>
 			</section>
+			<section id="panel-debug" role="tabpanel" class="debug" hidden></section>
 			<section id="panel-myview" role="tabpanel" hidden>
 				<div id="myview"></div>
 			</section>
@@ -95,6 +97,10 @@
 			<section class="opt-section opt-lan">
 				<h3 id="opt-h-lan"></h3>
 				<div class="opt-row"><button id="lan-open" class="lan-open" type="button" data-leave="lan" hidden></button></div>
+			</section>
+			<section class="opt-section">
+				<h3 id="opt-h-advanced"></h3>
+				<label class="opt-check"><input type="checkbox" id="opt-debug" /> <span id="opt-debug-label"></span></label>
 			</section>
 			<section class="opt-section">
 				<h3 id="opt-h-help"></h3>

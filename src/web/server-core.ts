@@ -1,3 +1,5 @@
+import { loadSchema } from "../game/schema.js";
+import { streamSchemaTree, type SchemaField } from "../game/schema-tree.js";
 import { exec } from "node:child_process";
 import fs from "node:fs";
 import http from "node:http";
@@ -138,8 +140,15 @@ export async function startServer(o: ServerOptions): Promise<RunningServer> {
 	} catch {
 		/* instantané absent : version inconnue */
 	}
+	let debugSchema: SchemaField[] | null = null;
+	try {
+		debugSchema = streamSchemaTree(loadSchema(path.join(o.dataDir, "sc_extrait.desc")));
+	} catch {
+		/* schéma illisible : déjà signalé par createGameApi ; le debug montre seulement ce qui arrive */
+	}
 	const app = createApp({
 		settings,
+		debugSchema,
 		version: VERSION,
 		schemaVersion,
 		game,

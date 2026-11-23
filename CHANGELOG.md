@@ -9,6 +9,11 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
+## [Unreleased]
+
+### Added
+- Web app: **🐞 Debug mode** (⚙ Options → *Advanced*, per device) — a **Debug** tab with everything the game sends, raw and read only: sections with their age or **All** at once, full tree with the schema fields the game does not send in grey, filter, freeze, copy JSON / path, last events, frames per second, and **⏺ Record** to download every raw frame as `.json` (up to 10 000 frames) for a bug report. API contract **1.7.0**: `GET /api/v1/debug`, `POST` / `DELETE /api/v1/debug/recording`.
+
 ## [0.3.9] — 2026-11-22
 
 ### Changed

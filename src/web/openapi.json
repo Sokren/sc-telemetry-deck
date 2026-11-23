@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.6.0",
+		"version": "1.7.0",
 		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Dangerous actions (self destruct, eject, opening doors…) are always refused. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions dangereuses (autodestruction, éjection, ouverture des portes…) sont toujours refusées.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
@@ -1259,6 +1259,139 @@
 					}
 				}
 			}
+		},
+		"/api/v1/debug": {
+			"get": {
+				"operationId": "getDebug",
+				"tags": [
+					"Telemetry"
+				],
+				"summary": "Debug: everything the game sends — tout ce que le jeu envoie",
+				"description": "Debug mode: every raw section of the telemetry stream with its age (also stale or never received ones), the game schema's fields (to see fields that are planned but not sent), the last 100 game events, the frame rate and the recording state. Read only. Note: the game does not send zero / false / empty values. — FR : mode debug : toutes les sections brutes du flux avec leur âge (même périmées ou jamais reçues), les champs du schéma du jeu (pour voir ceux qui sont prévus mais pas envoyés), les 100 derniers événements, la cadence et l'état de l'enregistrement. Lecture seule. Le jeu n'envoie pas les valeurs nulles (0, false, vide).",
+				"responses": {
+					"200": {
+						"description": "Debug state — état du debug",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DebugState"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					}
+				}
+			}
+		},
+		"/api/v1/debug/recording": {
+			"post": {
+				"operationId": "startDebugRecording",
+				"tags": [
+					"Telemetry"
+				],
+				"summary": "Start recording raw frames — enregistrer le flux brut",
+				"description": "Starts recording every raw frame of the stream (up to 10 000 frames, about 10 min; it then stops by itself and keeps what it has). — FR : commence à enregistrer chaque trame brute du flux (jusqu'à 10 000 trames, environ 10 min ; ensuite il s'arrête seul et garde ce qu'il a).",
+				"responses": {
+					"200": {
+						"description": "Started — commencé",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DebugRecording"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"409": {
+						"description": "Already recording (or not downloaded yet) — déjà en cours (ou pas encore téléchargé)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "takeDebugRecording",
+				"tags": [
+					"Telemetry"
+				],
+				"summary": "Stop and get the recording — arrêter et récupérer l'enregistrement",
+				"description": "Stops the recording and returns it (then forgets it): app and schema versions, start time, duration and every frame with its time from the start (t, in ms). — FR : arrête l'enregistrement et le renvoie (puis l'oublie) : versions de l'appli et du schéma, heure de début, durée et chaque trame avec son temps depuis le début (t, en ms).",
+				"responses": {
+					"200": {
+						"description": "Recording — enregistrement",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"required": [
+										"app",
+										"schemaVersion",
+										"startedAt",
+										"durationMs",
+										"frames"
+									],
+									"properties": {
+										"app": {
+											"type": "string"
+										},
+										"schemaVersion": {
+											"type": "string"
+										},
+										"startedAt": {
+											"type": "string",
+											"format": "date-time"
+										},
+										"durationMs": {
+											"type": "integer"
+										},
+										"frames": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"required": [
+													"t",
+													"frame"
+												],
+												"properties": {
+													"t": {
+														"type": "integer"
+													},
+													"frame": {
+														"type": "object"
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"404": {
+						"description": "No recording — aucun enregistrement",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -2249,6 +2382,165 @@
 						"type": "string",
 						"minLength": 1,
 						"maxLength": 256
+					}
+				}
+			},
+			"DebugRecording": {
+				"type": "object",
+				"required": [
+					"active",
+					"frames",
+					"ms",
+					"full"
+				],
+				"properties": {
+					"active": {
+						"type": "boolean",
+						"description": "Recording in progress — enregistrement en cours"
+					},
+					"frames": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"ms": {
+						"type": "integer",
+						"minimum": 0,
+						"description": "Duration so far — durée"
+					},
+					"full": {
+						"type": "boolean",
+						"description": "Stopped by itself at the limit (10 000 frames), waiting to be downloaded — arrêté seul au plafond, en attente de téléchargement"
+					}
+				}
+			},
+			"SchemaField": {
+				"type": "object",
+				"required": [
+					"name",
+					"type",
+					"kind"
+				],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"kind": {
+						"type": "string",
+						"enum": [
+							"scalar",
+							"enum",
+							"message"
+						]
+					},
+					"repeated": {
+						"type": "boolean"
+					},
+					"optional": {
+						"type": "boolean"
+					},
+					"fields": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/SchemaField"
+						}
+					},
+					"default": {
+						"type": [
+							"boolean",
+							"number",
+							"string"
+						],
+						"description": "Value of a simple field when the game does not send it (proto3 omits zero values): false, 0, \"\" or the enum's 0 value — valeur d'un champ simple non envoyé (proto3 n'envoie pas les valeurs nulles)"
+					}
+				}
+			},
+			"DebugState": {
+				"type": "object",
+				"required": [
+					"app",
+					"schemaVersion",
+					"framesPerSecond",
+					"sections",
+					"events",
+					"recording",
+					"schema"
+				],
+				"properties": {
+					"app": {
+						"type": "string"
+					},
+					"schemaVersion": {
+						"type": "string"
+					},
+					"framesPerSecond": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"sections": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": [
+								"name",
+								"ageMs",
+								"stale",
+								"data"
+							],
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"ageMs": {
+									"type": [
+										"integer",
+										"null"
+									],
+									"description": "null = never received — jamais reçue"
+								},
+								"stale": {
+									"type": "boolean"
+								},
+								"data": {
+									"type": [
+										"object",
+										"null"
+									]
+								}
+							}
+						}
+					},
+					"events": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": [
+								"ageMs",
+								"event"
+							],
+							"properties": {
+								"ageMs": {
+									"type": "integer"
+								},
+								"event": {
+									"type": "object"
+								}
+							}
+						}
+					},
+					"recording": {
+						"$ref": "#/components/schemas/DebugRecording"
+					},
+					"schema": {
+						"type": [
+							"array",
+							"null"
+						],
+						"items": {
+							"$ref": "#/components/schemas/SchemaField"
+						}
 					}
 				}
 			}

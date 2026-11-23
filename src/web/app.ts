@@ -21,6 +21,9 @@ import { morseRoutes } from "./routes/morse.js";
 import { panelRoutes } from "./routes/panels.js";
 import { shipRoutes } from "./routes/ship.js";
 import { telemetryRoutes } from "./routes/telemetry.js";
+import { debugRoutes } from "./routes/debug.js";
+import { DebugRecorder } from "./debug.js";
+import type { SchemaField } from "../game/schema-tree.js";
 import { viewsRoutes } from "./routes/view.js";
 import { vitalRoutes } from "./routes/vitals.js";
 import { ViewStore } from "./view.js";
@@ -34,6 +37,8 @@ export type AppDeps = {
 	game: GameApi;
 	hub: TelemetryHub;
 	source: ActionSource;
+	/** Sections et champs du schéma du jeu (mode debug : champs prévus mais pas envoyés) ; absent → inconnus. */
+	debugSchema?: SchemaField[] | null;
 	/** Le jeu accepte-t-il les actions ? (par défaut : vérifié sur `game` toutes les 30 s). */
 	capability?: ActionCapability;
 	/** Émission morse (par défaut : créée sur `game`). */
@@ -113,6 +118,8 @@ export function createApp(deps: AppDeps): App {
 	const unsubscribe = deps.hub.subscribe(() =>
 		countermeasures.observe({ weapons: deps.hub.section("weapons"), vehicle: deps.hub.section("vehicle"), actor: deps.hub.section("actor") }),
 	);
+	// Mode debug : cadence, derniers événements et enregistrement des frames brutes (lecture seule).
+	const recorder = new DebugRecorder(deps.hub);
 	const layout = () => DEFAULT_LAYOUT;
 	const capability = deps.capability ?? new ActionCapability(deps.game);
 	const status = () => {
@@ -154,6 +161,7 @@ export function createApp(deps: AppDeps): App {
 		...actionRoutes(deps),
 		...vitalRoutes(deps),
 		...telemetryRoutes(deps),
+		...debugRoutes({ hub: deps.hub, recorder, schema: deps.debugSchema ?? null, version: deps.version, schemaVersion: deps.schemaVersion }),
 		...shipRoutes(deps),
 		...panelRoutes({ hub: deps.hub, countermeasures }),
 		...morseRoutes({ morse }),
@@ -194,6 +202,7 @@ export function createApp(deps: AppDeps): App {
 			lan.stop();
 			capability.stop();
 			events.close();
+			recorder.close();
 			unsubscribe();
 		},
 	};
