@@ -9,13 +9,12 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
-## [Unreleased]
+## [0.3.11] — 2026-11-23
 
 ### Added
 - Web app, **Ship** tab: a big **✈ Flight ready** button (`v_flightready`, command only — the game sends no "ready" state) and a one-line **character summary** above the ship card — health, hunger, thirst, oxygen (coloured by level) and a breathable-air note; hide it with ✕ or in ⚙ Options (per device).
 - Web app, **Character** tab: an **Actions** row — star map, wipe visor, mobiGlas, flashlight.
 - Web app, 🐞 **Debug** tab: **actions sent** log (last 200: time, action, origin, character position, the game's answer, response time), *Errors only* / *Copy* / *Clear*, included in the recording. A button showing ⚠ tells why when hovered. API contract **1.8.0**: `actions` in `GET /api/v1/debug` and in the recording, `DELETE /api/v1/debug/actions`.
-
 - Web app: **update check** — at start, then daily (can be turned off in ⚙ Options → *Updates*), the app reads the latest GitHub release; a newer one shows a **⬆ x.y.z available** badge and **Open GitHub ↗**. Nothing is downloaded automatically, no data is sent. API: `GET` / `PUT /api/v1/update`, `POST /api/v1/update/check`.
 
 ### Changed
@@ -162,6 +161,7 @@ First release.
 ### Known issues
 - In 5.0 PTU the game accepts the `mobiglas` action but does not open the mobiGlas.
 
+[0.3.11]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.11
 [0.3.10]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.10
 [0.3.9]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.9
 [0.3.8]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.8

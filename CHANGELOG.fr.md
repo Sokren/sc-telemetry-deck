@@ -9,13 +9,12 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
-## [Non publié]
+## [0.3.11] — 2026-11-23
 
 ### Ajouté
 - Appli web, onglet **Vaisseau** : un gros bouton **✈ Prêt au vol** (`v_flightready`, simple commande — le jeu n'envoie pas d'état « prêt ») et un **résumé du perso** sur une ligne au-dessus de l'encart du vaisseau — santé, faim, soif, oxygène (couleur selon le niveau) et une note sur l'air respirable ; masquable avec ✕ ou dans ⚙ Options (par appareil).
 - Appli web, onglet **Personnage** : une rangée **Actions** — carte stellaire, essuyer la visière, mobiGlas, torche.
 - Appli web, onglet 🐞 **Debug** : journal des **actions envoyées** (200 dernières : heure, action, origine, position du perso, réponse du jeu, temps de réponse), *Erreurs seulement* / *Copier* / *Vider*, ajouté à l'enregistrement. Un bouton qui affiche ⚠ explique pourquoi au survol. Contrat d'API **1.8.0** : `actions` dans `GET /api/v1/debug` et dans l'enregistrement, `DELETE /api/v1/debug/actions`.
-
 - Appli web : **vérification de version** — au démarrage puis chaque jour (désactivable dans ⚙ Options → *Mises à jour*), l'appli lit la dernière version publiée sur GitHub ; si elle est plus récente, un badge **⬆ x.y.z disponible** et **Ouvrir GitHub ↗**. Rien n'est téléchargé automatiquement, aucune donnée envoyée. API : `GET` / `PUT /api/v1/update`, `POST /api/v1/update/check`.
 
 ### Modifié
@@ -169,6 +168,7 @@ Première version.
 ### Problèmes connus
 - En 5.0 PTU, le jeu accepte l'action `mobiglas` mais n'ouvre pas le mobiGlas.
 
+[0.3.11]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.11
 [0.3.10]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.10
 [0.3.9]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.9
 [0.3.8]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.8
