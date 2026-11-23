@@ -46,6 +46,11 @@ const svgEl = (tag, attrs) => {
 /** Valeur affichée : texte et unité (« — » seul quand il n'y a rien). */
 const valueText = (data) => (data.text === "—" || !data.unit ? data.text : `${data.text} ${data.unit}`);
 
+/** Texte dans un anneau / arc : le nombre seul pour un pourcentage, sinon la valeur complète (jamais cachée). */
+export function gaugeText(data) {
+	return data.unit === "%" ? data.text : valueText(data);
+}
+
 /** Anneau (cercle complet) ou arc (demi-cercle) : tracé de fond + tracé de valeur sur une longueur de 100. */
 function curve(kind) {
 	const ring = kind === "ring";
@@ -63,7 +68,7 @@ function curve(kind) {
 		node: svg,
 		set(m, data) {
 			value.setAttribute("stroke-dasharray", `${m.pct ?? 0} 100`);
-			text.textContent = m.pct === null ? "—" : data.unit === "%" ? data.text : valueText(data);
+			text.textContent = gaugeText(data);
 		},
 	};
 }
@@ -136,7 +141,8 @@ export function renderGauge(style, data, size = 1) {
 		const m = gaugeModel(d);
 		root.className = `gauge g-${style} gs${size} level-${m.pct === null && style !== "number" ? "none" : m.level}`;
 		label.textContent = d.label ?? "";
-		value.textContent = style !== "number" && m.pct === null ? "—" : valueText(d);
+		// Valeur sans pourcentage (style mal choisi, ou réglé par l'API) : la valeur reste lisible.
+		value.textContent = valueText(d);
 		part?.set(m, d);
 		root.setAttribute("aria-label", `${d.label ?? ""} ${valueText(d)}`.trim());
 	};

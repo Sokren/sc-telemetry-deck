@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 // @ts-expect-error module JS de la page, sans types
-import { gaugeModel, litSegments, STYLES, stylesFor } from "../../src/web/static/gauges.js";
+import { gaugeModel, gaugeText, litSegments, STYLES, stylesFor } from "../../src/web/static/gauges.js";
 
 describe("jauges : styles permis", () => {
 	test("8 styles pour une jauge ou une donnée encore inconnue", () => {
@@ -38,5 +38,13 @@ describe("jauges : modèle", () => {
 		expect(gaugeModel({ text: "0", unit: "%", percent: -5, level: "bad" }).pct).toBe(0);
 		expect(gaugeModel({ text: "x", unit: "", percent: Number.NaN, level: "none" }).pct).toBeNull();
 		expect(gaugeModel({ text: "x", unit: "", percent: 140, level: "ok" }).pct).toBe(100);
+	});
+});
+
+describe("jauges : texte affiché", () => {
+	test("pourcentage : nombre seul ; valeur sans pourcentage : jamais cachée", () => {
+		expect(gaugeText({ text: "82", unit: "%", percent: 82, level: "ok" })).toBe("82");
+		expect(gaugeText({ text: "212", unit: "m/s", level: "none" })).toBe("212 m/s");
+		expect(gaugeText({ text: "—", unit: "", level: "none" })).toBe("—");
 	});
 });

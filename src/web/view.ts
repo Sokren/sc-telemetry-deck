@@ -134,6 +134,8 @@ function parseMorseSettings(x: unknown, withText: boolean): MorseItemSettings | 
 function parseDisplay(kind: ItemKind, x: unknown): ItemDisplay | undefined {
 	const style = obj(x)?.style;
 	if (!STYLED_KINDS.includes(kind) || style === "card" || !(ITEM_STYLES as readonly unknown[]).includes(style)) return undefined;
+	// Infos perso / vaisseau : du texte, jamais de pourcentage → chiffre seulement.
+	if ((kind === "character_info" || kind === "ship_info") && style !== "number") return undefined;
 	return { style: style as ItemDisplay["style"] };
 }
 

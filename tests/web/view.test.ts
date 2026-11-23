@@ -326,6 +326,7 @@ describe("style des cases et habillage", () => {
 		["style inconnu", health({ style: "hologram" })],
 		["style carte (défaut)", health({ style: "card" })],
 		["display pas un objet", health("ring")],
+		["style graphique sur une info (nom du vaisseau)", { id: "h", kind: "ship_info", ref: "name", size: 1, display: { style: "ring" } }],
 		["display sur un bouton", { id: "h", kind: "ship_function", ref: "gear", size: 1, display: { style: "ring" } }],
 	])("%s : display retiré sans refuser la vue", (_n, item) => {
 		const v = parseViewInput({ name: "A", sections: [sec([item])] }, "fr");
@@ -336,6 +337,11 @@ describe("style des cases et habillage", () => {
 	test("habillage HUD gardé ; standard ou valeur inconnue → absent", () => {
 		expect(parseViewInput({ name: "A", sections: [], look: "hud" }, "fr")).toEqual({ name: "A", sections: [], look: "hud" });
 		for (const look of ["standard", "neon", 1]) expect(parseViewInput({ name: "A", sections: [], look }, "fr")).not.toHaveProperty("look");
+	});
+
+	test("info perso / vaisseau : chiffre accepté", () => {
+		const v = parseViewInput({ name: "A", sections: [sec([{ id: "n", kind: "ship_info", ref: "name", size: 1, display: { style: "number" } }])] }, "fr");
+		expect(v!.sections[0].items[0]).toHaveProperty("display", { style: "number" });
 	});
 
 	test("aller-retour identique (ordre des clés)", () => {

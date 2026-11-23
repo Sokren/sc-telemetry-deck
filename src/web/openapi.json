@@ -2524,7 +2524,7 @@
 						"required": [
 							"style"
 						],
-						"description": "Display style, only for vital, instrument, character_info and ship_info; unknown values are dropped, absent = card — FR : style d’affichage, seulement pour vital, instrument, character_info et ship_info ; valeur inconnue retirée, absent = carte",
+						"description": "Display style, only for vital, instrument, character_info and ship_info (these two: number only); unknown values are dropped, absent = card — FR : style d’affichage, seulement pour vital, instrument, character_info et ship_info (ces deux-là : number seulement) ; valeur inconnue retirée, absent = carte",
 						"properties": {
 							"style": {
 								"enum": [
