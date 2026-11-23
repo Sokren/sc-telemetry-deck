@@ -27,12 +27,11 @@ export function shipStateOf(id: ShipFunctionId, hub: Pick<TelemetryHub, "section
 }
 
 /** Code stable d'un refus (indépendant de la langue). */
-export type RefusalCode = "unavailable" | "no_command" | "dangerous_action";
+export type RefusalCode = "unavailable" | "no_command";
 
 const REFUSALS: Record<RefusalCode, Record<Lang, string>> = {
 	unavailable: { fr: "Ce vaisseau n'a pas cette fonction.", en: "This ship does not have this function." },
 	no_command: { fr: "Aucune commande sûre pour ce mode dans l'état actuel.", en: "No safe command for this mode in the current state." },
-	dangerous_action: { fr: "Action dangereuse refusée.", en: "Dangerous action refused." },
 };
 
 export type PressOutcome =

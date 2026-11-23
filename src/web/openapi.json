@@ -3,7 +3,7 @@
 	"info": {
 		"title": "SC Telemetry Deck API",
 		"version": "1.10.0",
-		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Dangerous actions (self destruct, eject, opening doors…) are always refused. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions dangereuses (autodestruction, éjection, ouverture des portes…) sont toujours refusées.",
+		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Sensitive actions (self destruct, eject, opening doors…) are sent like any other: check before calling them. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions sensibles (autodestruction, éjection, ouverture des portes…) sont envoyées comme les autres : vérifiez avant de les appeler.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
 		}
@@ -114,7 +114,7 @@
 					"Actions"
 				],
 				"summary": "Trigger an action — déclencher une action",
-				"description": "Triggers a game action by name (e.g. emote_wave, v_lights_on). Dangerous actions are refused with 403. 502 when the game refuses or cannot be reached. — FR : déclenche une action du jeu par son nom (ex. emote_wave, v_lights_on). Les actions dangereuses sont refusées (403). 502 si le jeu refuse ou est injoignable.",
+				"description": "Triggers a game action by name (e.g. emote_wave, v_lights_on). 502 when the game refuses or cannot be reached. — FR : déclenche une action du jeu par son nom (ex. emote_wave, v_lights_on). 502 si le jeu refuse ou est injoignable.",
 				"parameters": [
 					{
 						"name": "name",
@@ -139,16 +139,6 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
-					},
-					"403": {
-						"description": "Dangerous action refused — action dangereuse refusée",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								}
-							}
-						}
 					},
 					"502": {
 						"description": "Game refused or unreachable — refus du jeu ou jeu injoignable",
@@ -982,7 +972,7 @@
 					"View"
 				],
 				"summary": "Save a view — enregistrer une vue",
-				"description": "Replaces the name and sections of this view only (other views are untouched, so two screens can edit two views at once) and sends the views to every connected page. Titles trimmed to 40 characters, an empty title becomes “Section”. 400 invalid_view if anything is invalid (unknown kind or ref, duplicate ids, limits, dangerous action): nothing is saved. 404 unknown_view if the view was deleted. — FR : remplace le nom et les sections de cette vue seulement (les autres ne bougent pas : deux écrans peuvent modifier deux vues en même temps) et envoie les vues à toutes les pages connectées. Titres coupés à 40 caractères, titre vide → « Section ». 400 invalid_view si quoi que ce soit est invalide (type ou ref inconnus, identifiants en double, limites, action dangereuse) : rien n’est enregistré. 404 unknown_view si la vue a été supprimée.",
+				"description": "Replaces the name, sections and look of this view only (other views are untouched, so two screens can edit two views at once) and sends the views to every connected page. Titles trimmed to 40 characters, an empty title becomes “Section”. 400 invalid_view if anything is invalid (unknown kind or ref, duplicate ids, limits): nothing is saved. 404 unknown_view if the view was deleted. — FR : remplace le nom, les sections et l’habillage de cette vue seulement (les autres ne bougent pas : deux écrans peuvent modifier deux vues en même temps) et envoie les vues à toutes les pages connectées. Titres coupés à 40 caractères, titre vide → « Section ». 400 invalid_view si quoi que ce soit est invalide (type ou ref inconnus, identifiants en double, limites) : rien n’est enregistré. 404 unknown_view si la vue a été supprimée.",
 				"parameters": [
 					{
 						"name": "id",
@@ -2049,8 +2039,7 @@
 					"code": {
 						"enum": [
 							"unavailable",
-							"no_command",
-							"dangerous_action"
+							"no_command"
 						],
 						"description": "Stable refusal code — FR : code de refus stable"
 					},
@@ -2481,7 +2470,7 @@
 					},
 					"ref": {
 						"type": "string",
-						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost; ship_card: the “My ship” card (no ref); ship_info: name, master_mode, landed; character_info: position, role, seat; ship_function: a ship function id; action: a game action name (dangerous actions refused); none for annunciators, morse and morse_free — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost ; ship_card : l’encart « Mon vaisseau » (sans ref) ; ship_info : name, master_mode, landed ; character_info : position, role, seat ; ship_function : une fonction vaisseau ; action : nom d’action du jeu (actions dangereuses refusées) ; rien pour annunciators, morse et morse_free"
+						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost; ship_card: the “My ship” card (no ref); ship_info: name, master_mode, landed; character_info: position, role, seat; ship_function: a ship function id; action: a game action name; none for annunciators, morse and morse_free — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost ; ship_card : l’encart « Mon vaisseau » (sans ref) ; ship_info : name, master_mode, landed ; character_info : position, role, seat ; ship_function : une fonction vaisseau ; action : nom d’action du jeu ; rien pour annunciators, morse et morse_free"
 					},
 					"size": {
 						"enum": [
