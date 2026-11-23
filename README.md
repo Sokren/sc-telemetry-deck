@@ -23,6 +23,52 @@ Stream Deck plugin **and standalone web app** for **Star Citizen**, built on the
 > What works depends on your game version: **4.10.3 (LIVE) = display only**, **5.0 (PTU) = display + actions**.
 > See [Known limitations](#known-limitations). Problems or ideas: [Issues](../../issues).
 
+## Contents
+
+- [Highlights](#highlights): [Tablet and phone](#tablet-and-phone) · [Debug tab](#debug-tab) · [Public API](#public-api)
+- [Installation](#installation) · [Requirements](#requirements) · [Enabling telemetry in Star Citizen](#enabling-telemetry-in-star-citizen)
+- [Stream Deck actions](#stream-deck-actions) · [Web app and public API](#web-app-and-public-api) · [The API in short](#the-api-in-short)
+- [Plugin development](#plugin-development) · [Tools](#tools-tools) · [Known limitations](#known-limitations) · [License](#license)
+
+## Highlights
+
+### Tablet and phone
+
+No Stream Deck? Your phone or an old tablet becomes a touch panel for the game, with nothing to install on it.
+
+- **Scan a QR code** shown by the web app on the PC (same Wi-Fi): the page opens in the device's browser.
+- **Same buttons and live gauges** as on the PC; buttons show the ship's **real state** (landing gear, lights, VTOL, power…), so they never get out of sync.
+- **One view per device** (ship on the tablet, character on the phone), built by drag and drop; **🔁 Auto** switches views when you leave your seat or go EVA.
+- **Off by default**, local network only; the QR code and the IP stay hidden until you click, so you can stream safely.
+
+<p align="center">
+  <img src="docs/images/phone.png" height="420" alt="Web app on a phone, Ship tab">
+  <img src="docs/images/tablet-qr.png" height="420" alt="Tablet / phone window on the PC, with its QR code">
+</p>
+
+Details: [Tablet / phone](#web-app-and-public-api) in the web app section.
+
+### Debug tab
+
+See **everything the game sends**: handy to check what your ship really exposes, or to attach to a bug report.
+
+- Every section live with its age; the full tree, with the schema fields the game **does not send** in grey.
+- **⏺ Record** the raw stream to a `.json` file; log of the **last 200 actions** sent, with the game's answer and response time.
+- Turn it on in ⚙ Options → *Advanced* → **Debug mode**.
+
+<p align="center"><img src="docs/images/debug.png" width="800" alt="Debug tab: raw telemetry tree and action log"></p>
+
+### Public API
+
+The web app exposes a documented **REST API** for stream overlays, bots, dashboards, home automation…
+
+- **OpenAPI contract** and **Swagger UI** at `http://127.0.0.1:8743/api/docs`: try every request from your browser.
+- Read the character, ship instruments, warning lights and ship functions; trigger actions and press functions; manage views.
+- **Real-time events** (Server-Sent Events, `/api/v1/events`): no polling needed.
+- Token-protected (`Authorization: Bearer …`), local only by default.
+
+<p align="center"><img src="docs/images/api-swagger.png" width="800" alt="Swagger UI of the web app's API"></p>
+
 ---
 
 ## Installation

@@ -23,6 +23,52 @@ Plugin Stream Deck **et appli web autonome** pour **Star Citizen**, basés sur l
 > Ce qui fonctionne dépend de ta version du jeu : **4.10.3 (LIVE) = affichage seulement**, **5.0 (PTU) = affichage + actions**.
 > Voir [Limites connues](#limites-connues). Problèmes ou idées : [Issues](../../issues).
 
+## Sommaire
+
+- [En bref](#en-bref) : [Tablette et téléphone](#tablette-et-téléphone) · [Onglet Debug](#onglet-debug) · [API publique](#api-publique)
+- [Installation](#installation) · [Prérequis](#prérequis) · [Activer la télémétrie dans Star Citizen](#activer-la-télémétrie-dans-star-citizen)
+- [Actions Stream Deck](#actions-stream-deck) · [Appli web et API publique](#appli-web-et-api-publique) · [L'API en bref](#lapi-en-bref)
+- [Développement du plugin](#développement-du-plugin) · [Outils](#outils-tools) · [Limites connues](#limites-connues) · [Licence](#licence)
+
+## En bref
+
+### Tablette et téléphone
+
+Pas de Stream Deck ? Ton téléphone ou une vieille tablette devient un panneau tactile pour le jeu, sans rien installer dessus.
+
+- **Scanne un QR code** affiché par l'appli web sur le PC (même Wi-Fi) : la page s'ouvre dans le navigateur de l'appareil.
+- **Les mêmes boutons et jauges en direct** que sur le PC ; les boutons affichent l'**état réel** du vaisseau (train, phares, VTOL, alimentation…) et ne se désynchronisent jamais.
+- **Une vue par appareil** (vaisseau sur la tablette, perso sur le téléphone), construite en glisser-déposer ; **🔁 Auto** change de vue quand tu quittes ton siège ou passes en EVA.
+- **Désactivé par défaut**, réseau local uniquement ; le QR code et l'IP restent masqués jusqu'à ce que tu cliques : pas de risque en stream.
+
+<p align="center">
+  <img src="docs/images/phone.png" height="420" alt="Appli web sur un téléphone, onglet Vaisseau">
+  <img src="docs/images/tablet-qr.png" height="420" alt="Fenêtre Tablette / téléphone sur le PC, avec son QR code">
+</p>
+
+Détails : [Tablette / téléphone](#appli-web-et-api-publique) dans la partie appli web.
+
+### Onglet Debug
+
+Vois **tout ce que le jeu envoie** : pratique pour vérifier ce que ton vaisseau expose vraiment, ou pour joindre à un rapport de bug.
+
+- Chaque section en direct avec son âge ; l'arbre complet, avec en gris les champs du schéma que le jeu **n'envoie pas**.
+- **⏺ Enregistre** le flux brut dans un fichier `.json` ; journal des **200 dernières actions** envoyées, avec la réponse du jeu et le temps de réponse.
+- À activer dans ⚙ Options → *Avancé* → **Mode debug**.
+
+<p align="center"><img src="docs/images/debug.png" width="800" alt="Onglet Debug : arbre brut de la télémétrie et journal des actions"></p>
+
+### API publique
+
+L'appli web expose une **API REST** documentée pour des overlays de stream, des bots, des tableaux de bord, de la domotique…
+
+- **Contrat OpenAPI** et **Swagger UI** sur `http://127.0.0.1:8743/api/docs` : essaie chaque requête depuis ton navigateur.
+- Lire le perso, les instruments, les voyants et les fonctions du vaisseau ; déclencher des actions et appuyer sur des fonctions ; gérer les vues.
+- **Événements temps réel** (Server-Sent Events, `/api/v1/events`) : pas besoin d'interroger en boucle.
+- Protégée par jeton (`Authorization: Bearer …`), locale seulement par défaut.
+
+<p align="center"><img src="docs/images/api-swagger.png" width="800" alt="Swagger UI de l'API de l'appli web"></p>
+
 ---
 
 ## Installation
