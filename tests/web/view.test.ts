@@ -2,7 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import { defaultLayout, MAX_VIEWS, parseViewInput, ViewStore } from "../../src/web/view.js";
+import { defaultLayout, MAX_VIEWS, parseViewInput, readSections, ViewStore } from "../../src/web/view.js";
 
 const input = (): any => ({ name: "Vue", sections: JSON.parse(JSON.stringify(defaultLayout("fr").sections)) });
 const dirs: string[] = [];
@@ -238,5 +238,77 @@ describe("ViewStore", () => {
 		off();
 		s.create({ name: "D", sections: [] }, "fr");
 		expect(n).toBe(3);
+	});
+});
+
+describe("readSections", () => {
+	const item = (id: string, kind: string, ref?: string) => ({ id, kind, ...(ref ? { ref } : {}), size: 1 });
+	test("garde les cases valides et rapporte chaque case retirée avec sa raison", () => {
+		const r = readSections([
+			{ id: "def", title: "Défense", width: "half", items: [item("a", "shield_faces"), item("b", "vital", "oxygen")] },
+			{ id: "vol", title: "Vol", width: "half", items: [item("c", "instrument", "g_load"), { id: "d", kind: "instrument", ref: "speed" }] },
+		]);
+		expect(r.sections.map((s) => s.items.map((i) => i.id))).toEqual([["b"], []]);
+		expect(r.skipped).toEqual([
+			{ section: "Défense", kind: "shield_faces", reason: "unknown_kind" },
+			{ section: "Vol", kind: "instrument", ref: "g_load", reason: "unknown_ref" },
+			{ section: "Vol", kind: "instrument", ref: "speed", reason: "invalid_item" },
+		]);
+	});
+
+	test("id de case en double → duplicate_id, 41e case → too_many_items, 21e section → too_many_sections", () => {
+		const dup = readSections([
+			{ id: "s1", title: "A", width: "half", items: [item("x", "vital", "oxygen")] },
+			{ id: "s2", title: "B", width: "half", items: [item("x", "vital", "health")] },
+		]);
+		expect(dup.skipped).toEqual([{ section: "B", kind: "vital", ref: "health", reason: "duplicate_id" }]);
+		const many = readSections([
+			{ id: "s", title: "S", width: "full", items: Array.from({ length: 41 }, (_, i) => item(`i${i}`, "vital", "oxygen")) },
+		]);
+		expect(many.sections[0].items).toHaveLength(40);
+		expect(many.skipped).toEqual([{ section: "S", kind: "vital", ref: "oxygen", reason: "too_many_items" }]);
+		const secs = readSections(Array.from({ length: 21 }, (_, i) => ({ id: `s${i}`, title: `T${i}`, width: "half", items: [] })));
+		expect(secs.sections).toHaveLength(20);
+		expect(secs.skipped).toEqual([{ section: "T20", reason: "too_many_sections" }]);
+	});
+
+	test("section illisible → invalid_section", () => {
+		expect(readSections([{ id: "s", title: "S", width: "third", items: [] }, 3]).skipped).toEqual([
+			{ section: "S", reason: "invalid_section" },
+			{ reason: "invalid_section" },
+		]);
+	});
+
+	test("une action dangereuse est gardée", () => {
+		const r = readSections([{ id: "s", title: "S", width: "half", items: [item("e", "action", "v_eject")] }]);
+		expect(r.sections[0].items).toHaveLength(1);
+		expect(r.skipped).toEqual([]);
+	});
+
+	test("même résultat que l'ancienne lecture du fichier", () => {
+		expect(readSections(defaultLayout("fr").sections)).toEqual({ sections: defaultLayout("fr").sections, skipped: [] });
+	});
+});
+
+describe("ViewStore.createMany", () => {
+	test("crée tout en une écriture", () => {
+		const file = path.join(tmp(), "view.json");
+		const s = new ViewStore(file);
+		let calls = 0;
+		s.onChange(() => calls++);
+		const created = s.createMany([input(), input(), input()], "fr");
+		expect(Array.isArray(created) && created.length).toBe(3);
+		expect(calls).toBe(1);
+		expect(new ViewStore(file).list("fr")).toHaveLength(4);
+	});
+
+	test("refuse tout si ça dépasse 10", () => {
+		const s = new ViewStore();
+		for (let i = 0; i < MAX_VIEWS - 1; i++) s.create(input(), "fr");
+		expect(s.list("fr")).toHaveLength(MAX_VIEWS);
+		const t = new ViewStore();
+		for (let i = 0; i < MAX_VIEWS - 2; i++) t.create(input(), "fr");
+		expect(t.createMany([input(), input()], "fr")).toEqual({ free: 1 });
+		expect(t.list("fr")).toHaveLength(MAX_VIEWS - 1);
 	});
 });

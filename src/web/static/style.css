@@ -2092,3 +2092,142 @@ dialog .opt-back {
 		font-size: 12px;
 	}
 }
+
+/* ---------- Ma vue : exporter / importer ---------- */
+.vshare {
+	background: transparent;
+	color: var(--link);
+	border: 1px solid var(--line);
+	border-radius: 6px;
+	padding: 5px 12px;
+	font: inherit;
+	font-size: 13px;
+	cursor: pointer;
+}
+.vshare:hover {
+	border-color: var(--line-strong);
+}
+.vshare-dlg {
+	width: min(560px, calc(100vw - 32px));
+}
+.vshare-choice {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0 0 14px;
+}
+.vshare-choice label {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	padding: 10px 12px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	cursor: pointer;
+	font-size: 14px;
+}
+.vshare-choice label:has(input:checked) {
+	border-color: var(--link);
+}
+.vshare-choice small {
+	display: block;
+	color: var(--muted);
+	font-size: 12px;
+	margin-top: 2px;
+}
+.vshare-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 12px;
+}
+.vshare-dlg button.primary {
+	background: var(--ok);
+	border-color: var(--ok);
+	color: #fff;
+	font-weight: 600;
+}
+.vshare-dlg button:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+.vshare-code {
+	width: 100%;
+	background: var(--field);
+	color: var(--text);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 8px 10px;
+	font: 12px/1.4 Consolas, monospace;
+	resize: vertical;
+	word-break: break-all;
+}
+.vshare-code[readonly] {
+	color: var(--muted);
+}
+.vshare-or {
+	text-align: center;
+	color: var(--muted);
+	font-size: 12px;
+	margin: 4px 0;
+}
+.vshare-drop {
+	border: 1px dashed var(--line-strong);
+	border-radius: 8px;
+	padding: 14px;
+	text-align: center;
+	color: var(--muted);
+	font-size: 13px;
+	margin: 0 0 12px;
+}
+.vshare-drop.over {
+	border-color: var(--link);
+	color: var(--text);
+}
+.vshare-drop button {
+	margin-top: 6px;
+}
+.vshare-preview,
+.vshare-skipped,
+.vshare-error {
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 10px 12px;
+	margin: 0 0 12px;
+	font-size: 14px;
+}
+.vshare-preview ul,
+.vshare-skipped ul {
+	margin: 6px 0 0;
+	padding-left: 18px;
+	font-size: 13px;
+}
+.vshare-from {
+	color: var(--muted);
+	font-size: 12px;
+	margin-top: 4px;
+}
+.vshare-from.newer {
+	color: var(--warn);
+}
+.vshare-skipped {
+	border-color: var(--warn-line);
+	font-size: 13px;
+}
+.vshare-skipped b {
+	color: var(--warn);
+}
+.vshare-skipped li {
+	color: var(--muted);
+}
+.vshare-skipped code {
+	color: var(--text);
+}
+.vshare-error {
+	border-color: var(--bad-strong);
+	color: var(--bad-text);
+	font-size: 13px;
+}
+.vshare-foot {
+	gap: 8px;
+}

@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.8.0",
+		"version": "1.9.0",
 		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Dangerous actions (self destruct, eject, opening doors…) are always refused. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions dangereuses (autodestruction, éjection, ouverture des portes…) sont toujours refusées.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
@@ -779,6 +779,195 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/views/export": {
+			"get": {
+				"operationId": "exportViews",
+				"tags": [
+					"View"
+				],
+				"summary": "Export views — exporter les vues",
+				"description": "One view (id) or every view as a shareable document: format, format_version (1), app_version (version of this app), exported_at and the views without their ids. as=code returns the same document compressed as a text code “SCTD1:…” to copy and paste. — FR : une vue (id) ou toutes, sous forme de document à partager : format, format_version (1), app_version (version de cette appli), exported_at et les vues sans leurs identifiants. as=code renvoie le même document compressé en code texte « SCTD1:… » à copier-coller.",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"pattern": "^[A-Za-z0-9_-]{1,32}$"
+						},
+						"description": "Only this view (all views when omitted) — FR : seulement cette vue (toutes si absent)"
+					},
+					{
+						"name": "as",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": [
+								"code"
+							]
+						},
+						"description": "code: text code instead of the document — FR : code texte au lieu du document"
+					},
+					{
+						"name": "lang",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": [
+								"fr",
+								"en"
+							]
+						},
+						"description": "Language of the default names — FR : langue des noms par défaut"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Export document, or { code, app_version } with as=code — document d’export, ou { code, app_version } avec as=code",
+						"content": {
+							"application/json": {
+								"schema": {
+									"oneOf": [
+										{
+											"$ref": "#/components/schemas/ViewExport"
+										},
+										{
+											"$ref": "#/components/schemas/ViewExportCode"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"404": {
+						"description": "Unknown view — vue inconnue",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/views/import": {
+			"post": {
+				"operationId": "importViews",
+				"tags": [
+					"View"
+				],
+				"summary": "Import views — importer des vues",
+				"description": "Adds the views of an export document (or of { code: \"SCTD1:…\" }; spaces, line breaks and quotes in the code are ignored) as new views; existing views are never replaced. Lenient: an item or section this version cannot read (unknown kind or ref, duplicate id, limits) is left out and listed in skipped with its reason, the rest is imported. from_version = version that exported, app_version = this version. dry_run=1: preview only, nothing is created. 400 invalid_export (unreadable code or document), 400 unsupported_format (newer format), 409 too_many_views with free (room left, 10 views at most): nothing is created. Body up to 1 MB. — FR : ajoute les vues d’un document d’export (ou de { code: \"SCTD1:…\" } ; espaces, retours à la ligne et guillemets du code ignorés) comme nouvelles vues ; les vues existantes ne sont jamais remplacées. Tolérant : une case ou une section que cette version ne sait pas lire (type ou ref inconnus, identifiant en double, limites) est laissée de côté et listée dans skipped avec sa raison, le reste est importé. from_version = version qui a exporté, app_version = cette version. dry_run=1 : aperçu seulement, rien n’est créé. 400 invalid_export (code ou document illisible), 400 unsupported_format (format plus récent), 409 too_many_views avec free (place restante, 10 vues au plus) : rien n’est créé. Corps jusqu’à 1 Mo.",
+				"parameters": [
+					{
+						"name": "dry_run",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": [
+								"1",
+								"true"
+							]
+						},
+						"description": "Preview only — FR : aperçu seulement"
+					},
+					{
+						"name": "lang",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": [
+								"fr",
+								"en"
+							]
+						},
+						"description": "Language of the default names — FR : langue des noms par défaut"
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"oneOf": [
+									{
+										"$ref": "#/components/schemas/ViewExport"
+									},
+									{
+										"$ref": "#/components/schemas/ViewExportCode"
+									}
+								]
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Preview (dry_run) — aperçu (dry_run)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ViewImportResult"
+								}
+							}
+						}
+					},
+					"201": {
+						"description": "Imported views — vues importées",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ViewImportResult"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "invalid_export or unsupported_format — export illisible ou format plus récent",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"409": {
+						"description": "Not enough room (10 views at most) — pas assez de place (10 vues au plus)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"required": [
+										"error",
+										"free"
+									],
+									"properties": {
+										"error": {
+											"const": "too_many_views"
+										},
+										"free": {
+											"type": "integer",
+											"minimum": 0,
+											"maximum": 10
+										}
+									}
 								}
 							}
 						}
@@ -2794,6 +2983,161 @@
 							"string",
 							"null"
 						]
+					}
+				}
+			},
+			"ViewExport": {
+				"type": "object",
+				"required": [
+					"format",
+					"format_version",
+					"views"
+				],
+				"properties": {
+					"format": {
+						"const": "sc-telemetry-deck.views"
+					},
+					"format_version": {
+						"type": "integer",
+						"minimum": 1
+					},
+					"app_version": {
+						"type": "string",
+						"description": "Version of the app that exported — FR : version de l’appli qui a exporté"
+					},
+					"exported_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"views": {
+						"type": "array",
+						"minItems": 1,
+						"items": {
+							"type": "object",
+							"required": [
+								"name",
+								"sections"
+							],
+							"properties": {
+								"name": {
+									"type": "string"
+								},
+								"sections": {
+									"type": "array"
+								}
+							}
+						},
+						"description": "Views without ids; sections as in ViewInput (read leniently on import) — FR : vues sans identifiants ; sections comme dans ViewInput (lues avec tolérance à l’import)"
+					}
+				}
+			},
+			"ViewExportCode": {
+				"type": "object",
+				"required": [
+					"code"
+				],
+				"properties": {
+					"code": {
+						"type": "string",
+						"description": "“SCTD1:” + base64url(deflate-raw(export document JSON)) — FR : « SCTD1: » + base64url(deflate brut(JSON du document d’export))"
+					},
+					"app_version": {
+						"type": "string"
+					}
+				}
+			},
+			"ViewImportResult": {
+				"type": "object",
+				"required": [
+					"app_version",
+					"from_version",
+					"exported_at",
+					"views",
+					"skipped"
+				],
+				"additionalProperties": false,
+				"properties": {
+					"app_version": {
+						"type": "string"
+					},
+					"from_version": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"exported_at": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"views": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": [
+								"name",
+								"sections",
+								"items"
+							],
+							"additionalProperties": false,
+							"properties": {
+								"id": {
+									"type": "string",
+									"pattern": "^[A-Za-z0-9_-]{1,32}$",
+									"description": "Absent with dry_run — FR : absent avec dry_run"
+								},
+								"name": {
+									"type": "string",
+									"maxLength": 24
+								},
+								"sections": {
+									"type": "integer",
+									"minimum": 0
+								},
+								"items": {
+									"type": "integer",
+									"minimum": 0
+								}
+							}
+						}
+					},
+					"skipped": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": [
+								"view",
+								"reason"
+							],
+							"additionalProperties": false,
+							"properties": {
+								"view": {
+									"type": "string"
+								},
+								"section": {
+									"type": "string"
+								},
+								"kind": {
+									"type": "string"
+								},
+								"ref": {
+									"type": "string"
+								},
+								"reason": {
+									"enum": [
+										"unknown_kind",
+										"unknown_ref",
+										"invalid_item",
+										"duplicate_id",
+										"too_many_items",
+										"too_many_sections",
+										"invalid_section"
+									]
+								}
+							}
+						}
 					}
 				}
 			}

@@ -192,7 +192,7 @@ export function createApp(deps: AppDeps): App {
 		...panelRoutes({ hub: deps.hub, countermeasures }),
 		...morseRoutes({ morse }),
 		...updateRoutes({ updates }),
-		...viewsRoutes({ views }),
+		...viewsRoutes({ views, version: deps.version }),
 		...lanRoutes({
 			lan,
 			isLocal: deps.isLocal ?? ((req) => isLoopback(req.socket.remoteAddress)),

@@ -844,6 +844,7 @@ const myView = createView({
 		if (first && viewId(currentTab) !== null) return showTab(currentTab);
 		renderTabs();
 	},
+	openView: (id) => userShowTab(`view:${id}`),
 	onMissing() {
 		if (viewTabs?.[0]) showTab(`view:${viewTabs[0].id}`);
 		else showTab("grid");

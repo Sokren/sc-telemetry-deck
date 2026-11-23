@@ -2,6 +2,7 @@
 // dans l'appli (une route par vue : /api/v1/views/{id}) et rendues à partir de l'événement « state ». Édition au cadenas : glisser-déposer souris + tactile (événements
 // pointer), menu « Ajouter », largeur, taille, renommage. Aucune bibliothèque.
 
+import { openExport, openImport } from "./share.js";
 import { shipCard } from "./shipcard.js";
 
 const MAX_SECTIONS = 20;
@@ -57,6 +58,7 @@ const button = (cls, text, title) => {
  * @param {(body: object, el: HTMLElement) => void} ctx.morse envoie un message morse (ou arrête celui en cours)
  * @param {(text: string) => void} ctx.showMessage
  * @param {{ get(k: string): string | null, set(k: string, v: string): void }} ctx.storage
+ * @param {(id: string) => void} ctx.openView ouvre l'onglet d'une vue (après un import)
  */
 export function createView(ctx) {
 	const { t } = ctx;
@@ -462,6 +464,18 @@ export function createView(ctx) {
 			scheduleSave();
 		});
 		head.append(input);
+		if (unlocked) {
+			const share = { t, fmt, api, showMessage: ctx.showMessage };
+			const exp = button("vshare", t("exportView"));
+			// Export lu sur le serveur : la dernière modification doit y être enregistrée d'abord.
+			exp.addEventListener("click", async () => {
+				if (saveTimer) await save();
+				openExport(share, view, views ?? [view]);
+			});
+			const imp = button("vshare", t("importView"));
+			imp.addEventListener("click", () => openImport(share, imported));
+			head.append(exp, imp);
+		}
 		if (views && views.length > 1) {
 			const del = button("vdelview", t("deleteView"));
 			del.addEventListener("click", deleteView);
@@ -496,7 +510,7 @@ export function createView(ctx) {
 	}
 
 	const api = (path, init = {}) =>
-		fetch(`${path}?lang=${ctx.lang()}`, {
+		fetch(`${path}${path.includes("?") ? "&" : "?"}lang=${ctx.lang()}`, {
 			...init,
 			headers: { authorization: `Bearer ${ctx.token()}`, ...(init.body ? { "content-type": "application/json" } : {}) },
 		});
@@ -808,8 +822,19 @@ export function createView(ctx) {
 		ctx.onLockChange?.(unlocked);
 	}
 
+	/** Après un import : liste relue (sans attendre l'événement views), puis la première vue importée est ouverte. */
+	async function imported(ids) {
+		try {
+			const r = await api("/api/v1/views");
+			if (r.ok) self.setViews((await r.json()).views);
+		} catch {
+			/* l'événement views suivra */
+		}
+		if (ids[0]) ctx.openView(ids[0]);
+	}
+
 	// ---------- Entrées depuis app.js ----------
-	return {
+	const self = {
 		/** Vues reçues (connexion, ou création / modification / suppression depuis n'importe quel écran). */
 		setViews(list) {
 			const incoming = list.find((v) => v.id === currentId);
@@ -891,4 +916,5 @@ export function createView(ctx) {
 			render();
 		},
 	};
+	return self;
 }

@@ -22,6 +22,8 @@ export type Route = {
 	path: string;
 	/** Accessible sans jeton (documentation, page). */
 	public?: boolean;
+	/** Taille maximale du corps en octets (64 Ko par défaut). */
+	maxBody?: number;
 	handle(ctx: Ctx): Promise<Reply>;
 };
 
@@ -59,13 +61,13 @@ export function langOf(req: IncomingMessage, query: URLSearchParams): Lang {
 	return toLang(req.headers["accept-language"]?.split(",")[0]?.trim() ?? "en");
 }
 
-function readBody(req: IncomingMessage): Promise<string> {
+function readBody(req: IncomingMessage, limit: number): Promise<string> {
 	return new Promise((resolve, reject) => {
 		let size = 0;
 		const chunks: Buffer[] = [];
 		req.on("data", (c: Buffer) => {
 			size += c.length;
-			if (size > MAX_BODY) {
+			if (size > limit) {
 				reject(new Error("too_large"));
 				req.destroy();
 			} else chunks.push(c);
@@ -123,7 +125,7 @@ export function createHandler(
 			let body: unknown;
 			if (method === "POST" || method === "PUT") {
 				try {
-					const text = await readBody(req);
+					const text = await readBody(req, match.route.maxBody ?? MAX_BODY);
 					body = text.trim() ? JSON.parse(text) : undefined;
 				} catch {
 					send(res, { status: 400, json: { error: "bad_request" } });

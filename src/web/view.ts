@@ -168,33 +168,84 @@ export function parseViewInput(x: unknown, lang: Lang): ViewInput | undefined {
 	if (!o || (o.name !== undefined && typeof o.name !== "string")) return undefined;
 	const sections = o.sections === undefined ? [] : parseSections(o.sections);
 	if (!sections) return undefined;
-	const name = ((o.name as string | undefined) ?? "").trim().slice(0, MAX_NAME).trim() || EMPTY_NAME[lang];
-	return { name, sections };
+	return { name: normalizeViewName(o.name, lang), sections };
+}
+
+/** Nom de vue normalisé : ≤ 24 caractères sans espaces autour ; vide ou absent → « Vue » / « View ». */
+export function normalizeViewName(x: unknown, lang: Lang): string {
+	return (typeof x === "string" ? x : "").trim().slice(0, MAX_NAME).trim() || EMPTY_NAME[lang];
+}
+
+export type SkipReason =
+	| "unknown_kind"
+	| "unknown_ref"
+	| "invalid_item"
+	| "duplicate_id"
+	| "too_many_items"
+	| "too_many_sections"
+	| "invalid_section";
+/** Case ou section retirée à la lecture tolérante ; `section` = titre de la section quand il est lisible. */
+export type Skipped = { section?: string; kind?: string; ref?: string; reason: SkipReason };
+
+/** Pourquoi `parseItem` refuse une case (appelé seulement quand elle est refusée). */
+function itemProblem(o: Obj | undefined): SkipReason {
+	if (!o) return "invalid_item";
+	if (!(ITEM_KINDS as readonly unknown[]).includes(o.kind)) return "unknown_kind";
+	const kind = o.kind as ItemKind;
+	if (typeof o.ref === "string" && (kind === "action" ? !ACTION.test(o.ref) : !!REFS[kind] && !REFS[kind]!.includes(o.ref))) return "unknown_ref";
+	return "invalid_item";
 }
 
 /**
- * Sections lues dans le fichier, avec tolérance : une case ou une section devenue invalide (constante retirée,
- * action passée dans les actions dangereuses après une mise à jour) est retirée, le reste est gardé.
+ * Sections lues avec tolérance : une case ou une section invalide (type ou constante inconnus de cette version,
+ * constante retirée après une mise à jour) est retirée et rapportée, le reste est gardé.
  */
-function looseSections(x: unknown): ViewSection[] {
-	if (!Array.isArray(x)) return [];
+export function readSections(x: unknown): { sections: ViewSection[]; skipped: Skipped[] } {
+	const sections: ViewSection[] = [];
+	const skipped: Skipped[] = [];
+	if (!Array.isArray(x)) return { sections, skipped };
 	const sectionIds = new Set<string>();
 	const itemIds = new Set<string>();
-	const sections: ViewSection[] = [];
 	for (const raw of x) {
 		const o = obj(raw);
-		if (!o || sections.length >= MAX_SECTIONS) continue;
-		const items = (Array.isArray(o.items) ? o.items : [])
-			.map(parseItem)
-			.filter((i): i is ViewItem => !!i && !itemIds.has(i.id) && !!itemIds.add(i.id))
-			.slice(0, MAX_ITEMS);
-		const section = parseSection({ ...o, items });
-		if (!section || sectionIds.has(section.id)) continue;
+		const title = typeof o?.title === "string" && o.title.trim() ? o.title.trim().slice(0, MAX_TITLE).trim() : undefined;
+		const where = title ? { section: title } : {};
+		if (sections.length >= MAX_SECTIONS) {
+			skipped.push({ ...where, reason: "too_many_sections" });
+			continue;
+		}
+		const section = o && parseSection({ ...o, items: [] });
+		if (!section) {
+			skipped.push({ ...where, reason: "invalid_section" });
+			continue;
+		}
+		if (sectionIds.has(section.id)) {
+			skipped.push({ ...where, reason: "duplicate_id" });
+			continue;
+		}
 		sectionIds.add(section.id);
+		for (const rawItem of Array.isArray(o!.items) ? o!.items : []) {
+			const io = obj(rawItem);
+			const what = {
+				...where,
+				...(typeof io?.kind === "string" ? { kind: io.kind } : {}),
+				...(typeof io?.ref === "string" ? { ref: io.ref } : {}),
+			};
+			const item = parseItem(rawItem);
+			if (!item) skipped.push({ ...what, reason: itemProblem(io) });
+			else if (itemIds.has(item.id)) skipped.push({ ...what, reason: "duplicate_id" });
+			else if (section.items.length >= MAX_ITEMS) skipped.push({ ...what, reason: "too_many_items" });
+			else {
+				itemIds.add(item.id);
+				section.items.push(item);
+			}
+		}
 		sections.push(section);
 	}
-	return sections;
+	return { sections, skipped };
 }
+
+const looseSections = (x: unknown): ViewSection[] => readSections(x).sections;
 
 /**
  * Contenu d'un `view.json` : version 2 (liste de vues) ou version 1 (une seule vue sans nom → ses sections).
@@ -257,6 +308,20 @@ export class ViewStore {
 		views.push(view);
 		this.#save();
 		return view;
+	}
+
+	/** Plusieurs vues créées d'un coup (import) ; refus total s'il n'y a pas la place, avec le nombre de places libres. */
+	createMany(inputs: ViewInput[], lang: Lang): NamedView[] | { free: number } {
+		const free = MAX_VIEWS - this.list(lang).length;
+		if (inputs.length > free) return { free: Math.max(0, free) };
+		const views = this.#materialize(lang);
+		const created = inputs.map((input) => {
+			const view = { id: this.#newId(views), ...input };
+			views.push(view);
+			return view;
+		});
+		this.#save();
+		return created;
 	}
 
 	update(id: string, input: ViewInput, lang: Lang): NamedView | "unknown" {
