@@ -9,9 +9,12 @@ import { createDebug, failureText } from "./debug.js";
 import { applyTheme, readTheme, saveTheme, themeAccent, THEMES } from "./themes.js";
 import { shipCard } from "./shipcard.js";
 import { createView } from "./view.js";
+import { num, setNumberFormat } from "./numbers.js";
 
 const TOKEN_KEY = "sctd-token";
 const LANG_KEY = "sctd-lang";
+/** Format des nombres sur cet appareil : `auto` (selon la langue), `fr` (1 234,5) ou `en` (1,234.5). */
+const NUMBERS_KEY = "sctd-numbers";
 const TAB_KEY = "sctd-tab";
 
 function storageGet(k) {
@@ -43,6 +46,7 @@ if (params.has("t") || params.has("view")) {
 
 let lang = storageGet(LANG_KEY) || (navigator.language.toLowerCase().startsWith("fr") ? "fr" : "en");
 if (!(lang in I18N)) lang = "en";
+setNumberFormat(lang, storageGet(NUMBERS_KEY));
 const t = (key) => I18N[lang][key];
 
 const $ = (id) => document.getElementById(id);
@@ -63,7 +67,7 @@ function showMessage(text) {
 function applyTexts() {
 	document.documentElement.lang = lang;
 	$("title").textContent = t("title");
-	$("lang").textContent = t("language");
+	renderLangOption();
 	$("api").textContent = t("api");
 	$("tab-grid").textContent = t("tabGrid");
 	$("tab-character").textContent = t("tabCharacter");
@@ -288,6 +292,8 @@ function renderOptions() {
 	$("options-title").textContent = t("optionsTitle");
 	$("opt-h-look").textContent = t("optLook");
 	$("opt-h-lang").textContent = t("optLang");
+	$("opt-h-numbers").textContent = t("optNumbers");
+	renderNumbersOption();
 	$("opt-h-danger").textContent = t("optDanger");
 	$("opt-danger-label").textContent = t("optDangerLabel");
 	$("opt-danger").checked = dangerAlert;
@@ -518,7 +524,8 @@ async function press(index) {
 function card(item) {
 	const el = document.createElement("div");
 	el.className = `card level-${item.level ?? "none"}`;
-	const value = item.text === "—" || !item.unit ? item.text : `${item.text} ${item.unit}`;
+	const text = num(item.text);
+	const value = text === "—" || !item.unit ? text : `${text} ${item.unit}`;
 	el.innerHTML = '<div class="label"></div><div class="value"></div>';
 	el.querySelector(".label").textContent = item.label;
 	el.querySelector(".value").textContent = value;
@@ -821,14 +828,62 @@ function connect() {
 	};
 }
 
-$("lang").addEventListener("click", () => {
-	lang = lang === "fr" ? "en" : "fr";
+/** Langue : un bouton par langue (nom écrit dans sa propre langue), la langue actuelle cochée. */
+function renderLangOption() {
+	$("lang").replaceChildren(
+		...[
+			["fr", "Français"],
+			["en", "English"],
+		].map(([id, name]) => {
+			const b = document.createElement("button");
+			b.type = "button";
+			b.className = "opt-theme";
+			b.lang = id;
+			b.setAttribute("role", "radio");
+			b.setAttribute("aria-checked", String(lang === id));
+			b.textContent = name;
+			b.addEventListener("click", () => setLang(id));
+			return b;
+		}),
+	);
+}
+
+function setLang(next) {
+	if (next === lang) return;
+	lang = next;
 	storageSet(LANG_KEY, lang);
+	setNumberFormat(lang, storageGet(NUMBERS_KEY));
 	applyTexts();
 	grid.replaceChildren();
 	$("ship-functions").replaceChildren();
 	connect();
-});
+}
+
+// ---------- Format des nombres (par appareil, indépendant de la langue) ----------
+function renderNumbersOption() {
+	const current = storageGet(NUMBERS_KEY) || "auto";
+	$("opt-numbers").replaceChildren(
+		...[
+			["auto", "numbersAuto"],
+			["fr", "numbersFr"],
+			["en", "numbersEn"],
+		].map(([id, key]) => {
+			const b = document.createElement("button");
+			b.type = "button";
+			b.className = "opt-theme";
+			b.setAttribute("role", "radio");
+			b.setAttribute("aria-checked", String(current === id));
+			b.textContent = t(key);
+			b.addEventListener("click", () => {
+				storageSet(NUMBERS_KEY, id);
+				setNumberFormat(lang, id);
+				renderNumbersOption();
+				if (lastState) myView?.setState(lastState);
+			});
+			return b;
+		}),
+	);
+}
 
 // ---------- Ma vue ----------
 const myView = createView({

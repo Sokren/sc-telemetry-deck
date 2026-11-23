@@ -1,6 +1,8 @@
 // Encart « Mon vaisseau » : nom, constructeur, type, état (en vol / posé, mode, rôle, boost) et quelques instruments.
 // Construit à partir de l'événement « state » ; utilisé en tête de l'onglet Vaisseau et comme case des vues.
 
+import { num } from "./numbers.js";
+
 const el = (tag, cls, text) => {
 	const e = document.createElement(tag);
 	if (cls) e.className = cls;
@@ -54,7 +56,7 @@ export function shipCard(state, size, t) {
 		const grid = el("div", "sc-grid");
 		for (const i of minis(s.instruments)) {
 			const mini = el("div", "sc-mini");
-			mini.append(el("div", "sc-l", i.label), el("div", "sc-v", i.unit ? `${i.text} ${i.unit}` : i.text));
+			mini.append(el("div", "sc-l", i.label), el("div", "sc-v", i.unit ? `${num(i.text)} ${i.unit}` : num(i.text)));
 			if (typeof i.percent === "number") {
 				const bar = el("div", `sc-bar level-${i.level}`);
 				const fill = el("i");

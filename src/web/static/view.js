@@ -2,6 +2,8 @@
 // dans l'appli (une route par vue : /api/v1/views/{id}) et rendues à partir de l'événement « state ». Édition au cadenas : glisser-déposer souris + tactile (événements
 // pointer), menu « Ajouter », largeur, taille, renommage. Aucune bibliothèque.
 
+import { renderGauge, stylesFor } from "./gauges.js";
+import { moneyText } from "./numbers.js";
 import { openExport, openImport } from "./share.js";
 import { shipCard } from "./shipcard.js";
 
@@ -27,6 +29,39 @@ const morseText = (s) =>
 		.replace(/[^A-Z0-9 ]/g, "")
 		.replace(/ +/g, " ")
 		.trim();
+/** Types de case qui acceptent un style (comme l'appli). */
+const STYLED_KINDS = ["vital", "instrument", "character_info", "ship_info"];
+/** Cases sans nom affiché modifiable (comme l'appli) ; cases jamais plus petites que 1×. */
+const NO_LABEL = ["morse", "morse_free", "ship_card"];
+const MIN_SIZE_1 = ["annunciators", "ship_card"];
+const MAX_LABEL = 24;
+/**
+ * Largeur d'une case en emplacements (`size` compté en cases 1× : un emplacement = 0.5). Une section pleine largeur
+ * en a 8, une demi-section 4 ; le bouton fait le tour des largeurs possibles dans la section.
+ */
+const slots = (size) => Math.round(size * 2);
+function nextSize(item, section) {
+	const all = section.width === "half" ? [0.5, 1, 1.5, 2] : [0.5, 1, 1.5, 2, 3, 4];
+	const list = MIN_SIZE_1.includes(item.kind) ? all.filter((s) => s >= 1) : all;
+	const i = list.indexOf(item.size);
+	return i < 0 || i === list.length - 1 ? list[0] : list[i + 1];
+}
+const sizeClass = (size) => `w${slots(size)}`;
+/** Case avec ses clés dans l'ordre enregistré par l'appli (comparaison des copies sans re-rendu inutile). */
+const ordered = ({ id, kind, ref, size, settings, label, display }) => ({
+	id,
+	kind,
+	...(ref !== undefined ? { ref } : {}),
+	size,
+	...(settings ? { settings } : {}),
+	...(label ? { label } : {}),
+	...(display ? { display: orderedDisplay(display) } : {}),
+});
+/** Réglages d'affichage dans l'ordre de l'appli (`style`, `length`), sans clé vide. */
+function orderedDisplay({ style, length }) {
+	const d = { ...(style ? { style } : {}), ...(length ? { length } : {}) };
+	return Object.keys(d).length ? d : undefined;
+}
 const GAUGES = ["health", "oxygen", "hunger", "thirst", "body_temperature", "shields", "hull", "decoys", "noise", "weapons_ready", "hydrogen", "quantum"];
 
 const el = (tag, cls, text) => {
@@ -88,6 +123,8 @@ export function createView(ctx) {
 		for (const g of actionGroups) for (const a of g.actions) if (a.name === name) return a.label;
 		return name;
 	}
+	/** Nom affiché : celui choisi par le joueur (⚙), sinon celui du jeu. */
+	const shownLabel = (item) => item.label ?? labelOf(item);
 	function labelOf(item) {
 		switch (item.kind) {
 			case "vital":
@@ -146,35 +183,55 @@ export function createView(ctx) {
 		return s.landed === null ? "—" : s.landed ? t("landed") : t("flying");
 	}
 
+	/** Donnée affichée par une case de valeur (constante, instrument, info perso / vaisseau). */
+	function itemData(item) {
+		if (item.kind === "character_info" || item.kind === "ship_info") return { label: shownLabel(item), text: infoText(item), unit: "", level: "none" };
+		const list = item.kind === "vital" ? state?.vitals : state?.shipStatus.instruments;
+		const found = list?.find((x) => x.id === item.ref);
+		if (!found) return { label: shownLabel(item), text: "—", unit: "", level: "none" };
+		// Solde : échelle choisie (tous les chiffres, milliers, millions), sinon le texte compact de l'appli. Mis en forme
+		// dans la langue de la page, comme les textes de l'appli : le format des nombres choisi s'applique ensuite.
+		const text = (found.amount !== undefined && moneyText(found.amount, item.display?.length, ctx.lang())) || found.text;
+		return { ...found, text, label: item.label ?? found.label };
+	}
+
+	/** Case de valeur dans son style (jauge construite une fois puis mise à jour sur place), sinon carte. */
+	function valueContent(item, box) {
+		let gauge = null;
+		const update = () => {
+			const data = itemData(item);
+			const style = item.display?.style;
+			if (style && !gauge) {
+				gauge = renderGauge(style, data, item.size);
+				if (gauge) box.replaceChildren(gauge.el);
+			}
+			if (gauge) return gauge.update(data);
+			box.replaceChildren(ctx.card(data));
+		};
+		return { box, update };
+	}
+
 	/** Contenu d'une case et sa fonction de mise à jour. */
 	function itemContent(item) {
 		const box = el("div", "vcontent");
-		const empty = (label) => ({ label, text: "—", unit: "", level: "none" });
 		switch (item.kind) {
 			case "vital":
-			case "instrument": {
-				const update = () => {
-					const list = item.kind === "vital" ? state?.vitals : state?.shipStatus.instruments;
-					const data = list?.find((x) => x.id === item.ref) ?? empty(labelOf(item));
-					box.replaceChildren(ctx.card(data));
-				};
-				return { box, update };
-			}
+			case "instrument":
 			case "character_info":
-			case "ship_info": {
-				const update = () => box.replaceChildren(ctx.card({ label: labelOf(item), text: infoText(item), unit: "", level: "none" }));
-				return { box, update };
-			}
+			case "ship_info":
+				return valueContent(item, box);
 			case "ship_card": {
-				const update = () => box.replaceChildren(shipCard(state, item.size, t));
+				const update = () => box.replaceChildren(shipCard(state, item.size >= 2 ? 2 : 1, t));
 				return { box, update };
 			}
 			case "annunciators": {
 				const card = el("div", "card");
 				const lights = el("div", "lights");
-				card.append(el("div", "label", t("warningLights")), lights);
+				const title = el("div", "label");
+				card.append(title, lights);
 				box.append(card);
 				const update = () => {
+					title.textContent = shownLabel(item);
 					const list = state?.shipStatus.annunciators ?? [];
 					lights.replaceChildren(
 						...list.map((a) => {
@@ -197,7 +254,7 @@ export function createView(ctx) {
 					b.dataset.readonly = f?.readOnly ? "1" : "";
 					b.classList.toggle("danger", !!f?.danger);
 					b.title = f?.readOnly ? t("readOnlyFunction") : "";
-					b.querySelector(".label").textContent = f?.label ?? labelOf(item);
+					b.querySelector(".label").textContent = item.label ?? f?.label ?? labelOf(item);
 					b.querySelector(".value").textContent = f?.word ?? "—";
 					b.dataset.state = f?.state ?? "unknown";
 				};
@@ -217,7 +274,7 @@ export function createView(ctx) {
 					ctx.holdToPress(b, () => ctx.triggerAction(item.ref, b), () => !unlocked);
 				}
 				box.append(b);
-				const update = () => (b.querySelector(".label").textContent = actionLabel(item.ref));
+				const update = () => (b.querySelector(".label").textContent = shownLabel(item));
 				return { box, update };
 			}
 			case "morse": {
@@ -344,15 +401,17 @@ export function createView(ctx) {
 	}
 
 	function renderItem(section, item) {
-		const wrap = el("div", `vitem s${item.size}`);
+		const wrap = el("div", `vitem ${sizeClass(item.size)}`);
 		wrap.dataset.id = item.id;
 		const { box, update } = itemContent(item);
 		wrap.append(box);
 		if (unlocked) {
 			const ctl = el("div", "vctl");
-			const size = button("", item.size === 1 ? "2×" : "1×", t("itemSize"));
+			const next = nextSize(item, section);
+			// Comme le bouton des sections : largeur actuelle → largeur après un clic.
+			const size = button("", `${slots(item.size)} → ${slots(next)}`, fmt("itemSize", slots(item.size), slots(next)));
 			size.addEventListener("click", () => {
-				item.size = item.size === 1 ? 2 : 1;
+				item.size = next;
 				changed();
 			});
 			const del = button("", "✕", t("removeItem"));
@@ -364,6 +423,11 @@ export function createView(ctx) {
 				const edit = button("", "✏️", t("morseEdit"));
 				edit.addEventListener("click", () => editMorse(item));
 				ctl.append(edit);
+			}
+			if (!NO_LABEL.includes(item.kind)) {
+				const style = button("vstyle", "⚙", t("itemSettings"));
+				style.addEventListener("click", () => openStyleMenu(item, style));
+				ctl.append(style);
 			}
 			ctl.append(size, del);
 			wrap.append(ctl);
@@ -421,6 +485,7 @@ export function createView(ctx) {
 		closeMenu();
 		updaters = new Map();
 		root.classList.toggle("editing", unlocked);
+		root.classList.toggle("hud", view?.look === "hud");
 		if (!view) return root.replaceChildren(el("p", "hint", t("connecting")));
 		const list = el("div", "vsections");
 		list.append(...view.sections.map(renderSection));
@@ -463,7 +528,7 @@ export function createView(ctx) {
 			publish();
 			scheduleSave();
 		});
-		head.append(input);
+		head.append(input, renderLookPicker());
 		if (unlocked) {
 			const share = { t, fmt, api, showMessage: ctx.showMessage };
 			const exp = button("vshare", t("exportView"));
@@ -482,6 +547,31 @@ export function createView(ctx) {
 			head.append(del);
 		}
 		return head;
+	}
+
+	/** Habillage de la vue : Standard / HUD vaisseau (`look` placé après `sections`, comme l'appli). */
+	function renderLookPicker() {
+		const box = el("div", "vlook");
+		box.setAttribute("role", "radiogroup");
+		box.setAttribute("aria-label", t("viewLook"));
+		box.append(el("span", "vlook-label", t("viewLook")));
+		for (const [look, key] of [
+			["standard", "lookStandard"],
+			["hud", "lookHud"],
+		]) {
+			const b = button("vlook-opt", t(key));
+			b.setAttribute("role", "radio");
+			b.setAttribute("aria-checked", String((view.look ?? "standard") === look));
+			b.addEventListener("click", () => {
+				if ((view.look ?? "standard") === look) return;
+				if (look === "hud") view.look = "hud";
+				else delete view.look;
+				publish();
+				changed();
+			});
+			box.append(b);
+		}
+		return box;
 	}
 
 	function renderLock() {
@@ -522,7 +612,7 @@ export function createView(ctx) {
 		if (!view) return;
 		const id = view.id;
 		try {
-			const r = await api(`/api/v1/views/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ name: view.name, sections: view.sections }) });
+			const r = await api(`/api/v1/views/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify({ name: view.name, sections: view.sections, ...(view.look ? { look: view.look } : {}) }) });
 			if (r.status === 401) return ctx.showMessage(t("badToken"));
 			if (r.status === 404) return id === currentId && ctx.onMissing();
 			if (!r.ok) return ctx.showMessage(t("viewSaveFailed"));
@@ -541,7 +631,7 @@ export function createView(ctx) {
 	/** Édition en cours ici : une vue reçue ne doit pas remplacer la vue affichée. */
 	function busy() {
 		// Message morse en cours de frappe : ne pas remplacer la case (texte et focus perdus).
-		const typing = document.activeElement?.matches?.(".vmorse-input") || (unlocked && document.activeElement?.matches?.(".vtitle-input, .vname-input"));
+		const typing = document.activeElement?.matches?.(".vmorse-input") || (unlocked && document.activeElement?.matches?.(".vtitle-input, .vname-input, .vslabel"));
 		return Boolean(drag || saveTimer || typing);
 	}
 
@@ -584,6 +674,9 @@ export function createView(ctx) {
 	document.body.append(menu);
 	let menuTab = "character";
 	let menuSection = null;
+	/** Case dont le menu ⚙ est ouvert. */
+	let menuItem = null;
+	let currentItem = null;
 
 	function menuEntries(tab) {
 		const kindText = (k) => t(k);
@@ -675,7 +768,113 @@ export function createView(ctx) {
 
 	function closeMenu() {
 		menu.hidden = true;
+		menu.classList.remove("vstylemenu");
 		menuSection = null;
+	}
+
+	/** Menu ⚙ d'une case : styles permis, chacun avec un aperçu dessiné à partir de la donnée actuelle. */
+	/** Choix fait dans le menu ⚙ : la vue est redessinée, le menu reste ouvert sur la case (choix coché visible). */
+	function changedKeepMenu() {
+		const item = menuItem;
+		changed();
+		const anchor = item && root.querySelector(`.vitem[data-id="${item.id}"] .vstyle`);
+		if (anchor) openStyleMenu(item, anchor);
+	}
+
+	function openStyleMenu(item, anchor) {
+		menuSection = null;
+		currentItem = item;
+		/** Remet les clés de la case dans l'ordre de l'appli après une modification. */
+		const reorder = () => {
+			const o = ordered(item);
+			for (const k of Object.keys(item)) delete item[k];
+			Object.assign(item, o);
+		};
+		const name = el("input", "vslabel");
+		name.maxLength = MAX_LABEL * 2;
+		name.value = item.label ?? "";
+		name.placeholder = labelOf(item);
+		name.setAttribute("aria-label", t("itemLabel"));
+		name.addEventListener("input", () => {
+			const v = [...name.value.trim()].slice(0, MAX_LABEL).join("").trim();
+			if (v) item.label = v;
+			else delete item.label;
+			reorder();
+			updaters.get(item.id)?.();
+			scheduleSave();
+		});
+		name.addEventListener("keydown", (e) => e.key === "Enter" && closeMenu());
+		const nameRow = el("label", "vslabel-row");
+		nameRow.append(el("span", "", t("itemLabel")), name);
+		if (!STYLED_KINDS.includes(item.kind)) {
+			menu.replaceChildren(el("p", "vstitle", labelOf(item)), nameRow);
+			return showStyleMenu(anchor, name);
+		}
+		const data = itemData(item);
+		const info = item.kind === "character_info" || item.kind === "ship_info";
+		// D'après la constante (liste connue) plutôt que la frame : à pied, les instruments n'ont pas de pourcentage.
+		const isGauge = info ? false : GAUGES.includes(item.ref) || typeof data.percent === "number";
+		const current = item.display?.style ?? "card";
+		const list = el("div", "vslist");
+		list.setAttribute("role", "radiogroup");
+		list.setAttribute("aria-label", t("itemStyle"));
+		for (const style of stylesFor(item.kind, isGauge)) {
+			const b = button("vsopt");
+			b.setAttribute("role", "radio");
+			b.setAttribute("aria-checked", String(style === current));
+			const preview = el("div", "vsprev");
+			preview.append(renderGauge(style, data, 1)?.el ?? ctx.card(data));
+			b.append(preview, el("span", "", t(`style_${style}`)));
+			b.addEventListener("click", () => {
+				const display = orderedDisplay({ ...item.display, style: style === "card" ? undefined : style });
+				if (display) item.display = display;
+				else delete item.display;
+				reorder();
+				changedKeepMenu();
+			});
+			list.append(b);
+		}
+		const parts = [el("p", "vstitle", labelOf(item)), nameRow];
+		// Solde : longueur affichée (compacte 12,3 k ou tous les chiffres).
+		if (item.kind === "vital" && item.ref === "balance") {
+			const row = el("div", "vlook");
+			row.setAttribute("role", "radiogroup");
+			row.setAttribute("aria-label", t("moneyLength"));
+			row.append(el("span", "vlook-label", t("moneyLength")));
+			for (const [len, key] of [
+				[undefined, "moneyCompact"],
+				["k", "moneyK"],
+				["m", "moneyM"],
+				["full", "moneyFull"],
+			]) {
+				const b = button("vlook-opt", t(key));
+				b.setAttribute("role", "radio");
+				b.setAttribute("aria-checked", String(item.display?.length === len));
+				b.addEventListener("click", () => {
+					const display = orderedDisplay({ ...item.display, length: len });
+					if (display) item.display = display;
+					else delete item.display;
+					reorder();
+					changedKeepMenu();
+				});
+				row.append(b);
+			}
+			parts.push(row);
+		}
+		menu.replaceChildren(...parts, el("p", "vstitle", t("itemStyle")), list);
+		showStyleMenu(anchor, list.querySelector('[aria-checked="true"]'));
+	}
+
+	function showStyleMenu(anchor, focus) {
+		menuItem = currentItem;
+		menu.classList.add("vstylemenu");
+		menu.hidden = false;
+		const r = anchor.getBoundingClientRect();
+		const width = Math.min(420, window.innerWidth - 16);
+		menu.style.width = `${width}px`;
+		menu.style.left = `${Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8)) + window.scrollX}px`;
+		menu.style.top = `${r.bottom + 6 + window.scrollY}px`;
+		if (window.matchMedia("(pointer: fine)").matches) focus?.focus();
 	}
 
 	function addItem(entry) {
@@ -692,7 +891,7 @@ export function createView(ctx) {
 	}
 
 	document.addEventListener("pointerdown", (e) => {
-		if (!menu.hidden && !menu.contains(e.target) && !e.target.closest?.(".vadd")) closeMenu();
+		if (!menu.hidden && !menu.contains(e.target) && !e.target.closest?.(".vadd, .vstyle")) closeMenu();
 	});
 	document.addEventListener("keydown", (e) => e.key === "Escape" && closeMenu());
 

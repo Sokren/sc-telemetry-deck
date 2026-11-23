@@ -2,6 +2,8 @@
 // place à chaque frame (longueur de l'arc, taille de la barre, segments allumés, texte). Couleurs par classes
 // `level-*` et variables du thème (style.css) : aucune couleur ici.
 
+import { num } from "./numbers.js";
+
 export const STYLES = ["card", "ring", "arc", "bar", "vbar", "segments", "vsegments", "number"];
 const STYLED_KINDS = ["vital", "instrument", "character_info", "ship_info"];
 const SEGMENTS = 10;
@@ -44,11 +46,14 @@ const svgEl = (tag, attrs) => {
 };
 
 /** Valeur affichée : texte et unité (« — » seul quand il n'y a rien). */
-const valueText = (data) => (data.text === "—" || !data.unit ? data.text : `${data.text} ${data.unit}`);
+const valueText = (data) => {
+	const text = num(data.text);
+	return text === "—" || !data.unit ? text : `${text} ${data.unit}`;
+};
 
 /** Texte dans un anneau / arc : le nombre seul pour un pourcentage, sinon la valeur complète (jamais cachée). */
 export function gaugeText(data) {
-	return data.unit === "%" ? data.text : valueText(data);
+	return data.unit === "%" ? num(data.text) : valueText(data);
 }
 
 /** Anneau (cercle complet) ou arc (demi-cercle) : tracé de fond + tracé de valeur sur une longueur de 100. */
@@ -104,7 +109,7 @@ function segments(vertical) {
  * Case dessinée dans un style. `null` pour `card` ou un style inconnu (l'appelant garde la carte).
  * @param {string} style
  * @param {{label: string, text: string, unit: string, percent?: number, level?: string}} data
- * @param {1 | 2} size
+ * @param {number} size largeur en cases 1× (0.5 = un emplacement)
  */
 export function renderGauge(style, data, size = 1) {
 	let part;
@@ -127,7 +132,8 @@ export function renderGauge(style, data, size = 1) {
 		default:
 			return null;
 	}
-	const root = el("div", `gauge g-${style} gs${size}`);
+	const sz = size <= 0.5 ? "gss" : size >= 2 ? "gs2" : "gs1";
+	const root = el("div", `gauge g-${style} ${sz}`);
 	root.setAttribute("role", "img");
 	const label = el("div", "glabel");
 	const value = el("div", "gvalue");
@@ -139,7 +145,7 @@ export function renderGauge(style, data, size = 1) {
 
 	const update = (d) => {
 		const m = gaugeModel(d);
-		root.className = `gauge g-${style} gs${size} level-${m.pct === null && style !== "number" ? "none" : m.level}`;
+		root.className = `gauge g-${style} ${sz} level-${m.pct === null && style !== "number" ? "none" : m.level}`;
 		label.textContent = d.label ?? "";
 		// Valeur sans pourcentage (style mal choisi, ou réglé par l'API) : la valeur reste lisible.
 		value.textContent = valueText(d);

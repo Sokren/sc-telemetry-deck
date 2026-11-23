@@ -593,21 +593,47 @@ dialog button {
 	cursor: grab;
 	touch-action: none;
 }
+/* 8 colonnes : une case S en prend 1, une case 1× 2, une case 2× 4. */
 .vgrid {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(8, minmax(0, 1fr));
 	gap: 10px;
 	min-height: 40px;
 }
 .vsec.half .vgrid {
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .vitem {
 	position: relative;
 	min-width: 0;
-}
-.vitem.s2 {
 	grid-column: span 2;
+}
+/* Largeur en emplacements (w1 à w8) ; plus large que la grille (demi-section, téléphone) → toute la ligne. */
+.vitem.w1,
+.vph.w1 {
+	grid-column: span 1;
+}
+.vitem.w3,
+.vph.w3 {
+	grid-column: span 3;
+}
+.vitem.w4,
+.vph.w4 {
+	grid-column: span 4;
+}
+.vitem.w6,
+.vph.w6 {
+	grid-column: span 6;
+}
+.vitem.w8,
+.vph.w8 {
+	grid-column: span 8;
+}
+.vsec.half .vitem.w6,
+.vsec.half .vitem.w8,
+.vsec.half .vph.w6,
+.vsec.half .vph.w8 {
+	grid-column: span 4;
 }
 .vcontent,
 .vcontent > .card {
@@ -634,11 +660,20 @@ dialog button {
 	outline: 1px dashed var(--line-strong);
 	pointer-events: none;
 }
+/* En édition, les boutons de la case forment une barre au-dessus du contenu : jamais posés dessus. */
+.editing .vitem {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.editing .vitem .vcontent {
+	flex: 1;
+	height: auto;
+}
 .vctl {
-	position: absolute;
-	top: 6px;
-	right: 6px;
-	z-index: 1;
+	order: -1;
+	flex-wrap: wrap;
+	justify-content: flex-end;
 }
 .vctl button {
 	padding: 1px 7px;
@@ -771,9 +806,10 @@ dialog button {
 	border-radius: 10px;
 	min-height: 60px;
 }
-.vph.s2 {
+.vph {
 	grid-column: span 2;
 }
+
 .vph.full {
 	grid-column: 1 / -1;
 }
@@ -853,7 +889,13 @@ dialog button {
 }
 @media (max-width: 599px) {
 	.vgrid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+	.vitem.w6,
+	.vitem.w8,
+	.vph.w6,
+	.vph.w8 {
+		grid-column: span 4;
 	}
 }
 #myview:not(.editing) .vgrid:empty {
@@ -2230,4 +2272,354 @@ dialog .opt-back {
 }
 .vshare-foot {
 	gap: 8px;
+}
+
+/* ---------- Ma vue : jauges (static/gauges.js) ---------- */
+/* Couleurs uniquement par variables du thème : un thème choisi par vaisseau les recolorera sans retouche. */
+.gauge {
+	--gc: var(--muted);
+	box-sizing: border-box;
+	height: 100%;
+	min-height: 84px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	padding: 8px 10px;
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	color: var(--text);
+}
+.gauge.level-ok {
+	--gc: var(--ok);
+}
+.gauge.level-warn {
+	--gc: var(--warn);
+}
+.gauge.level-bad {
+	--gc: var(--bad);
+}
+.glabel {
+	font-size: 12px;
+	color: var(--muted);
+	text-align: center;
+	line-height: 1.2;
+}
+.gvalue {
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.1;
+	white-space: nowrap;
+}
+.gsvg {
+	display: block;
+	width: 100%;
+	max-width: 96px;
+}
+.g-arc .gsvg {
+	max-width: 130px;
+}
+.gs2 .gsvg {
+	max-width: 132px;
+}
+.gs2.g-arc .gsvg {
+	max-width: 180px;
+}
+.gtrack,
+.gval {
+	fill: none;
+	stroke-width: 8;
+}
+.gtrack {
+	stroke: var(--line);
+}
+.gval {
+	stroke: var(--gc);
+	transition: stroke-dasharray 0.3s;
+}
+.gtext {
+	fill: var(--text);
+	font-size: 22px;
+	font-weight: 600;
+}
+.g-number .gvalue {
+	font-size: 32px;
+}
+.gs2.g-number .gvalue {
+	font-size: 44px;
+}
+.g-number.level-warn .gvalue {
+	color: var(--warn);
+}
+.g-number.level-bad .gvalue {
+	color: var(--bad);
+}
+.gbar {
+	width: 100%;
+	height: 10px;
+	border-radius: 5px;
+	background: var(--line);
+	overflow: hidden;
+}
+.gbar i,
+.gbarv i {
+	display: block;
+	background: var(--gc);
+}
+.gbar i {
+	height: 100%;
+	transition: width 0.3s;
+}
+.gbarv {
+	display: flex;
+	align-items: flex-end;
+	width: 18px;
+	height: 60px;
+	border-radius: 4px;
+	background: var(--line);
+	overflow: hidden;
+}
+.gbarv i {
+	width: 100%;
+	transition: height 0.3s;
+}
+.gs2 .gbarv {
+	width: 24px;
+	height: 92px;
+}
+.gsegs {
+	display: flex;
+	gap: 3px;
+	width: 100%;
+}
+.gsegs span {
+	flex: 1;
+	height: 18px;
+	border-radius: 2px;
+	background: var(--line);
+}
+.gsegs span.on {
+	background: var(--gc);
+}
+.gsegs.gsegsv {
+	flex-direction: column-reverse;
+	width: 22px;
+	height: 64px;
+}
+.gsegs.gsegsv span {
+	height: auto;
+}
+.gs2 .gsegs.gsegsv {
+	width: 28px;
+	height: 96px;
+}
+.editing .vitem .gauge {
+	outline: 1px dashed var(--line-strong);
+	pointer-events: none;
+}
+
+/* Menu ⚙ d'une case et habillage de la vue */
+.vstitle {
+	margin: 0 0 8px;
+	color: var(--muted);
+	font-size: 13px;
+}
+.vslist {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+	gap: 8px;
+	max-height: min(70vh, 520px);
+	overflow-y: auto;
+}
+.vmenu .vsopt {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 6px;
+	background: transparent;
+	text-align: center;
+}
+.vmenu .vsopt:hover,
+.vmenu .vsopt:focus-visible {
+	background: var(--hover);
+}
+.vsopt[aria-checked="true"],
+.vlook-opt[aria-checked="true"] {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 1px var(--accent) inset;
+}
+.vsprev {
+	height: 92px;
+	pointer-events: none;
+}
+.vsprev > .card,
+.vsprev > .gauge {
+	height: 100%;
+	min-height: 0;
+	box-sizing: border-box;
+}
+.vlook {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+.vlook-label {
+	color: var(--muted);
+	font-size: 13px;
+}
+.vlook-opt {
+	background: var(--card);
+	color: var(--text);
+	border: 1px solid var(--line);
+	border-radius: 6px;
+	padding: 5px 12px;
+	font: inherit;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+/* ---------- Ma vue : habillage « HUD vaisseau » ---------- */
+#myview.hud {
+	--hud-font: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+#myview.hud .vsec {
+	position: relative;
+	background: color-mix(in srgb, var(--panel) 55%, var(--bg));
+	border: 1px solid var(--line-strong);
+	border-radius: 4px;
+}
+/* Coins d'écran de bord, à la couleur d'accent du thème. */
+#myview.hud .vsec::before,
+#myview.hud .vsec::after {
+	content: "";
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	pointer-events: none;
+	border-color: var(--accent);
+	border-style: solid;
+}
+#myview.hud .vsec::before {
+	top: -1px;
+	left: -1px;
+	border-width: 2px 0 0 2px;
+}
+#myview.hud .vsec::after {
+	right: -1px;
+	bottom: -1px;
+	border-width: 0 2px 2px 0;
+}
+#myview.hud .vtitle {
+	font-family: var(--hud-font);
+	font-size: 12px;
+	letter-spacing: 0.12em;
+	color: var(--accent);
+}
+#myview.hud .vcontent > .card,
+#myview.hud .gauge {
+	background: color-mix(in srgb, var(--card) 60%, var(--bg));
+	border-color: var(--line);
+	border-radius: 3px;
+}
+#myview.hud .card .value,
+#myview.hud .gvalue,
+#myview.hud .gtext,
+#myview.hud .lights {
+	font-family: var(--hud-font);
+}
+#myview.hud .card .label,
+#myview.hud .glabel {
+	font-family: var(--hud-font);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	font-size: 11px;
+}
+#myview.hud .card .bar,
+#myview.hud .card .bar i {
+	border-radius: 0;
+}
+
+/* Cases S : moins hautes, texte plus petit, nom sur une ligne. */
+.vitem.w1 .vcontent > .card,
+.vitem.w1 .gauge {
+	min-height: 56px;
+	padding: 6px;
+}
+.vitem.w1 .card .label,
+.vitem.w1 .glabel {
+	font-size: 11px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+}
+.vitem.w1 .card .value {
+	font-size: 16px;
+	margin: 0 0 4px;
+}
+.gss .gsvg {
+	max-width: 60px;
+}
+.gss.g-arc .gsvg {
+	max-width: 76px;
+}
+.gss .gvalue {
+	font-size: 14px;
+}
+.gss.g-number .gvalue {
+	font-size: 20px;
+}
+.gss .gbarv,
+.gss .gsegs.gsegsv {
+	height: 40px;
+	width: 14px;
+}
+.gss .gsegs span {
+	height: 12px;
+}
+
+/* Nom affiché (menu ⚙) */
+.vstylemenu .vlook {
+	display: flex;
+	flex-wrap: wrap;
+	margin-bottom: 10px;
+}
+.vslabel-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 10px;
+	font-size: 13px;
+	color: var(--muted);
+}
+.vslabel {
+	flex: 1;
+	min-width: 0;
+	background: var(--field);
+	color: var(--text);
+	border: 1px solid var(--line);
+	border-radius: 6px;
+	padding: 6px 8px;
+	font: inherit;
+	font-size: 14px;
+}
+/* Case d'un emplacement : boutons d'édition resserrés pour tenir sur une ligne. */
+.vitem.w1 .vctl {
+	gap: 2px;
+}
+.vitem.w1 .vctl button {
+	padding: 0 4px;
+	font-size: 11px;
+}
+/* Valeur longue (solde complet, petite case) : coupée proprement, jamais hors de la case. */
+.gauge,
+.vsprev {
+	overflow: hidden;
+}
+.gvalue {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
