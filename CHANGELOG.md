@@ -12,6 +12,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 ## [Unreleased]
 
 ### Added
+- **Portable web app** `sc-telemetry-web-<version>-portable.zip` (`npm run build:portable`): the same app started with the official, signed `node.exe`, for PCs where **Windows Smart App Control** blocks the unsigned exe. The `README.txt` inside (EN / FR) explains how to unblock the zip or the `.cmd` if Windows still blocks it.
 - Web app: **customize a view** (padlock open). View **look**: *Standard* or *Ship HUD* (cockpit-screen frames, monospaced figures, in your theme's colors). A **⚙** button on each item: a custom **display name** (any language, emojis; the API and the Stream Deck keep the game names) and a gauge **style** — card, ring, arc, bar, vertical bar, segments, vertical segments or big number. For the balance, a **scale**: auto (15.0M), thousands (15,021k), millions (15.02M) or every digit.
 - Web app: **item width in slots** (1, 2, 3, 4, 6 or 8; 8 per row in a full-width section, 4 in a half section or on a phone), with a “2 → 3” button like the sections'. Existing views keep their layout.
 - Web app: per-device **number format** in ⚙ Options (same as language, 1 234,5 or 1,234.5), independent of the page language.

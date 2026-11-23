@@ -12,6 +12,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 ## [Non publié]
 
 ### Ajouté
+- **Appli web portable** `sc-telemetry-web-<version>-portable.zip` (`npm run build:portable`) : la même appli lancée avec le `node.exe` officiel, signé, pour les PC où **Windows Smart App Control** bloque l'exe non signé. Le `README.txt` du zip (EN / FR) explique comment débloquer le zip ou le `.cmd` si Windows bloque encore.
 - Appli web : **personnaliser une vue** (cadenas ouvert). **Habillage** de la vue *Standard* ou *HUD vaisseau* (cadres d'écran de bord, chiffres à chasse fixe, aux couleurs du thème). Bouton **⚙** sur chaque case : **nom affiché** au choix (toute langue, emojis ; l'API et le Stream Deck gardent les noms du jeu) et **style** des jauges — carte, anneau, arc, barre, barre verticale, segments, segments verticaux ou chiffre en gros. Pour le solde, **échelle** au choix : auto (15,0 M), milliers (15 021 k), millions (15,02 M) ou tous les chiffres.
 - Appli web : **largeur des cases en emplacements** (1, 2, 3, 4, 6 ou 8 ; 8 par ligne en pleine largeur, 4 en demi-section ou sur téléphone), bouton « 2 → 3 » comme celui des sections. Les vues existantes gardent leur disposition.
 - Appli web : **format des nombres** par appareil dans ⚙ Options (selon la langue, 1 234,5 ou 1,234.5), indépendant de la langue de la page.

@@ -9,7 +9,8 @@
         "test": "vitest run",
         "build:web": "rollup -c rollup.web.config.mjs",
         "start:web": "node dist-web/server.mjs",
-        "build:exe": "node scripts/build-exe.mjs"
+        "build:exe": "node scripts/build-exe.mjs",
+        "build:portable": "node scripts/build-portable.mjs"
     },
     "engines": {
         "node": ">=24"
