@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import en from "../../src/display/labels.en.json" with { type: "json" };
 import fr from "../../src/display/labels.fr.json" with { type: "json" };
-import { COLORS, fullMoney, percentText, toView } from "../../src/display/format.js";
+import { COLORS, percentText, toView } from "../../src/display/format.js";
 import { DISPLAY_VALUES, readValue } from "../../src/display/values.js";
 
 const observed = {
@@ -95,11 +95,3 @@ describe("pourcentages tronqués comme dans le jeu", () => {
 	});
 });
 
-describe("solde complet", () => {
-	test("tous les chiffres, groupés selon la langue", () => {
-		expect(fullMoney("12345678", "fr")).toBe("12 345 678");
-		expect(fullMoney("12345678", "en")).toBe("12,345,678");
-		expect(fullMoney("950", "fr")).toBe("950");
-		expect(fullMoney("abc", "fr")).toBe("abc");
-	});
-});

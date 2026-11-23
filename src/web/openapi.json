@@ -1926,9 +1926,9 @@
 							"none"
 						]
 					},
-					"full": {
+					"amount": {
 						"type": "string",
-						"description": "balance only: every digit (text is compact, e.g. 12.3k) — FR : solde seulement : tous les chiffres (text est compact, ex. 12,3 k)"
+						"description": "balance only: raw amount in digits (text is compact, e.g. 12.3k) — FR : solde seulement : montant brut en chiffres (text est compact, ex. 12,3 k)"
 					}
 				}
 			},
@@ -2551,9 +2551,11 @@
 							},
 							"length": {
 								"enum": [
-									"full"
+									"full",
+									"k",
+									"m"
 								],
-								"description": "balance only: show every digit; absent = compact — FR : solde seulement : tous les chiffres ; absent = compact"
+								"description": "balance only: full = every digit, k = thousands, m = millions (truncated); absent = compact — FR : solde seulement : full = tous les chiffres, k = milliers, m = millions (tronqués) ; absent = compact"
 							}
 						}
 					}

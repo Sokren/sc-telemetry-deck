@@ -410,4 +410,8 @@ describe("longueur du solde", () => {
 		expect(one({ id: "h", kind: "vital", ref: "health", size: 1, display: { length: "full" } })).not.toHaveProperty("display");
 		expect(one({ id: "m", kind: "vital", ref: "balance", size: 1, display: { length: "compact" } })).not.toHaveProperty("display");
 	});
+	test("échelles du solde : k et m gardées", () => {
+		expect(one({ id: "m", kind: "vital", ref: "balance", size: 1, display: { length: "k" } })).toHaveProperty("display", { length: "k" });
+		expect(one({ id: "m", kind: "vital", ref: "balance", size: 1, display: { length: "m" } })).toHaveProperty("display", { length: "m" });
+	});
 });

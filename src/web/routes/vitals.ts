@@ -1,5 +1,5 @@
 import type { Lang } from "../../catalog/labels.js";
-import { fullMoney, toView } from "../../display/format.js";
+import { toView } from "../../display/format.js";
 import { DISPLAY_VALUES, isDisplayValueId, readValue, type DisplayValueId } from "../../display/values.js";
 import type { TelemetryHub } from "../../telemetry/hub.js";
 import type { Route } from "../http.js";
@@ -11,8 +11,8 @@ export type Vital = {
 	text: string;
 	unit: string;
 	percent?: number;
-	/** Solde seulement : tous les chiffres (le texte est compact : 12,3 k). */
-	full?: string;
+	/** Solde seulement : montant brut en chiffres (le texte est compact : 12,3 k), mis en forme par la page. */
+	amount?: string;
 	level: "ok" | "warn" | "bad" | "none";
 };
 
@@ -23,7 +23,7 @@ export function vitalOf(id: DisplayValueId, actor: Record<string, unknown> | und
 	const vital: Vital = { id, label: view.long, available: reading.available, text: view.text, unit: view.unit, level: "none" };
 	if (reading.available && reading.kind === "percent") vital.percent = Math.round(reading.percent * 10) / 10;
 	if (reading.available && (reading.kind === "percent" || reading.kind === "number")) vital.level = reading.level;
-	if (reading.available && reading.kind === "money") vital.full = fullMoney(reading.value, lang);
+	if (reading.available && reading.kind === "money") vital.amount = reading.value;
 	return vital;
 }
 

@@ -34,8 +34,10 @@ export const VIEW_LOOKS = ["standard", "hud"] as const;
 export type ViewLook = (typeof VIEW_LOOKS)[number];
 /** Types de case qui acceptent un style. */
 export const STYLED_KINDS: readonly ItemKind[] = ["vital", "instrument", "character_info", "ship_info"];
-/** Réglages d'affichage d'une case : style (jauges, chiffre) et longueur du solde (`full` : tous les chiffres). */
-export type ItemDisplay = { style?: Exclude<ItemStyle, "card">; length?: "full" };
+/** Échelle du solde : `full` tous les chiffres, `k` en milliers, `m` en millions ; absent = compact automatique. */
+export const MONEY_LENGTHS = ["full", "k", "m"] as const;
+/** Réglages d'affichage d'une case : style (jauges, chiffre) et échelle du solde. */
+export type ItemDisplay = { style?: Exclude<ItemStyle, "card">; length?: (typeof MONEY_LENGTHS)[number] };
 
 /**
  * Largeur d'une case, comptée en cases 1× : un emplacement = 0.5. Une section pleine largeur fait 8 emplacements
@@ -161,7 +163,7 @@ function parseDisplay(kind: ItemKind, ref: unknown, x: unknown): ItemDisplay | u
 	// Infos perso / vaisseau : du texte, jamais de pourcentage → chiffre seulement.
 	const info = kind === "character_info" || kind === "ship_info";
 	if (known && (!info || style === "number")) display.style = style as ItemDisplay["style"];
-	if (kind === "vital" && ref === "balance" && o.length === "full") display.length = "full";
+	if (kind === "vital" && ref === "balance" && (MONEY_LENGTHS as readonly unknown[]).includes(o.length)) display.length = o.length as ItemDisplay["length"];
 	return Object.keys(display).length ? display : undefined;
 }
 
