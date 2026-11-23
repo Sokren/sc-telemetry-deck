@@ -2481,9 +2481,11 @@
 					},
 					"size": {
 						"enum": [
+							0.5,
 							1,
 							2
-						]
+						],
+						"description": "0.5 = S (half of a 1× item; annunciators and ship_card are raised to 1), 1, 2 — FR : 0.5 = S (moitié d’une case 1× ; annunciators et ship_card ramenés à 1), 1, 2"
 					},
 					"settings": {
 						"type": "object",
@@ -2517,6 +2519,12 @@
 								"maximum": 10
 							}
 						}
+					},
+					"label": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 24,
+						"description": "Custom name shown on the item (any language, emoji); absent = the game name; ignored on morse, morse_free and ship_card. Only changes the view. — FR : nom affiché sur la case (toute langue, emoji) ; absent = nom du jeu ; ignoré sur morse, morse_free et ship_card. Ne change que la vue."
 					},
 					"display": {
 						"type": "object",

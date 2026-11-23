@@ -36,7 +36,23 @@ export type ViewLook = (typeof VIEW_LOOKS)[number];
 export const STYLED_KINDS: readonly ItemKind[] = ["vital", "instrument", "character_info", "ship_info"];
 export type ItemDisplay = { style: Exclude<ItemStyle, "card"> };
 
-export type ViewItem = { id: string; kind: ItemKind; ref?: string; size: 1 | 2; settings?: MorseItemSettings; display?: ItemDisplay };
+/** Taille d'une case : 0.5 = S (moitié d'une case 1×), 1, 2. */
+export type ItemSize = 0.5 | 1 | 2;
+export const MAX_LABEL = 24;
+/** Cases sans nom affiché modifiable (message morse, encart « Mon vaisseau »). */
+const NO_LABEL: readonly ItemKind[] = ["morse", "morse_free", "ship_card"];
+/** Cases jamais plus petites que 1× (illisibles en S). */
+const MIN_SIZE_1: readonly ItemKind[] = ["annunciators", "ship_card"];
+
+export type ViewItem = {
+	id: string;
+	kind: ItemKind;
+	ref?: string;
+	size: ItemSize;
+	settings?: MorseItemSettings;
+	label?: string;
+	display?: ItemDisplay;
+};
 export type ViewSection = { id: string; title: string; width: "half" | "full"; items: ViewItem[] };
 export type Layout = { sections: ViewSection[] };
 export type ViewInput = { name: string; sections: ViewSection[]; look?: "hud" };
@@ -142,24 +158,37 @@ function parseDisplay(kind: ItemKind, x: unknown): ItemDisplay | undefined {
 /** `look` normalisé : seul `hud` est gardé (le défaut et les valeurs inconnues sont omis). */
 const lookOf = (x: unknown): { look?: "hud" } => (x === "hud" ? { look: "hud" } : {});
 
+/** Nom affiché : 1 à 24 caractères (un emoji compte pour un), espaces autour retirés ; sinon rien. */
+function parseLabel(kind: ItemKind, x: unknown): { label?: string } {
+	if (NO_LABEL.includes(kind) || typeof x !== "string") return {};
+	const label = [...x.trim()].slice(0, MAX_LABEL).join("").trim();
+	return label ? { label } : {};
+}
+
+/** Clés optionnelles d'une case, dans l'ordre enregistré (après `size` / `settings`). */
+function extras(kind: ItemKind, o: Obj): { label?: string; display?: ItemDisplay } {
+	const display = parseDisplay(kind, o.display);
+	return { ...parseLabel(kind, o.label), ...(display ? { display } : {}) };
+}
+
 function parseItem(x: unknown): ViewItem | undefined {
 	const o = obj(x);
 	if (!o || typeof o.id !== "string" || !ID.test(o.id)) return undefined;
 	if (!(ITEM_KINDS as readonly unknown[]).includes(o.kind)) return undefined;
-	if (o.size !== 1 && o.size !== 2) return undefined;
+	if (o.size !== 0.5 && o.size !== 1 && o.size !== 2) return undefined;
 	const kind = o.kind as ItemKind;
+	const size: ItemSize = o.size === 0.5 && MIN_SIZE_1.includes(kind) ? 1 : o.size;
 	// Cases sans `ref` : voyants, encart « Mon vaisseau ».
-	if (kind === "annunciators" || kind === "ship_card") return { id: o.id, kind, size: o.size };
+	if (kind === "annunciators" || kind === "ship_card") return { id: o.id, kind, size, ...extras(kind, o) };
 	if (kind === "morse" || kind === "morse_free") {
 		const settings = parseMorseSettings(o.settings, kind === "morse");
-		return settings ? { id: o.id, kind, size: o.size, settings } : undefined;
+		return settings ? { id: o.id, kind, size, settings } : undefined;
 	}
 	if (typeof o.ref !== "string") return undefined;
 	if (kind === "action") {
 		if (!ACTION.test(o.ref)) return undefined;
 	} else if (!REFS[kind]?.includes(o.ref)) return undefined;
-	const display = parseDisplay(kind, o.display);
-	return { id: o.id, kind, ref: o.ref, size: o.size, ...(display ? { display } : {}) };
+	return { id: o.id, kind, ref: o.ref, size, ...extras(kind, o) };
 }
 
 function parseSection(x: unknown): ViewSection | undefined {

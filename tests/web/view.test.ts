@@ -365,3 +365,32 @@ describe("style des cases et habillage", () => {
 		expect(r.sections[0].items[0]).toEqual({ id: "h", kind: "vital", ref: "health", size: 1 });
 	});
 });
+
+describe("nom affiché et taille S", () => {
+	const sec = (items: any[]) => ({ id: "s", title: "S", width: "half", items });
+	const one = (item: any) => parseViewInput({ name: "A", sections: [sec([item])] }, "fr")?.sections[0].items[0];
+
+	test("nom gardé (emoji, autre langue), espaces retirés, ordre des clés", () => {
+		const item = one({ id: "h", kind: "vital", ref: "hunger", size: 1, display: { style: "ring" }, label: "  🍖 Голод  " });
+		expect(JSON.stringify(item)).toBe(JSON.stringify({ id: "h", kind: "vital", ref: "hunger", size: 1, label: "🍖 Голод", display: { style: "ring" } }));
+	});
+	test("nom vide, pas un texte ou trop long → absent (24 caractères max, emoji = 1)", () => {
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 1, label: "   " })).not.toHaveProperty("label");
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 1, label: 3 })).not.toHaveProperty("label");
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 1, label: "🍖".repeat(24) })).toHaveProperty("label", "🍖".repeat(24));
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 1, label: "x".repeat(25) })).toHaveProperty("label", "x".repeat(24));
+	});
+	test("nom sur un bouton gardé ; ignoré sur morse et Mon vaisseau", () => {
+		expect(one({ id: "g", kind: "ship_function", ref: "gear", size: 1, label: "🛬" })).toHaveProperty("label", "🛬");
+		expect(one({ id: "c", kind: "ship_card", size: 2, label: "x" })).not.toHaveProperty("label");
+	});
+	test("taille S acceptée ; ramenée à 1 pour voyants et Mon vaisseau ; 3 refusée", () => {
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 0.5 })).toHaveProperty("size", 0.5);
+		expect(one({ id: "a", kind: "annunciators", size: 0.5 })).toHaveProperty("size", 1);
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 3 })).toBeUndefined();
+	});
+	test("vue ancienne (sans label, look, display ni S) : inchangée", () => {
+		const v = input();
+		expect(parseViewInput(v, "fr")).toEqual(v);
+	});
+});
