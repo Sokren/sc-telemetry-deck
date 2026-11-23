@@ -85,3 +85,20 @@ describe("buildExport / readImport", () => {
 		expect(r.views.map((v: any) => v.name)).toEqual(["x".repeat(24), "Vue"]);
 	});
 });
+
+describe("export / import : habillage et styles", () => {
+	const styled = (): NamedView[] => [
+		{ id: "v1", name: "HUD", sections: [{ id: "s", title: "S", width: "half", items: [{ id: "h", kind: "vital", ref: "health", size: 1, display: { style: "ring" } }] }], look: "hud" },
+	];
+	test("look et display passent par le code", () => {
+		const doc = buildExport(styled(), "0.3.13", now);
+		expect(doc.views[0]).toMatchObject({ look: "hud" });
+		const back = readImport({ code: encodeCode(doc) }, "fr") as any;
+		expect(back.views[0]).toEqual({ name: "HUD", sections: styled()[0].sections, look: "hud" });
+	});
+	test("habillage inconnu à l'import → ignoré", () => {
+		const doc: any = buildExport(styled(), "0.3.13", now);
+		doc.views[0].look = "neon";
+		expect((readImport(doc, "fr") as any).views[0]).not.toHaveProperty("look");
+	});
+});

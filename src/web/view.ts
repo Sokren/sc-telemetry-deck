@@ -26,10 +26,20 @@ export type ItemKind = (typeof ITEM_KINDS)[number];
  */
 export type MorseItemSettings = { text?: string; light: MorseLight; unitMs: number; repeat: number };
 
-export type ViewItem = { id: string; kind: ItemKind; ref?: string; size: 1 | 2; settings?: MorseItemSettings };
+/** Styles d'affichage d'une case de valeur (`card` = carte, le défaut, jamais enregistré). */
+export const ITEM_STYLES = ["card", "ring", "arc", "bar", "vbar", "segments", "vsegments", "number"] as const;
+export type ItemStyle = (typeof ITEM_STYLES)[number];
+/** Habillages d'une vue (`standard` = le défaut, jamais enregistré). */
+export const VIEW_LOOKS = ["standard", "hud"] as const;
+export type ViewLook = (typeof VIEW_LOOKS)[number];
+/** Types de case qui acceptent un style. */
+export const STYLED_KINDS: readonly ItemKind[] = ["vital", "instrument", "character_info", "ship_info"];
+export type ItemDisplay = { style: Exclude<ItemStyle, "card"> };
+
+export type ViewItem = { id: string; kind: ItemKind; ref?: string; size: 1 | 2; settings?: MorseItemSettings; display?: ItemDisplay };
 export type ViewSection = { id: string; title: string; width: "half" | "full"; items: ViewItem[] };
 export type Layout = { sections: ViewSection[] };
-export type ViewInput = { name: string; sections: ViewSection[] };
+export type ViewInput = { name: string; sections: ViewSection[]; look?: "hud" };
 export type NamedView = { id: string } & ViewInput;
 
 export const MAX_VIEWS = 10;
@@ -120,6 +130,16 @@ function parseMorseSettings(x: unknown, withText: boolean): MorseItemSettings | 
 	return { text, ...settings };
 }
 
+/** Style d'une case : connu, autre que la carte, sur un type qui l'accepte ; sinon rien (la case reste valide). */
+function parseDisplay(kind: ItemKind, x: unknown): ItemDisplay | undefined {
+	const style = obj(x)?.style;
+	if (!STYLED_KINDS.includes(kind) || style === "card" || !(ITEM_STYLES as readonly unknown[]).includes(style)) return undefined;
+	return { style: style as ItemDisplay["style"] };
+}
+
+/** `look` normalisé : seul `hud` est gardé (le défaut et les valeurs inconnues sont omis). */
+const lookOf = (x: unknown): { look?: "hud" } => (x === "hud" ? { look: "hud" } : {});
+
 function parseItem(x: unknown): ViewItem | undefined {
 	const o = obj(x);
 	if (!o || typeof o.id !== "string" || !ID.test(o.id)) return undefined;
@@ -136,7 +156,8 @@ function parseItem(x: unknown): ViewItem | undefined {
 	if (kind === "action") {
 		if (!ACTION.test(o.ref)) return undefined;
 	} else if (!REFS[kind]?.includes(o.ref)) return undefined;
-	return { id: o.id, kind, ref: o.ref, size: o.size };
+	const display = parseDisplay(kind, o.display);
+	return { id: o.id, kind, ref: o.ref, size: o.size, ...(display ? { display } : {}) };
 }
 
 function parseSection(x: unknown): ViewSection | undefined {
@@ -168,7 +189,7 @@ export function parseViewInput(x: unknown, lang: Lang): ViewInput | undefined {
 	if (!o || (o.name !== undefined && typeof o.name !== "string")) return undefined;
 	const sections = o.sections === undefined ? [] : parseSections(o.sections);
 	if (!sections) return undefined;
-	return { name: normalizeViewName(o.name, lang), sections };
+	return { name: normalizeViewName(o.name, lang), sections, ...lookOf(o.look) };
 }
 
 /** Nom de vue normalisé : ≤ 24 caractères sans espaces autour ; vide ou absent → « Vue » / « View ». */
@@ -264,7 +285,7 @@ function parseFile(x: unknown): ({ views: NamedView[] } | { legacy: ViewSection[
 		if (!vo || typeof vo.id !== "string" || !ID.test(vo.id) || typeof vo.name !== "string" || views.length >= MAX_VIEWS) continue;
 		if (views.some((w) => w.id === vo.id)) continue;
 		const name = vo.name.trim().slice(0, MAX_NAME).trim() || EMPTY_NAME.fr;
-		views.push({ id: vo.id, name, sections: looseSections(vo.sections) });
+		views.push({ id: vo.id, name, sections: looseSections(vo.sections), ...lookOf(vo.look) });
 	}
 	if (!views.length) return undefined;
 	return { views, lossy: JSON.stringify(views) !== JSON.stringify(o.views) };

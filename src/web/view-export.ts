@@ -14,7 +14,7 @@ export type ExportDoc = {
 	format_version: number;
 	app_version: string;
 	exported_at: string;
-	views: { name: string; sections: ViewSection[] }[];
+	views: { name: string; sections: ViewSection[]; look?: "hud" }[];
 };
 
 export type ImportPreview = {
@@ -32,7 +32,7 @@ export function buildExport(views: NamedView[], appVersion: string, now = new Da
 		format_version: EXPORT_FORMAT_VERSION,
 		app_version: appVersion,
 		exported_at: now.toISOString(),
-		views: views.map(({ name, sections }) => ({ name, sections })),
+		views: views.map(({ name, sections, look }) => ({ name, sections, ...(look ? { look } : {}) })),
 	};
 }
 
@@ -90,7 +90,7 @@ export function readImport(body: unknown, lang: Lang): ImportPreview | ImportErr
 		if (!v) return invalid;
 		const name = normalizeViewName(v.name, lang);
 		const read = readSections(v.sections);
-		views.push({ name, sections: read.sections });
+		views.push({ name, sections: read.sections, ...(v.look === "hud" ? { look: "hud" as const } : {}) });
 		skipped.push(...read.skipped.map((s) => ({ view: name, ...s })));
 	}
 	return {

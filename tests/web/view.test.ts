@@ -312,3 +312,50 @@ describe("ViewStore.createMany", () => {
 		expect(t.list("fr")).toHaveLength(MAX_VIEWS - 1);
 	});
 });
+
+describe("style des cases et habillage", () => {
+	const sec = (items: any[]) => ({ id: "s", title: "S", width: "half", items });
+	const health = (display: unknown) => ({ id: "h", kind: "vital", ref: "health", size: 1, display });
+
+	test("style connu gardé, clés en trop retirées", () => {
+		const v = parseViewInput({ name: "A", sections: [sec([health({ style: "ring", color: "x" })])] }, "fr");
+		expect(v?.sections[0].items[0]).toEqual({ id: "h", kind: "vital", ref: "health", size: 1, display: { style: "ring" } });
+	});
+
+	test.each([
+		["style inconnu", health({ style: "hologram" })],
+		["style carte (défaut)", health({ style: "card" })],
+		["display pas un objet", health("ring")],
+		["display sur un bouton", { id: "h", kind: "ship_function", ref: "gear", size: 1, display: { style: "ring" } }],
+	])("%s : display retiré sans refuser la vue", (_n, item) => {
+		const v = parseViewInput({ name: "A", sections: [sec([item])] }, "fr");
+		expect(v).toBeDefined();
+		expect(v!.sections[0].items[0]).not.toHaveProperty("display");
+	});
+
+	test("habillage HUD gardé ; standard ou valeur inconnue → absent", () => {
+		expect(parseViewInput({ name: "A", sections: [], look: "hud" }, "fr")).toEqual({ name: "A", sections: [], look: "hud" });
+		for (const look of ["standard", "neon", 1]) expect(parseViewInput({ name: "A", sections: [], look }, "fr")).not.toHaveProperty("look");
+	});
+
+	test("aller-retour identique (ordre des clés)", () => {
+		const v = { name: "A", sections: [sec([health({ style: "vsegments" }), { id: "s2", kind: "instrument", ref: "speed", size: 2, display: { style: "number" } }])], look: "hud" };
+		expect(JSON.stringify(parseViewInput(v, "fr"))).toBe(JSON.stringify(v));
+	});
+
+	test("ViewStore : relu depuis le fichier à l'identique, sans .bak", () => {
+		const file = path.join(tmp(), "view.json");
+		const s = new ViewStore(file);
+		const created = s.create({ name: "HUD", sections: [sec([health({ style: "arc" })])] as any, look: "hud" }, "fr");
+		const again = new ViewStore(file);
+		expect(again.list("fr")).toEqual(s.list("fr"));
+		expect(again.list("fr").find((v) => v.id === (created as any).id)).toMatchObject({ look: "hud" });
+		expect(fs.existsSync(`${file}.bak`)).toBe(false);
+	});
+
+	test("readSections : case au style inconnu gardée, rien d'ignoré", () => {
+		const r = readSections([sec([health({ style: "hologram" })])]);
+		expect(r.skipped).toEqual([]);
+		expect(r.sections[0].items[0]).toEqual({ id: "h", kind: "vital", ref: "health", size: 1 });
+	});
+});
