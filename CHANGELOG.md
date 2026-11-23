@@ -9,6 +9,14 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
+## [0.3.12] — 2026-11-23
+
+### Added
+- Web app: **export / import a view** (padlock open, **⇪ Export** / **📥 Import**) — one view or all your views, as a dated `.json` file (backup) or as a **copy-and-paste code** `SCTD1:…` (Discord, Reddit…). Before importing, a preview shows which version exported it and lists the items your version cannot read (left out, the rest is imported); imported views are added to yours (10 at most), nothing is replaced. API contract **1.9.0**: `GET /api/v1/views/export` (`?id=`, `&as=code`), `POST /api/v1/views/import` (`?dry_run=1` for the preview).
+
+### Changed
+- READMEs brought up to date with versions 0.3.8 to 0.3.11 (sensitive actions, Flight ready, web app on Linux under Wine…).
+
 ## [0.3.11] — 2026-11-23
 
 ### Added
@@ -161,6 +169,7 @@ First release.
 ### Known issues
 - In 5.0 PTU the game accepts the `mobiglas` action but does not open the mobiGlas.
 
+[0.3.12]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.12
 [0.3.11]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.11
 [0.3.10]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.10
 [0.3.9]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.9
