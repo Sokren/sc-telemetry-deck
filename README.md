@@ -9,6 +9,24 @@ Stream Deck plugin **and standalone web app** for **Star Citizen**, built on the
 - No Stream Deck? Use the same buttons in your browser, with Character and Ship tabs and a documented API
 - No game modification, no memory reading: only the local API provided by the game client
 
+## Contents
+
+- [Demo](#-demo)
+- [Highlights](#highlights)
+  - [Tablet and phone](#tablet-and-phone)
+  - [Debug tab](#debug-tab)
+  - [Public API](#public-api)
+- [Installation](#installation)
+- [Requirements](#requirements)
+- [Enabling telemetry in Star Citizen](#enabling-telemetry-in-star-citizen)
+- [Stream Deck actions](#stream-deck-actions)
+- [The API in short](#the-api-in-short)
+- [Web app and public API](#web-app-and-public-api)
+- [Plugin development](#plugin-development)
+- [Tools](#tools-tools)
+- [Known limitations](#known-limitations)
+- [License](#license)
+
 ## 🎬 Demo
 
 [![SC Telemetry Deck — demo video (Stream Deck and web app in game)](https://img.youtube.com/vi/t30sASa_oD4/hqdefault.jpg)](https://youtu.be/t30sASa_oD4)
@@ -23,49 +41,45 @@ Stream Deck plugin **and standalone web app** for **Star Citizen**, built on the
 > What works depends on your game version: **4.10.3 (LIVE) = display only**, **5.0 (PTU) = display + actions**.
 > See [Known limitations](#known-limitations). Problems or ideas: [Issues](../../issues).
 
-## Contents
-
-- [Highlights](#highlights): [Tablet and phone](#tablet-and-phone) · [Debug tab](#debug-tab) · [Public API](#public-api)
-- [Installation](#installation) · [Requirements](#requirements) · [Enabling telemetry in Star Citizen](#enabling-telemetry-in-star-citizen)
-- [Stream Deck actions](#stream-deck-actions) · [Web app and public API](#web-app-and-public-api) · [The API in short](#the-api-in-short)
-- [Plugin development](#plugin-development) · [Tools](#tools-tools) · [Known limitations](#known-limitations) · [License](#license)
-
 ## Highlights
 
 ### Tablet and phone
 
-No Stream Deck? Your phone or an old tablet becomes a touch panel for the game, with nothing to install on it.
+No Stream Deck? Use your phone or an old tablet as a touch panel for the game. You install nothing on the device.
 
-- **Scan a QR code** shown by the web app on the PC (same Wi-Fi): the page opens in the device's browser.
-- **Same buttons and live gauges** as on the PC; buttons show the ship's **real state** (landing gear, lights, VTOL, power…), so they never get out of sync.
-- **One view per device** (ship on the tablet, character on the phone), built by drag and drop; **🔁 Auto** switches views when you leave your seat or go EVA.
-- **Off by default**, local network only; the QR code and the IP stay hidden until you click, so you can stream safely.
+- Scan the QR code that the web app shows on the PC. The device must be on the same Wi-Fi. The page opens in its browser.
+- Use the same buttons and live gauges as on the PC. Buttons show the ship's real state (landing gear, lights, VTOL, power…), so they stay in sync with the game.
+- Give each device its own view: ship on the tablet, character on the phone. Build views by drag and drop. **🔁 Auto** switches the view when you leave your seat or start an extravehicular activity (EVA).
+- Access is off by default and limited to your local network. The QR code and the IP address stay hidden until you click **👁 Show**, so you can stream safely.
 
 <p align="center">
   <img src="docs/images/phone.png" height="420" alt="Web app on a phone, Ship tab">
   <img src="docs/images/tablet-qr.png" height="420" alt="Tablet / phone window on the PC, with its QR code">
 </p>
 
-Details: [Tablet / phone](#web-app-and-public-api) in the web app section.
+To set it up, see **Tablet / phone** in [Web app and public API](#web-app-and-public-api).
 
 ### Debug tab
 
-See **everything the game sends**: handy to check what your ship really exposes, or to attach to a bug report.
+The Debug tab shows everything the game sends. Use it to check what your ship really exposes, or to attach data to a bug report.
 
-- Every section live with its age; the full tree, with the schema fields the game **does not send** in grey.
-- **⏺ Record** the raw stream to a `.json` file; log of the **last 200 actions** sent, with the game's answer and response time.
-- Turn it on in ⚙ Options → *Advanced* → **Debug mode**.
+- Each section updates live and shows its age. The full tree shows in grey the schema fields that the game does not send.
+- **⏺ Record** saves the raw stream to a `.json` file.
+- The action log lists the last 200 actions sent, with the game's answer and the response time.
 
-<p align="center"><img src="docs/images/debug.png" width="800" alt="Debug tab: raw telemetry tree and action log"></p>
+To turn it on, go to **⚙ Options > Advanced (this device) > Debug mode**.
+
+<p align="center"><img src="docs/images/debug.png" width="800" alt="Debug tab: raw telemetry tree and log of the actions sent"></p>
 
 ### Public API
 
-The web app exposes a documented **REST API** for stream overlays, bots, dashboards, home automation…
+The web app exposes a documented REST API for stream overlays, bots, dashboards, and home automation.
 
-- **OpenAPI contract** and **Swagger UI** at `http://127.0.0.1:8743/api/docs`: try every request from your browser.
-- Read the character, ship instruments, warning lights and ship functions; trigger actions and press functions; manage views.
-- **Real-time events** (Server-Sent Events, `/api/v1/events`): no polling needed.
-- Token-protected (`Authorization: Bearer …`), local only by default.
+- Open the Swagger UI at `http://127.0.0.1:8743/api/docs` to read the OpenAPI contract and try each request in your browser.
+- Read the character, the ship instruments, the warning lights, and the ship functions.
+- Trigger actions, press ship functions, and manage views.
+- Receive real-time updates with Server-Sent Events (SSE) at `/api/v1/events`, without polling.
+- Every request needs the access token (`Authorization: Bearer …`). By default, the API answers on this PC only.
 
 <p align="center"><img src="docs/images/api-swagger.png" width="800" alt="Swagger UI of the web app's API"></p>
 
