@@ -9,7 +9,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
-## [Unreleased]
+## [0.3.13] — 2026-11-23
 
 ### Added
 - **Portable web app** `sc-telemetry-web-<version>-portable.zip` (`npm run build:portable`): the same app started with the official, signed `node.exe`, for PCs where **Windows Smart App Control** blocks the unsigned exe. The `README.txt` inside (EN / FR) explains how to unblock the zip or the `.cmd` if Windows still blocks it.
@@ -186,6 +186,7 @@ First release.
 ### Known issues
 - In 5.0 PTU the game accepts the `mobiglas` action but does not open the mobiGlas.
 
+[0.3.13]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.13
 [0.3.12]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.12
 [0.3.11]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.11
 [0.3.10]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.10
