@@ -56,7 +56,8 @@ describe("shipStatusOf", () => {
 		const by = Object.fromEntries(s.instruments.map((i) => [i.id, i]));
 		expect(by.shields).toMatchObject({ label: "Boucliers", text: "100", unit: "%", percent: 100, level: "ok" });
 		expect(by.hull).toMatchObject({ label: "Coque", text: "100", unit: "%", level: "ok" });
-		expect(by.hydrogen).toMatchObject({ text: "100", unit: "%", level: "ok" });
+		// Réservoir à 99,x % : tronqué comme dans le jeu.
+		expect(by.hydrogen).toMatchObject({ text: "99", unit: "%", level: "ok" });
 		expect(by.speed).toMatchObject({ text: "0", unit: "m/s", level: "none" });
 		expect(by.radar_altitude).toMatchObject({ text: "4", unit: "m" });
 		expect(by.heading).toMatchObject({ text: "0", unit: "°" });

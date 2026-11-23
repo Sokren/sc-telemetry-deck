@@ -73,6 +73,14 @@ function compactMoney(raw: string, lang: Lang): string {
 	return String(Math.round(n));
 }
 
+/**
+ * Pourcentage affiché comme dans le jeu : tronqué, pas arrondi (98,87 % → 98). Une marge minuscule absorbe les
+ * erreurs de calcul en virgule flottante (0,29 × 100 = 28,999… → 29).
+ */
+export function percentText(percent: number): string {
+	return String(Math.max(0, Math.floor(percent + 1e-6)));
+}
+
 export function toView(id: DisplayValueId, reading: Reading, lang: Lang): DisplayView {
 	const table = TABLES[lang];
 	const { short, long } = table.values[id];
@@ -85,7 +93,7 @@ export function toView(id: DisplayValueId, reading: Reading, lang: Lang): Displa
 	const unit = UNITS[id] ?? "";
 	switch (reading.kind) {
 		case "percent":
-			return { ...base, text: String(Math.round(reading.percent)), unit, bar: reading.percent, color: COLORS[reading.level] };
+			return { ...base, text: percentText(reading.percent), unit, bar: reading.percent, color: COLORS[reading.level] };
 		case "number": {
 			const text = fixed(reading.value, DECIMALS[id] ?? 0, lang);
 			const view: DisplayView = { ...base, text, unit, color: COLORS[reading.level] };

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import en from "../../src/display/labels.en.json" with { type: "json" };
 import fr from "../../src/display/labels.fr.json" with { type: "json" };
-import { COLORS, toView } from "../../src/display/format.js";
+import { COLORS, percentText, toView } from "../../src/display/format.js";
 import { DISPLAY_VALUES, readValue } from "../../src/display/values.js";
 
 const observed = {
@@ -75,5 +75,22 @@ describe("toView", () => {
 		expect(view("oxygen", "fr", null)).toEqual({ short: "O₂", long: "Oxygène", text: "—", unit: "", bar: 0, color: COLORS.none });
 		expect(view("body_temperature", "fr", null)).toMatchObject({ text: "—", bar: 0 });
 		expect(view("heart_rate", "fr", null)).not.toHaveProperty("bar");
+	});
+});
+
+describe("pourcentages tronqués comme dans le jeu", () => {
+	test.each([
+		[98.87, "98"],
+		[99.999, "99"],
+		[100, "100"],
+		[0.29 * 100, "29"],
+		[0.4, "0"],
+		[0, "0"],
+		[-3, "0"],
+	])("%s → %s", (p, text) => expect(percentText(p)).toBe(text));
+
+	test("soif à 98,87 % affichée 98", () => {
+		const view = toView("thirst", readValue("thirst", { vitals: { thirst: { current: 98.87, max: 100 } } }), "fr");
+		expect(view.text).toBe("98");
 	});
 });

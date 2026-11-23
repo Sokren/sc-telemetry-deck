@@ -1,3 +1,4 @@
+import { percentText } from "../display/format.js";
 import type { Lang } from "../catalog/labels.js";
 import type { CountermeasureTracker } from "../display/countermeasures.js";
 import { shipModel, validAltitude, type ShipModel } from "../display/flight.js";
@@ -169,7 +170,7 @@ export function shipStatusOf(vehicle: Obj | undefined, actor: Obj | undefined, l
 	const gauge = (id: InstrumentId, ratio: number | undefined): Instrument => {
 		if (ratio === undefined) return none(id);
 		const percent = Math.min(100, Math.max(0, ratio * 100));
-		return { id, label: t.instruments[id], text: String(Math.round(percent)), unit: "%", percent, level: gaugeLevel(percent) };
+		return { id, label: t.instruments[id], text: percentText(percent), unit: "%", percent, level: gaugeLevel(percent) };
 	};
 	const plain = (id: InstrumentId, value: number | undefined, unit: string): Instrument =>
 		value === undefined ? none(id) : { id, label: t.instruments[id], text: fmt(value, lang), unit, level: "none" };

@@ -1,6 +1,6 @@
 import type { Lang } from "../catalog/labels.js";
 import type { CmReading, CmType, CountermeasureTracker, ShipSections } from "./countermeasures.js";
-import { COLORS, type DisplayView } from "./format.js";
+import { COLORS, percentText, type DisplayView } from "./format.js";
 import en from "./labels.en.json" with { type: "json" };
 import fr from "./labels.fr.json" with { type: "json" };
 import { readFlight, shipModel } from "./flight.js";
@@ -103,7 +103,7 @@ function flightView(id: FlightId, s: ShipSections, lang: Lang): DisplayView {
 			if (!f.boost) return none;
 			const percent = Math.min(100, Math.max(0, f.boost.reserve * 100));
 			const color = COLORS[f.boost.critical ? "bad" : level(percent)];
-			return { short: f.boost.engaged ? `${short} ▲` : short, long, text: String(Math.round(percent)), unit: "%", bar: percent, color };
+			return { short: f.boost.engaged ? `${short} ▲` : short, long, text: percentText(percent), unit: "%", bar: percent, color };
 		}
 		case "shields":
 		case "hull": {
@@ -114,12 +114,12 @@ function flightView(id: FlightId, s: ShipSections, lang: Lang): DisplayView {
 			const raw = id === "shields" ? (shields ? (typeof shields.level === "number" ? shields.level : 0) : undefined) : st?.health;
 			if (typeof raw !== "number" || !Number.isFinite(raw)) return none;
 			const percent = Math.min(100, Math.max(0, raw * 100));
-			return { short, long, text: String(Math.round(percent)), unit: "%", bar: percent, color: COLORS[level(percent)] };
+			return { short, long, text: percentText(percent), unit: "%", bar: percent, color: COLORS[level(percent)] };
 		}
 		case "hydrogen": {
 			if (f.hydrogen === undefined) return none;
 			const percent = Math.min(100, Math.max(0, f.hydrogen * 100));
-			return { short, long, text: String(Math.round(percent)), unit: "%", bar: percent, color: COLORS[level(percent)] };
+			return { short, long, text: percentText(percent), unit: "%", bar: percent, color: COLORS[level(percent)] };
 		}
 	}
 }

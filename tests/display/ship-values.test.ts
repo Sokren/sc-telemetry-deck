@@ -133,7 +133,8 @@ describe("shipView", () => {
 		test("boost : réserve en %, engagé dans le libellé, critique en rouge ; absent → « — »", () => {
 			expect(shipView("boost", fly({ boost: { reserves: 1 } }), t, "fr")).toMatchObject({ short: "Boost", text: "100", unit: "%", bar: 100, color: COLORS.ok });
 			const on = shipView("boost", fly({ boost: { engaged: true, output: 1, reserves: 0.97826827 } }), t, "fr");
-			expect(on).toMatchObject({ short: "Boost ▲", text: "98", color: COLORS.ok });
+			// 97,8 % : tronqué comme dans le jeu.
+			expect(on).toMatchObject({ short: "Boost ▲", text: "97", color: COLORS.ok });
 			expect(shipView("boost", fly({ boost: { reserves: 0.4 } }), t, "fr").color).toBe(COLORS.warn);
 			expect(shipView("boost", fly({ boost: { critical: true, reserves: 0.9 } }), t, "fr").color).toBe(COLORS.bad);
 			expect(shipView("boost", fly({}), t, "fr")).toMatchObject({ text: "—", bar: 0 });
