@@ -149,6 +149,8 @@ export async function startServer(o: ServerOptions): Promise<RunningServer> {
 	const app = createApp({
 		settings,
 		debugSchema,
+		// Test de la vérification de version : faire semblant d'être une version plus ancienne.
+		...(process.env.SCTD_PRETEND_VERSION ? { updateVersion: process.env.SCTD_PRETEND_VERSION } : {}),
 		version: VERSION,
 		schemaVersion,
 		game,

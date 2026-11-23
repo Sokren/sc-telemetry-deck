@@ -16,6 +16,8 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 - Web app, **Character** tab: an **Actions** row — star map, wipe visor, mobiGlas, flashlight.
 - Web app, 🐞 **Debug** tab: **actions sent** log (last 200: time, action, origin, character position, the game's answer, response time), *Errors only* / *Copy* / *Clear*, included in the recording. A button showing ⚠ tells why when hovered. API contract **1.8.0**: `actions` in `GET /api/v1/debug` and in the recording, `DELETE /api/v1/debug/actions`.
 
+- Web app: **update check** — at start, then daily (can be turned off in ⚙ Options → *Updates*), the app reads the latest GitHub release; a newer one shows a **⬆ x.y.z available** badge and **Open GitHub ↗**. Nothing is downloaded automatically, no data is sent. API: `GET` / `PUT /api/v1/update`, `POST /api/v1/update/check`.
+
 ### Changed
 - Web app: no more references to the Stream Deck in the page and the API docs (the app stands on its own); the tile-press description no longer claims dangerous actions are never sent.
 

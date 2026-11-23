@@ -8,7 +8,8 @@ import path from "node:path";
  * `lan` : accès depuis le réseau local ; `lanAll` : sur toutes les interfaces (0.0.0.0, option avancée) ;
  * `lanNetwork` : carte réseau choisie quand il y en a plusieurs.
  */
-export type WebSettings = { port: number; lan: boolean; lanAll?: boolean; lanNetwork?: string; token: string };
+/** `updateCheck: false` : vérification automatique des nouvelles versions désactivée (absent = activée). */
+export type WebSettings = { port: number; lan: boolean; lanAll?: boolean; lanNetwork?: string; token: string; updateCheck?: boolean };
 
 export const DEFAULT_PORT = 8743;
 const MIN_TOKEN = 32;
@@ -50,6 +51,7 @@ export function loadSettings(dir: string): WebSettings {
 		...(typeof raw.lanAll === "boolean" ? { lanAll: raw.lanAll } : {}),
 		...(typeof raw.lanNetwork === "string" && raw.lanNetwork ? { lanNetwork: raw.lanNetwork } : {}),
 		token: typeof raw.token === "string" && raw.token.length >= MIN_TOKEN ? raw.token : newToken(),
+		...(raw.updateCheck === false ? { updateCheck: false } : {}),
 	};
 	saveSettings(dir, settings);
 	return settings;

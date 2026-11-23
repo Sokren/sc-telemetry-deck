@@ -45,6 +45,8 @@ export async function startTestServer(opts: { game?: FakeHandlers | null; extra?
 		source: new ActionSource(game, () => readSnapshot(SNAPSHOT)),
 		viewFile: path.join(dir, "view.json"),
 		debugSchema: streamSchemaTree(loadSchema(fileURLToPath(DESC_PATH))),
+		// Jamais d'appel à GitHub pendant les tests.
+		latestRelease: async () => ({ version: "0.0.0-test", url: "https://example.invalid/release", publishedAt: null }),
 		...opts.extra,
 	};
 	const app = createApp(deps);

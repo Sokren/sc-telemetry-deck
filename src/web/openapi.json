@@ -1417,6 +1417,107 @@
 					}
 				}
 			}
+		},
+		"/api/v1/update": {
+			"get": {
+				"operationId": "getUpdate",
+				"tags": [
+					"General"
+				],
+				"summary": "Update check state — état de la vérification de version",
+				"description": "Whether a newer version of the web app is published on GitHub (read only: the app only reads the latest public release, sends no data, and never downloads anything). — FR : indique si une version plus récente de l'appli est publiée sur GitHub (lecture seule : l'appli lit seulement la dernière version publique, n'envoie aucune donnée et ne télécharge rien).",
+				"responses": {
+					"200": {
+						"description": "State — état",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UpdateState"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					}
+				}
+			},
+			"put": {
+				"operationId": "setUpdateAuto",
+				"tags": [
+					"General"
+				],
+				"summary": "Turn the automatic check on / off — activer / désactiver la vérification automatique",
+				"description": "Saved in the app settings (all devices). — FR : enregistré dans les réglages de l'appli (tous les appareils).",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"auto"
+								],
+								"properties": {
+									"auto": {
+										"type": "boolean"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "State — état",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UpdateState"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "auto missing — auto manquant",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					}
+				}
+			}
+		},
+		"/api/v1/update/check": {
+			"post": {
+				"operationId": "checkUpdate",
+				"tags": [
+					"General"
+				],
+				"summary": "Check now — vérifier maintenant",
+				"description": "Reads the latest GitHub release now (even when the automatic check is off). Never fails: no Internet → status error. — FR : lit maintenant la dernière version sur GitHub (même si la vérification automatique est désactivée). Ne lève jamais d'erreur : sans Internet → status error.",
+				"responses": {
+					"200": {
+						"description": "State — état",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UpdateState"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -2635,6 +2736,64 @@
 					"ms": {
 						"type": "integer",
 						"description": "Game response time — temps de réponse du jeu"
+					}
+				}
+			},
+			"UpdateState": {
+				"type": "object",
+				"required": [
+					"current",
+					"auto",
+					"status",
+					"latest",
+					"url",
+					"publishedAt",
+					"checkedAt"
+				],
+				"properties": {
+					"current": {
+						"type": "string",
+						"description": "This app's version — version de l'appli"
+					},
+					"auto": {
+						"type": "boolean",
+						"description": "Automatic check (at start, then daily) — vérification automatique"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"unknown",
+							"up_to_date",
+							"available",
+							"error"
+						],
+						"description": "unknown = not checked yet, error = GitHub unreachable (retried later) — unknown = pas encore vérifié, error = GitHub injoignable"
+					},
+					"latest": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "Latest published version — dernière version publiée"
+					},
+					"url": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "GitHub release page — page GitHub de la version"
+					},
+					"publishedAt": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"checkedAt": {
+						"type": [
+							"string",
+							"null"
+						]
 					}
 				}
 			}

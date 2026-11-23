@@ -185,6 +185,78 @@ function setPilotRecap(on) {
 }
 $("opt-recap").addEventListener("change", (e) => setPilotRecap(e.target.checked));
 
+// ---------- Nouvelle version de l'appli (lue sur GitHub par l'appli ; rien n'est téléchargé) ----------
+let updateState = null;
+let updateBusy = false;
+async function loadUpdate(method = "GET", path = "/api/v1/update", body) {
+	try {
+		const r = await fetch(path, {
+			method,
+			headers: { authorization: `Bearer ${token}`, ...(body ? { "content-type": "application/json" } : {}) },
+			...(body ? { body: JSON.stringify(body) } : {}),
+		});
+		if (r.ok) updateState = await r.json();
+	} catch {
+		/* appli arrêtée : on réessaiera */
+	}
+	renderUpdate();
+}
+function renderUpdate() {
+	const u = updateState;
+	const fresh = u?.status === "available";
+	const badge = $("update-badge");
+	badge.hidden = !fresh;
+	if (fresh) {
+		badge.href = u.url;
+		badge.dataset.short = u.latest;
+		badge.textContent = `⬆ ${t("updateBadge").replace("{v}", u.latest)}`;
+		badge.title = t("updateBadgeTip").replace("{v}", u.latest);
+	}
+	$("opt-h-update").textContent = t("optUpdate");
+	$("update-check").textContent = updateBusy ? t("updateChecking") : t("updateCheck");
+	$("update-check").disabled = updateBusy;
+	$("opt-update-auto-label").textContent = t("updateAuto");
+	$("opt-update-auto").checked = u ? u.auto : true;
+	const open = $("update-open");
+	open.hidden = !fresh;
+	open.textContent = `${t("updateOpen")} ↗`;
+	if (fresh) open.href = u.url;
+	const box = $("update-state");
+	box.className = `update-state ${fresh ? "new" : u?.status === "up_to_date" ? "ok" : ""}`;
+	const ago = u?.checkedAt ? t("updateCheckedAgo").replace("{t}", new Date(u.checkedAt).toLocaleString()) : "";
+	// Toujours la version actuelle en premier, puis l'état (à jour, nouvelle version, erreur), puis une aide courte.
+	let main;
+	let sub = ago;
+	if (!u || u.status === "unknown") main = t("updateUnknown");
+	else if (u.status === "error") main = t("updateError");
+	else if (fresh) {
+		main = `⬆ ${t("updateAvailable").replace("{v}", u.latest)}`;
+		sub = t("updateHow");
+	} else main = `${t("updateUpToDate")} ✔`;
+	const line = (tag, cls, text) => {
+		const e = document.createElement(tag);
+		e.className = cls;
+		e.textContent = text;
+		return e;
+	};
+	box.replaceChildren(
+		line("span", "update-current", t("updateCurrent").replace("{v}", u?.current ?? "?")),
+		line("span", "update-main", main),
+		line("small", "", sub),
+	);
+}
+$("update-check").addEventListener("click", async () => {
+	updateBusy = true;
+	renderUpdate();
+	await loadUpdate("POST", "/api/v1/update/check");
+	updateBusy = false;
+	renderUpdate();
+});
+$("opt-update-auto").addEventListener("change", (e) => loadUpdate("PUT", "/api/v1/update", { auto: e.target.checked }));
+// L'appli vérifie elle-même (démarrage puis chaque jour) : la page relit l'état de temps en temps.
+loadUpdate();
+setInterval(() => loadUpdate(), 30 * 60 * 1000);
+
 // Mode debug (par appareil) : ajoute l'onglet 🐞 Debug, tout le flux brut du jeu.
 const DEBUG_KEY = "sctd-debug";
 let debugOn = storageGet(DEBUG_KEY) === "1";
@@ -220,6 +292,7 @@ function renderOptions() {
 	$("opt-danger-label").textContent = t("optDangerLabel");
 	$("opt-danger").checked = dangerAlert;
 	$("opt-recap-label").textContent = t("optRecapLabel");
+	renderUpdate();
 	$("opt-recap").checked = pilotRecap;
 	$("opt-h-advanced").textContent = t("optAdvanced");
 	$("opt-debug-label").textContent = t("optDebugLabel");

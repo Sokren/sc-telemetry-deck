@@ -89,6 +89,31 @@ Pour la désactiver (PowerShell, puis relance le launcher) :
 
 Le serveur écoute uniquement sur `127.0.0.1`, sans TLS ni authentification : il n'est pas accessible depuis le réseau.
 
+### Linux (Wine / LUG)
+
+Merci à l'auteur de l'[issue n°1](../../issues/1). En 4.10.3 LIVE, la variable d'environnement se met dans le préfixe Wine du jeu au lieu de `setx` :
+
+1. Indiquez le préfixe de Star Citizen (la ligne `exec` de votre fichier de lancement, sans `sc-launch.sh` à la fin) :
+   ```bash
+   export WINEPREFIX="/chemin/vers/votre/prefixe/star-citizen"
+   ```
+2. Ajoutez la variable :
+   ```bash
+   wine reg add "HKCU\\Environment" /v GRPC_CLIENT_SERVER_ENABLED /t REG_SZ /d true /f
+   ```
+   La réponse est `reg: The operation completed successfully`.
+3. Vérifiez :
+   ```bash
+   wine reg query "HKCU\\Environment" /v GRPC_CLIENT_SERVER_ENABLED
+   ```
+   Attendu : `GRPC_CLIENT_SERVER_ENABLED    REG_SZ    true`.
+4. Redémarrez le serveur Wine pour que le jeu la voie, puis lancez le jeu :
+   ```bash
+   wineserver -k
+   ```
+
+En 5.0 PTU, la ligne de `user.cfg` ci-dessus suffit (le fichier est dans le dossier du jeu, à l'intérieur du préfixe). Le plugin Stream Deck est réservé à Windows ; sous Linux, utilisez l'appli web : lancez `sc-telemetry-web.exe` avec Wine, dans le même préfixe.
+
 ## Actions Stream Deck
 
 | Action | Rôle |
@@ -134,6 +159,7 @@ npm run build:exe        # fabrique dist\sc-telemetry-web.exe (un seul fichier, 
 - Page : `http://127.0.0.1:8743/` — l'appli l'ouvre avec le jeton d'accès inclus. Onglets : **Grille** (boutons), **Personnage** (position, rôle, les 13 constantes et les 34 émotes, cliquables), **Vaisseau** (un encart **Mon vaisseau** — modèle, constructeur, en vol / posé, mode, rôle, boost —, instruments — dont les contre-mesures, leurres et brouilleurs, les armes prêtes, le groupe d'armes, les cardans, la vitesse verticale, les G et la réserve de boost —, voyants et les 18 fonctions, cliquables sauf la croisière, en lecture seule) et **tes vues** (la première : **Ma vue** ; **＋** en ajoute, jusqu'à 10) : tes propres dispositions, avec des sections nommées (demi ou pleine largeur) et les cases que tu choisis dans un menu **Ajouter** (constantes, instruments, voyants, fonctions du vaisseau, actions, émotes, **morse** : un message enregistré — texte, torche ou phares, vitesse, répétitions, réglés avec ✏️ — ou un champ libre pour taper un message sur le moment ; pendant l'envoi, la case affiche la lettre en cours et son code, le signe allumé en surbrillance), déplacées par glisser-déposer (souris ou doigt). Déverrouille une vue avec le cadenas pour la modifier, la renommer ou la supprimer, verrouille-la pour l'utiliser. Les vues sont enregistrées dans l'appli (`view.json` à côté de `settings.json`) et gardées quand elle redémarre : une vue par écran (PC, tablette, téléphone…), et un lien finissant par `?view=<id>` ouvre directement une vue (l'appareil s'en souvient ; les onglets, ou une liste sur téléphone, changent de vue). **⚙ Options** : thème de couleurs (Actuel, Cockpit vert, Ambre, Bleu nuit, Clair) et couleur d'accent, langue, vue automatique, accès tablette / téléphone et aide — thème, langue et vue automatique sont retenus par appareil. **🔁 Auto** (par appareil, dans ⚙ Options) : ouvre tout seul la vue choisie quand ton perso est à pied, assis ou en EVA, après 2 s dans la même position, jamais pendant que tu modifies une vue.
 - Swagger UI : `http://127.0.0.1:8743/api/docs` — contrat : `/api/v1/openapi.json`.
 - Chaque appel à l'API demande le jeton (`Authorization: Bearer …`), enregistré dans `%APPDATA%\SC Telemetry Deck\settings.json`.
+- **Mises à jour** (⚙ Options) : l'appli vérifie sur GitHub au démarrage puis chaque jour s'il existe une version plus récente (elle lit seulement la dernière version publique, n'envoie aucune donnée ; désactivable). Si oui, un badge **⬆ x.y.z disponible** apparaît en haut et **Ouvrir GitHub ↗** mène à la page de la version — télécharge-la toi-même et remplace l'exe (ferme l'appli avant). Rien n'est téléchargé automatiquement.
 - **🐞 Mode debug** (⚙ Options → *Avancé*, par appareil) : ajoute un onglet **Debug** avec **tout ce que le jeu envoie**, brut et en lecture seule — chaque section avec son âge (vert = à jour, orange = périmée, gris = jamais reçue), ou **Tout** d'un coup ; l'arbre complet avec en gris les **champs du schéma que le jeu n'envoie pas** (pour voir ce qu'un vaisseau expose vraiment) ; filtrer, figer, copier le JSON ou un chemin ; les derniers événements du jeu ; les trames par seconde. **⏺ Enregistrer** garde chaque trame brute (jusqu'à 10 000, environ 10 min) et les télécharge en fichier `.json` — pratique à joindre à un rapport de bug. L'onglet Debug liste aussi les **200 dernières actions envoyées** par l'appli web et l'API (heure, action, origine — Personnage, Vaisseau, vue, grille ou API —, position du perso, réponse du jeu comme *pas permise dans cette situation* / FILTERED ou *refusée* / FAILED, temps de réponse), avec *Erreurs seulement*, *Copier* et *Vider* ; elles sont ajoutées à l'enregistrement. Un bouton qui affiche ⚠ explique pourquoi au survol. API : `DELETE /api/v1/debug/actions`. API : `GET /api/v1/debug`, `POST` / `DELETE /api/v1/debug/recording`.
 - **Tablette / téléphone** (dans ⚙ Options, sur le PC seulement) : active **Autoriser l'accès depuis le réseau local**, puis scanne le **QR code** avec l'appareil photo de la tablette (même Wi-Fi que le PC). Le QR code et l'adresse complète sont **masqués** à chaque ouverture de la fenêtre (aucune IP à l'écran, pratique si tu streames) ; **Copier le lien** marche même masqué. **Ouvrir sur** choisit la vue que le lien ouvre. **Nouveau jeton** déconnecte tous les autres appareils. La première fois, Windows peut demander d'autoriser l'appli dans le pare-feu : coche **Réseaux privés**.
   - Désactivé par défaut : l'appli n'écoute alors que **sur ce PC** (`127.0.0.1`). Activé : ce PC plus la carte réseau choisie (les cartes virtuelles — WSL, Hyper-V, VirtualBox, VPN… — sont écartées). Seul le PC peut changer ces réglages ou voir le lien.

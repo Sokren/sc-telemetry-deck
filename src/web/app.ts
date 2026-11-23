@@ -25,6 +25,8 @@ import { debugRoutes } from "./routes/debug.js";
 import { DebugRecorder } from "./debug.js";
 import { ActionLog, originOf } from "./action-log.js";
 import { characterOf } from "./panels.js";
+import { UpdateChecker, type LatestRelease } from "./update-check.js";
+import { updateRoutes } from "./routes/update.js";
 import type { SchemaField } from "../game/schema-tree.js";
 import { viewsRoutes } from "./routes/view.js";
 import { vitalRoutes } from "./routes/vitals.js";
@@ -39,6 +41,10 @@ export type AppDeps = {
 	game: GameApi;
 	hub: TelemetryHub;
 	source: ActionSource;
+	/** Dernière release publiée (par défaut : lue sur GitHub). */
+	latestRelease?: () => Promise<LatestRelease>;
+	/** Version comparée à la dernière release (par défaut `version` ; un test peut faire semblant d'être plus vieux). */
+	updateVersion?: string;
 	/** Sections et champs du schéma du jeu (mode debug : champs prévus mais pas envoyés) ; absent → inconnus. */
 	debugSchema?: SchemaField[] | null;
 	/** Le jeu accepte-t-il les actions ? (par défaut : vérifié sur `game` toutes les 30 s). */
@@ -143,6 +149,18 @@ export function createApp(deps: AppDeps): App {
 		};
 	};
 	const save = deps.saveSettings ?? (() => {});
+	// Nouvelle version de l'appli : au démarrage puis chaque jour (désactivable), ou à la demande.
+	const updates = new UpdateChecker({
+		current: deps.updateVersion ?? deps.version,
+		latest: deps.latestRelease,
+		auto: () => deps.settings.updateCheck !== false,
+		setAuto: (on) => {
+			if (on) delete deps.settings.updateCheck;
+			else deps.settings.updateCheck = false;
+			save();
+		},
+	});
+	updates.start();
 	const lan = deps.lanFactory?.(deps.settings, save) ?? new LanManager({ settings: deps.settings, save, listen: async () => true, cards: () => [] });
 	const views = new ViewStore(deps.viewFile);
 	const events = new EventHub({ hub: deps.hub, game: deps.game, morse, layout, status, countermeasures, views: (lang) => ({ views: views.list(lang) }) });
@@ -173,6 +191,7 @@ export function createApp(deps: AppDeps): App {
 		...shipRoutes({ ...deps, game: loggedGame }),
 		...panelRoutes({ hub: deps.hub, countermeasures }),
 		...morseRoutes({ morse }),
+		...updateRoutes({ updates }),
 		...viewsRoutes({ views }),
 		...lanRoutes({
 			lan,
@@ -214,6 +233,7 @@ export function createApp(deps: AppDeps): App {
 			capability.stop();
 			events.close();
 			recorder.close();
+			updates.stop();
 			unsubscribe();
 		},
 	};

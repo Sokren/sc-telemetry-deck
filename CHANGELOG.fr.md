@@ -16,6 +16,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 - Appli web, onglet **Personnage** : une rangée **Actions** — carte stellaire, essuyer la visière, mobiGlas, torche.
 - Appli web, onglet 🐞 **Debug** : journal des **actions envoyées** (200 dernières : heure, action, origine, position du perso, réponse du jeu, temps de réponse), *Erreurs seulement* / *Copier* / *Vider*, ajouté à l'enregistrement. Un bouton qui affiche ⚠ explique pourquoi au survol. Contrat d'API **1.8.0** : `actions` dans `GET /api/v1/debug` et dans l'enregistrement, `DELETE /api/v1/debug/actions`.
 
+- Appli web : **vérification de version** — au démarrage puis chaque jour (désactivable dans ⚙ Options → *Mises à jour*), l'appli lit la dernière version publiée sur GitHub ; si elle est plus récente, un badge **⬆ x.y.z disponible** et **Ouvrir GitHub ↗**. Rien n'est téléchargé automatiquement, aucune donnée envoyée. API : `GET` / `PUT /api/v1/update`, `POST /api/v1/update/check`.
+
 ### Modifié
 - Appli web : plus aucune mention du Stream Deck dans la page et la doc de l'API (l'appli est autonome) ; la description de l'appui sur une tuile ne dit plus que les actions dangereuses ne sont jamais envoyées.
 

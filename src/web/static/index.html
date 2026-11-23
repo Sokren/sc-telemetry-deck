@@ -13,6 +13,7 @@
 			<h1 id="title">SC Telemetry Deck</h1>
 			<span id="version" class="version"></span>
 			<span id="status" class="status"><span class="dot"></span><span id="status-text"></span></span>
+			<a id="update-badge" class="update-badge" target="_blank" rel="noopener" hidden></a>
 			<button id="setup-open" class="setup-open" type="button" hidden></button>
 			<nav>
 				<button id="view-lock" class="lock" type="button" hidden></button>
@@ -108,6 +109,15 @@
 			<section class="opt-section">
 				<h3 id="opt-h-advanced"></h3>
 				<label class="opt-check"><input type="checkbox" id="opt-debug" /> <span id="opt-debug-label"></span></label>
+			</section>
+			<section class="opt-section">
+				<h3 id="opt-h-update"></h3>
+				<div class="opt-row opt-update">
+					<span id="update-state" class="update-state"></span>
+					<button id="update-check" type="button"></button>
+					<a id="update-open" class="update-open" target="_blank" rel="noopener" hidden></a>
+				</div>
+				<label class="opt-check"><input type="checkbox" id="opt-update-auto" /> <span id="opt-update-auto-label"></span></label>
 			</section>
 			<section class="opt-section">
 				<h3 id="opt-h-help"></h3>
