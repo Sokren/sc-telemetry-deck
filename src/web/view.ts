@@ -34,10 +34,15 @@ export const VIEW_LOOKS = ["standard", "hud"] as const;
 export type ViewLook = (typeof VIEW_LOOKS)[number];
 /** Types de case qui acceptent un style. */
 export const STYLED_KINDS: readonly ItemKind[] = ["vital", "instrument", "character_info", "ship_info"];
-export type ItemDisplay = { style: Exclude<ItemStyle, "card"> };
+/** Réglages d'affichage d'une case : style (jauges, chiffre) et longueur du solde (`full` : tous les chiffres). */
+export type ItemDisplay = { style?: Exclude<ItemStyle, "card">; length?: "full" };
 
-/** Taille d'une case : 0.5 = S (moitié d'une case 1×), 1, 2. */
-export type ItemSize = 0.5 | 1 | 2;
+/**
+ * Largeur d'une case, comptée en cases 1× : un emplacement = 0.5. Une section pleine largeur fait 8 emplacements
+ * (size 4), une demi-section 4 (size 2) ; une case plus large que sa section en prend toute la largeur.
+ */
+export const ITEM_SIZES = [0.5, 1, 1.5, 2, 3, 4] as const;
+export type ItemSize = (typeof ITEM_SIZES)[number];
 export const MAX_LABEL = 24;
 /** Cases sans nom affiché modifiable (message morse, encart « Mon vaisseau »). */
 const NO_LABEL: readonly ItemKind[] = ["morse", "morse_free", "ship_card"];
@@ -147,12 +152,17 @@ function parseMorseSettings(x: unknown, withText: boolean): MorseItemSettings | 
 }
 
 /** Style d'une case : connu, autre que la carte, sur un type qui l'accepte ; sinon rien (la case reste valide). */
-function parseDisplay(kind: ItemKind, x: unknown): ItemDisplay | undefined {
-	const style = obj(x)?.style;
-	if (!STYLED_KINDS.includes(kind) || style === "card" || !(ITEM_STYLES as readonly unknown[]).includes(style)) return undefined;
+function parseDisplay(kind: ItemKind, ref: unknown, x: unknown): ItemDisplay | undefined {
+	const o = obj(x);
+	if (!o) return undefined;
+	const display: ItemDisplay = {};
+	const style = o.style;
+	const known = STYLED_KINDS.includes(kind) && style !== "card" && (ITEM_STYLES as readonly unknown[]).includes(style);
 	// Infos perso / vaisseau : du texte, jamais de pourcentage → chiffre seulement.
-	if ((kind === "character_info" || kind === "ship_info") && style !== "number") return undefined;
-	return { style: style as ItemDisplay["style"] };
+	const info = kind === "character_info" || kind === "ship_info";
+	if (known && (!info || style === "number")) display.style = style as ItemDisplay["style"];
+	if (kind === "vital" && ref === "balance" && o.length === "full") display.length = "full";
+	return Object.keys(display).length ? display : undefined;
 }
 
 /** `look` normalisé : seul `hud` est gardé (le défaut et les valeurs inconnues sont omis). */
@@ -167,7 +177,7 @@ function parseLabel(kind: ItemKind, x: unknown): { label?: string } {
 
 /** Clés optionnelles d'une case, dans l'ordre enregistré (après `size` / `settings`). */
 function extras(kind: ItemKind, o: Obj): { label?: string; display?: ItemDisplay } {
-	const display = parseDisplay(kind, o.display);
+	const display = parseDisplay(kind, o.ref, o.display);
 	return { ...parseLabel(kind, o.label), ...(display ? { display } : {}) };
 }
 
@@ -175,9 +185,9 @@ function parseItem(x: unknown): ViewItem | undefined {
 	const o = obj(x);
 	if (!o || typeof o.id !== "string" || !ID.test(o.id)) return undefined;
 	if (!(ITEM_KINDS as readonly unknown[]).includes(o.kind)) return undefined;
-	if (o.size !== 0.5 && o.size !== 1 && o.size !== 2) return undefined;
+	if (!(ITEM_SIZES as readonly unknown[]).includes(o.size)) return undefined;
 	const kind = o.kind as ItemKind;
-	const size: ItemSize = o.size === 0.5 && MIN_SIZE_1.includes(kind) ? 1 : o.size;
+	const size = (o.size === 0.5 && MIN_SIZE_1.includes(kind) ? 1 : o.size) as ItemSize;
 	// Cases sans `ref` : voyants, encart « Mon vaisseau ».
 	if (kind === "annunciators" || kind === "ship_card") return { id: o.id, kind, size, ...extras(kind, o) };
 	if (kind === "morse" || kind === "morse_free") {

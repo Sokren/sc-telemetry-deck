@@ -73,6 +73,13 @@ function compactMoney(raw: string, lang: Lang): string {
 	return String(Math.round(n));
 }
 
+/** Solde complet, tous les chiffres groupés selon la langue (12 345 678 / 12,345,678). */
+export function fullMoney(raw: string, lang: Lang): string {
+	const n = Number(raw);
+	if (!Number.isFinite(n)) return raw;
+	return new Intl.NumberFormat(lang === "fr" ? "fr-FR" : "en-US", { maximumFractionDigits: 0 }).format(n);
+}
+
 /**
  * Pourcentage affiché comme dans le jeu : tronqué, pas arrondi (98,87 % → 98). Une marge minuscule absorbe les
  * erreurs de calcul en virgule flottante (0,29 × 100 = 28,999… → 29).

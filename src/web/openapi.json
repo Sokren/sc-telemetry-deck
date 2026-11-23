@@ -1925,6 +1925,10 @@
 							"bad",
 							"none"
 						]
+					},
+					"full": {
+						"type": "string",
+						"description": "balance only: every digit (text is compact, e.g. 12.3k) — FR : solde seulement : tous les chiffres (text est compact, ex. 12,3 k)"
 					}
 				}
 			},
@@ -2483,9 +2487,12 @@
 						"enum": [
 							0.5,
 							1,
-							2
+							1.5,
+							2,
+							3,
+							4
 						],
-						"description": "0.5 = S (half of a 1× item; annunciators and ship_card are raised to 1), 1, 2 — FR : 0.5 = S (moitié d’une case 1× ; annunciators et ship_card ramenés à 1), 1, 2"
+						"description": "Width counted in 1× items: one slot = 0.5. A full-width section has 8 slots (4), a half section 4 (2); wider items take the whole row. annunciators and ship_card: at least 1. — FR : largeur comptée en cases 1× : un emplacement = 0.5. Une section pleine largeur fait 8 emplacements (4), une demi-section 4 (2) ; une case plus large prend toute la ligne. annunciators et ship_card : 1 minimum."
 					},
 					"settings": {
 						"type": "object",
@@ -2529,10 +2536,7 @@
 					"display": {
 						"type": "object",
 						"additionalProperties": false,
-						"required": [
-							"style"
-						],
-						"description": "Display style, only for vital, instrument, character_info and ship_info (these two: number only); unknown values are dropped, absent = card — FR : style d’affichage, seulement pour vital, instrument, character_info et ship_info (ces deux-là : number seulement) ; valeur inconnue retirée, absent = carte",
+						"description": "Display settings: style, only for vital, instrument, character_info and ship_info (these two: number only); unknown values are dropped, absent = card — FR : réglages d’affichage : style, seulement pour vital, instrument, character_info et ship_info (ces deux-là : number seulement) ; valeur inconnue retirée, absent = carte",
 						"properties": {
 							"style": {
 								"enum": [
@@ -2544,6 +2548,12 @@
 									"vsegments",
 									"number"
 								]
+							},
+							"length": {
+								"enum": [
+									"full"
+								],
+								"description": "balance only: show every digit; absent = compact — FR : solde seulement : tous les chiffres ; absent = compact"
 							}
 						}
 					}

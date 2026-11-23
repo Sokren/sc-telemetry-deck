@@ -26,7 +26,8 @@ describe("parseViewInput", () => {
 		["type de case inconnu", (v: any) => (v.sections[0].items[0].kind = "rocket")],
 		["constante inconnue", (v: any) => (v.sections[0].items[0] = { id: "x", kind: "vital", ref: "mana", size: 1 })],
 		["nom d'action invalide", (v: any) => v.sections[0].items.push({ id: "x", kind: "action", ref: "../x", size: 1 })],
-		["taille 3", (v: any) => (v.sections[0].items[0].size = 3)],
+		["taille 5", (v: any) => (v.sections[0].items[0].size = 5)],
+		["taille 2,5", (v: any) => (v.sections[0].items[0].size = 2.5)],
 		["largeur inconnue", (v: any) => (v.sections[0].width = "third")],
 		["ids de section en double", (v: any) => (v.sections[1].id = v.sections[0].id)],
 		["ids de case en double", (v: any) => (v.sections[1].items[0].id = v.sections[0].items[0].id)],
@@ -387,10 +388,26 @@ describe("nom affiché et taille S", () => {
 	test("taille S acceptée ; ramenée à 1 pour voyants et Mon vaisseau ; 3 refusée", () => {
 		expect(one({ id: "h", kind: "vital", ref: "health", size: 0.5 })).toHaveProperty("size", 0.5);
 		expect(one({ id: "a", kind: "annunciators", size: 0.5 })).toHaveProperty("size", 1);
-		expect(one({ id: "h", kind: "vital", ref: "health", size: 3 })).toBeUndefined();
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 5 })).toBeUndefined();
+	});
+	test("emplacements : 1, 2, 3, 4, 6, 8 (size 0.5 à 4) acceptés", () => {
+		for (const size of [0.5, 1, 1.5, 2, 3, 4]) expect(one({ id: "h", kind: "vital", ref: "health", size })).toHaveProperty("size", size);
 	});
 	test("vue ancienne (sans label, look, display ni S) : inchangée", () => {
 		const v = input();
 		expect(parseViewInput(v, "fr")).toEqual(v);
+	});
+});
+
+describe("longueur du solde", () => {
+	const sec = (items: any[]) => ({ id: "s", title: "S", width: "half", items });
+	const one = (item: any) => parseViewInput({ name: "A", sections: [sec([item])] }, "fr")?.sections[0].items[0];
+	test("solde : longueur complète gardée, seule ou avec un style", () => {
+		expect(one({ id: "m", kind: "vital", ref: "balance", size: 1, display: { length: "full" } })).toHaveProperty("display", { length: "full" });
+		expect(JSON.stringify(one({ id: "m", kind: "vital", ref: "balance", size: 1, display: { length: "full", style: "number" } })?.display)).toBe('{"style":"number","length":"full"}');
+	});
+	test("longueur ignorée hors solde, ou valeur inconnue", () => {
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 1, display: { length: "full" } })).not.toHaveProperty("display");
+		expect(one({ id: "m", kind: "vital", ref: "balance", size: 1, display: { length: "compact" } })).not.toHaveProperty("display");
 	});
 });
