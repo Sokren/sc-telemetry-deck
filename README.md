@@ -4,7 +4,7 @@
 
 Stream Deck plugin **and standalone web app** for **Star Citizen**, built on the game's local telemetry API (gRPC, `127.0.0.1:2942`).
 
-- Trigger the actions the game exposes (emotes, flashlight, lights, landing gear, doors, master mode…) and see the ship's real state on the key
+- Trigger the actions the game exposes (emotes, flashlight, lights, landing gear, doors once the game accepts them, master mode…) and see the ship's real state on the key
 - Show your character's vitals on your keys and Stream Deck + dials (oxygen, health, temperatures…)
 - No Stream Deck? Use the same buttons in your browser, with Character and Ship tabs and a documented API
 - No game modification, no memory reading: only the local API provided by the game client
@@ -58,11 +58,6 @@ The local telemetry server is **disabled by default**. How to turn it on depends
 
 4. Spawn your character: the keys and the web page show your vitals and your ship's state. On 4.10.3, actions (emotes, ship commands…) can't be triggered — see [Known limitations](#known-limitations).
 
-To turn it off again (PowerShell, then restart the launcher):
-```powershell
-[Environment]::SetEnvironmentVariable("GRPC_CLIENT_SERVER_ENABLED", $null, "User")
-```
-
 ### Star Citizen 5.0 (PTU) — `user.cfg`
 
 1. Close the game, then go to the folder of the game channel you play, for example:
@@ -91,7 +86,7 @@ The server only listens on `127.0.0.1`, without TLS or authentication: it is not
 
 ### Linux (Wine / LUG)
 
-Thanks to the reporter of [issue #1](../../issues/1). On 4.10.3 LIVE the environment variable goes into the game's Wine prefix instead of `setx`:
+Thanks to [u173487](https://github.com/u173487) for these steps ([issue #1](../../issues/1)). On 4.10.3 LIVE the environment variable goes into the game's Wine prefix instead of `setx`:
 
 1. Point to your Star Citizen prefix (the `exec` line of your launcher file, without `sc-launch.sh` at the end):
    ```bash
@@ -123,7 +118,7 @@ On 5.0 PTU, the `user.cfg` line above should be enough, since the file is in the
 | **Actor Display** | shows a character vital, live: health, oxygen, hunger, thirst, body / outside temperature, heart rate, gravity, pressure, radiation, intoxication, breathable air, balance. On a key: value + colored gauge (green ≥ 50 %, orange 25–50 %, red < 25 %). On a Stream Deck + dial: value and gauge on the touchscreen, **rotate to change the value**. "—" when the game is closed or the character has not spawned. |
 | **Ship Display** | shows a ship value, live: **countermeasures** — decoys and noise together ("45 / 3"), or one of them —, **weapons ready to fire** ("1 / 2"), the **active weapon group**, the **gimbals** (locked / free), the **ship** (manufacturer, model, flying / landed), **shields**, **hull**, **speed**, **vertical speed**, **radar altitude**, **G-force**, **boost reserve** ("Boost ▲" while engaged) or **hydrogen**. Same look as Actor Display: value + colored gauge on a key, touchscreen + **rotate to change the value** on a Stream Deck + dial. The game does not send the maximum stock: 100 % = the largest stock seen for this ship model **while a plugin display is visible**. "—" when the game is closed, the character is not seated, or the ship does not send that value (countermeasure, weapons, boost, hydrogen…). Display only: the game exposes no command to fire countermeasures, change the weapon group or lock gimbals. |
 | **Ship Toggle** | ship function **with its live state**: landing gear, lights, VTOL, transformation, decoupled, G-safe, cruise control (read only: the game has no command for it, use Alt+C in game), proximity assist, ESP, advanced HUD, night vision, NAV/SCM mode, engine / weapon / shield power, main power, doors (close / open), door locks (lock / unlock). Per key: **mode** (toggle based on the state read, on only, off only), **style** (A text, B LED, C filled) and **red warning** (red outline and ⚠ when doors or locks are open; untick to remove). "—" outside a ship or when the ship lacks the function. |
-| **Ship Action** | ship and seat commands without state (flight ready, ATC, ping, hail, quantum, seat modes…), grouped dropdown like Actor Action. **On / off / toggle commands of the same function are merged into one entry** (lights, landing gear, VTOL, power…) with a **mode** setting. Dangerous actions are never offered. |
+| **Ship Action** | ship and seat commands without state (flight ready, ATC, ping, hail, quantum, seat modes…), grouped dropdown like Actor Action. **On / off / toggle commands of the same function are merged into one entry** (lights, landing gear, VTOL, power…) with a **mode** setting. Sensitive actions (self-destruct, emergency exit, opening / unlocking doors, main power off…) are sent in one press; **Eject** must be held 1.5 s (a red ring fills up, releasing earlier cancels). |
 
 Labels follow the Stream Deck app language (French, otherwise English).
 
@@ -145,7 +140,7 @@ Quick test with [grpcurl](https://github.com/fullstorydev/grpcurl):
 grpcurl -plaintext -protoset schema/sc_extrait.desc -d "{}" 127.0.0.1:2942 sc.game.telemetry.v1.GameTelemetryService/ListTriggerableActions
 ```
 
-## Web app and public API (preview)
+## Web app and public API
 
 For players **without a Stream Deck**: the same buttons and displays in a browser, served by a small local app. It also exposes a documented **public API (OpenAPI / Swagger)** that any other software can use (stream overlay, bot, dashboard…).
 
@@ -156,17 +151,17 @@ npm run start:web        # opens the page in your browser (add -- --no-open to s
 npm run build:exe        # builds dist\sc-telemetry-web.exe (single file, Node SEA)
 ```
 
-- Page: `http://127.0.0.1:8743/` — the app opens it with the access token included. Tabs: **Grid** (buttons), **Character** (position, crew role, all 13 vitals and the 34 emotes, clickable), **Ship** (a **My ship** card — model, manufacturer, flying / landed, mode, role, boost —, instruments — including decoys and noise countermeasures, weapons ready, weapon group, gimbals, vertical speed, G-force and boost reserve —, warning lights and the 18 functions, clickable except read-only cruise control) and **your views** (first one: **My view**; **＋** adds more, up to 10): your own layouts, with named sections (half or full width) and the items you pick from an **Add** menu (vitals, instruments, warning lights, ship functions, actions, emotes, **Morse**: a saved message — text, flashlight or ship lights, speed, repetitions, set with ✏️ — or a free field to type a message on the spot; while sending, the item shows the current letter and its code, the lit sign highlighted), moved by drag and drop (mouse or touch). Unlock a view with the padlock to edit, rename or delete it, lock it to use it. Views are saved in the app (`view.json` next to `settings.json`) and kept when it restarts: one view per screen (PC, tablet, phone…), and a link ending in `?view=<id>` opens a given view directly (the device remembers it; the tabs, or a list on a phone, switch views). **⚙ Options**: color theme (Default, Green cockpit, Amber, Night blue, Light) and accent color, language, automatic view, tablet / phone access and help — theme, language and automatic view are remembered per device. **🔁 Auto** (per device, in ⚙ Options): opens a chosen view by itself when your character is on foot, seated or in EVA, after 2 s in the same position, never while you edit a view.
+- Page: `http://127.0.0.1:8743/` — the app opens it with the access token included. Tabs: **Grid** (buttons), **Character** (position, crew role, all 13 vitals, an **Actions** row — star map, wipe visor, mobiGlas, flashlight — and the 34 emotes, clickable), **Ship** (a big **✈ Flight ready** button, a one-line **character summary** — health, hunger, thirst, oxygen, breathable air; hide it with ✕ or in ⚙ Options —, a **My ship** card — model, manufacturer, flying / landed, mode, role, boost —, instruments — including decoys and noise countermeasures, weapons ready, weapon group, gimbals, vertical speed, G-force and boost reserve —, warning lights and the 18 functions, clickable except read-only cruise control) and **your views** (first one: **My view**; **＋** adds more, up to 10): your own layouts, with named sections (half or full width) and the items you pick from an **Add** menu (vitals, instruments, warning lights, ship functions, actions, emotes, **Morse**: a saved message — text, flashlight or ship lights, speed, repetitions, set with ✏️ — or a free field to type a message on the spot; while sending, the item shows the current letter and its code, the lit sign highlighted), moved by drag and drop (mouse or touch). Unlock a view with the padlock to edit, rename or delete it, lock it to use it. Views are saved in the app (`view.json` next to `settings.json`) and kept when it restarts: one view per screen (PC, tablet, phone…), and a link ending in `?view=<id>` opens a given view directly (the device remembers it; the tabs, or a list on a phone, switch views). **⚙ Options**: color theme (Default, Green cockpit, Amber, Night blue, Light) and accent color, language, automatic view, tablet / phone access and help — theme, language and automatic view are remembered per device. **🔁 Auto** (per device, in ⚙ Options): opens a chosen view by itself when your character is on foot, seated or in EVA, after 2 s in the same position, never while you edit a view.
 - **Export / import a view** (padlock open, **⇪ Export** / **📥 Import**): one view or all your views, as a `.json` file (backup) or as a **copy-and-paste code** (`SCTD1:…`, for Discord, Reddit…). On import, a preview tells which version exported the view and lists the items your version cannot read (they are left out, the rest is imported); imported views are added to yours, nothing is replaced. API: `GET /api/v1/views/export` (`?id=`, `&as=code`), `POST /api/v1/views/import` (`?dry_run=1` for the preview).
 - Swagger UI: `http://127.0.0.1:8743/api/docs` — contract: `/api/v1/openapi.json`.
 - Every API call needs the token (`Authorization: Bearer …`), stored in `%APPDATA%\SC Telemetry Deck\settings.json`.
 - **Updates** (⚙ Options): the app checks GitHub at start and then daily for a newer version (only reads the latest public release, sends no data; can be turned off). When one exists, a **⬆ x.y.z available** badge appears in the header and **Open GitHub ↗** leads to the release page — download it yourself and replace the exe (close the app first). Nothing is downloaded automatically.
-- **🐞 Debug mode** (⚙ Options → *Advanced*, per device): adds a **Debug** tab with **everything the game sends**, raw and read only — every section with its age (green = live, orange = stale, grey = never received), or **All** at once; the full tree with the **schema fields the game does not send** in grey (to see what a ship really exposes); filter, freeze, copy JSON or a path; the last game events; frames per second. **⏺ Record** saves every raw frame (up to 10 000, about 10 min) and downloads them as a `.json` file — handy to attach to a bug report. The Debug tab also lists the **last 200 actions sent** by the web app and the API (time, action, origin — Character, Ship, view, grid or API —, character position, the game's answer such as *not allowed in this situation* / FILTERED or *refused* / FAILED, response time), with *Errors only*, *Copy* and *Clear*; they are added to the recording. A button that shows ⚠ explains why when hovered. API: `DELETE /api/v1/debug/actions`. API: `GET /api/v1/debug`, `POST` / `DELETE /api/v1/debug/recording`.
+- **🐞 Debug mode** (⚙ Options → *Advanced*, per device): adds a **Debug** tab with **everything the game sends**, raw and read only — every section with its age (green = live, orange = stale, grey = never received), or **All** at once; the full tree with the **schema fields the game does not send** in grey (to see what a ship really exposes); filter, freeze, copy JSON or a path; the last game events; frames per second. **⏺ Record** saves every raw frame (up to 10 000, about 10 min) and downloads them as a `.json` file — handy to attach to a bug report. The Debug tab also lists the **last 200 actions sent** by the web app and the API (time, action, origin — Character, Ship, view, grid or API —, character position, the game's answer such as *not allowed in this situation* / FILTERED or *refused* / FAILED, response time), with *Errors only*, *Copy* and *Clear*; they are added to the recording. A button that shows ⚠ explains why when hovered. API: `GET /api/v1/debug`, `POST` / `DELETE /api/v1/debug/recording`, `DELETE /api/v1/debug/actions`.
 - **Tablet / phone** (in ⚙ Options, on the PC only): turn on **Allow access from the local network**, then scan the **QR code** with the tablet's camera (same Wi-Fi as the PC). The QR code and the full address are **hidden** every time the window opens (no IP on screen, handy when streaming); **Copy link** works even while hidden. **Open on** picks the view the link opens. **New token** disconnects every other device. The first time, Windows may ask to allow the app through the firewall: tick **Private networks**.
   - Off by default: the app then listens on **this PC only** (`127.0.0.1`). On: this PC plus the chosen network card (virtual cards — WSL, Hyper-V, VirtualBox, VPN… — are left out). Only the PC can change these settings or see the link.
   - The connection is **not encrypted** and the link contains the token: use it at home, not on public Wi-Fi.
   - Advanced option, **at your own risk**: **Listen on all interfaces (0.0.0.0)** exposes the app on every network card of the PC (VPNs, virtual machines, public Wi-Fi…): anyone there who gets the link can control the game.
-- Same safety rules as the plugin: dangerous actions are never sent, whatever the request.
+- Same rules as the plugin for sensitive actions: one press, except **Eject**, held 1.5 s.
 
 ## Plugin development
 
@@ -211,12 +206,11 @@ The scripts' messages and comments are in French.
 ## Known limitations
 
 - **Game version**: on **4.10.3 (LIVE)**, only information display works (vitals, ship state, Character and Ship tabs). Triggering actions — emotes, ship commands, Ship Toggle presses, Morse — needs **5.0** (PTU for now): on 4.10.3 keys show ⚠ and the web page shows a banner.
-- **Windows only** (Stream Deck plugin and web app).
+- The **Stream Deck plugin** is Windows only; the web app also runs on Linux under Wine — see [Linux (Wine / LUG)](#linux-wine--lug).
 - The **flashlight** state is not exposed (only the `toggle_flashlight` action).
-- In 5.0 PTU, the game accepts the `mobiglas` action but does not open the mobiGlas.
 - Death / respawn events exist in the schema but are not emitted: rely on health instead.
 - A frame may contain only some sections; zero values (`0`, `false`) are omitted (proto3).
-- Some game actions are **dangerous** and run without confirmation (`v_self_destruct`, `v_eject`, `v_power_set_off`, opening / unlocking doors…). The plugin never offers nor triggers them; the `tools/` scripts do not filter them.
+- Some game actions are **dangerous** (`v_self_destruct`, `v_eject`, `v_power_set_off`, opening / unlocking doors…) and the game runs them without confirmation. Keys and the web app send them in one press (Eject: hold 1.5 s); the `tools/` scripts do not filter them.
 
 ## License
 
