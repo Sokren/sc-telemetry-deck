@@ -23,6 +23,8 @@ import { shipRoutes } from "./routes/ship.js";
 import { telemetryRoutes } from "./routes/telemetry.js";
 import { debugRoutes } from "./routes/debug.js";
 import { DebugRecorder } from "./debug.js";
+import { ActionLog, originOf } from "./action-log.js";
+import { characterOf } from "./panels.js";
 import type { SchemaField } from "../game/schema-tree.js";
 import { viewsRoutes } from "./routes/view.js";
 import { vitalRoutes } from "./routes/vitals.js";
@@ -120,6 +122,12 @@ export function createApp(deps: AppDeps): App {
 	);
 	// Mode debug : cadence, derniers événements et enregistrement des frames brutes (lecture seule).
 	const recorder = new DebugRecorder(deps.hub);
+	// Journal des actions envoyées par la page et l'API (mode debug) ; le morse garde le client brut (trop bavard).
+	const actionLog = new ActionLog();
+	const loggedGame = actionLog.wrap(deps.game, () => {
+		const c = characterOf(deps.hub.section("actor"), "en");
+		return { locomotion: c.locomotion, crewRole: c.crewRole };
+	});
 	const layout = () => DEFAULT_LAYOUT;
 	const capability = deps.capability ?? new ActionCapability(deps.game);
 	const status = () => {
@@ -158,11 +166,11 @@ export function createApp(deps: AppDeps): App {
 				return { stream: true };
 			},
 		},
-		...actionRoutes(deps),
+		...actionRoutes({ ...deps, game: loggedGame }),
 		...vitalRoutes(deps),
 		...telemetryRoutes(deps),
-		...debugRoutes({ hub: deps.hub, recorder, schema: deps.debugSchema ?? null, version: deps.version, schemaVersion: deps.schemaVersion }),
-		...shipRoutes(deps),
+		...debugRoutes({ hub: deps.hub, recorder, actionLog, schema: deps.debugSchema ?? null, version: deps.version, schemaVersion: deps.schemaVersion }),
+		...shipRoutes({ ...deps, game: loggedGame }),
 		...panelRoutes({ hub: deps.hub, countermeasures }),
 		...morseRoutes({ morse }),
 		...viewsRoutes({ views }),
@@ -172,7 +180,7 @@ export function createApp(deps: AppDeps): App {
 			remotes: () => events.remotes(),
 			onToken: () => events.close(),
 		}),
-		...layoutRoutes({ hub: deps.hub, game: deps.game, morse, layout, onFeedback: (i, f) => events.feedback(i, f) }),
+		...layoutRoutes({ hub: deps.hub, game: loggedGame, morse, layout, onFeedback: (i, f) => events.feedback(i, f) }),
 		{ method: "GET", path: "/api/v1/openapi.json", public: true, handle: async () => ({ status: 200, json: openapi }) },
 		{
 			method: "GET",
@@ -192,10 +200,13 @@ export function createApp(deps: AppDeps): App {
 		},
 	];
 
+	// Chaque requête garde son origine (en-tête de la page) pour le journal des actions.
+	const tracked: Route[] = routes.map((r) => ({ ...r, handle: (ctx) => actionLog.run(originOf(ctx.req), () => r.handle(ctx)) }));
+
 	return {
-		routes,
+		routes: tracked,
 		lan,
-		handler: createHandler(routes, () => deps.settings.token, deps.fallback),
+		handler: createHandler(tracked, () => deps.settings.token, deps.fallback),
 		close: () => {
 			stopCapability();
 			stopView();

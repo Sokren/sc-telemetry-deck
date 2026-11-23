@@ -1,5 +1,7 @@
 import type { SchemaField } from "../../game/schema-tree.js";
 import type { TelemetryHub } from "../../telemetry/hub.js";
+import { labelFor } from "../../catalog/labels.js";
+import type { ActionLog, ActionLogEntry } from "../action-log.js";
 import type { DebugRecorder } from "../debug.js";
 import type { Route } from "../http.js";
 
@@ -10,17 +12,21 @@ const STALE_MS = 3000;
 export function debugRoutes(deps: {
 	hub: Pick<TelemetryHub, "sections">;
 	recorder: DebugRecorder;
+	actionLog: ActionLog;
 	schema: SchemaField[] | null;
 	version: string;
 	schemaVersion: string;
 	now?: () => number;
 }): Route[] {
 	const now = deps.now ?? Date.now;
+	/** Actions envoyées, la plus récente en premier, avec leur nom lisible dans la langue demandée. */
+	const actions = (list: ActionLogEntry[], lang: "fr" | "en", t: number) =>
+		[...list].reverse().map((e) => ({ ...e, label: labelFor(e.action, lang), ageMs: Math.max(0, t - e.at) }));
 	return [
 		{
 			method: "GET",
 			path: "/api/v1/debug",
-			handle: async () => {
+			handle: async ({ lang }) => {
 				const t = now();
 				const got = new Map(deps.hub.sections().map((s) => [s.name, s]));
 				// Ordre du schéma, puis toute section reçue que le schéma ne connaît pas (jeu plus récent).
@@ -39,6 +45,7 @@ export function debugRoutes(deps: {
 						framesPerSecond: deps.recorder.framesPerSecond,
 						sections,
 						events: deps.recorder.events.map((e) => ({ ageMs: Math.max(0, t - e.at), event: e.event })),
+						actions: actions(deps.actionLog.entries(), lang, t),
 						recording: deps.recorder.recording,
 						schema: deps.schema,
 					},
@@ -56,7 +63,7 @@ export function debugRoutes(deps: {
 		{
 			method: "DELETE",
 			path: "/api/v1/debug/recording",
-			handle: async () => {
+			handle: async ({ lang }) => {
 				const rec = deps.recorder.take();
 				if (!rec) return { status: 404, json: { error: "not_recording" } };
 				return {
@@ -67,8 +74,17 @@ export function debugRoutes(deps: {
 						startedAt: new Date(rec.startedAt).toISOString(),
 						durationMs: rec.durationMs,
 						frames: rec.frames,
+						actions: actions(deps.actionLog.entries(rec.startedAt), lang, now()),
 					},
 				};
+			},
+		},
+		{
+			method: "DELETE",
+			path: "/api/v1/debug/actions",
+			handle: async () => {
+				deps.actionLog.clear();
+				return { status: 204 };
 			},
 		},
 	];

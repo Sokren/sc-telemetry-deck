@@ -87,6 +87,29 @@ export function filterRows(rows, text) {
 	return rows.filter((r) => keep.has(r.path));
 }
 
+/** Codes de refus du jeu (ou de la connexion) → clé du texte ; `null` = erreur générique. */
+const FAILURES = [
+	[/FILTERED$/, "Filtered"],
+	[/FAILED$/, "Failed"],
+	[/UNKNOWN_ACTION$/, "Unknown"],
+	[/MAP_INACTIVE$/, "MapInactive"],
+	[/RATE_LIMITED$/, "RateLimited"],
+	[/HOLD_NOT_ALLOWED$/, "Hold"],
+	[/^DEADLINE_EXCEEDED$/, "Timeout"],
+	[/^UNAVAILABLE$/, "Unavailable"],
+];
+
+/**
+ * Raison lisible d'un refus du jeu (journal et info-bulle des boutons) : `[phrase, détail (code), mot court]`.
+ * Le mot court sert dans la colonne étroite du journal.
+ */
+export function failureText(reason, message, t) {
+	const r = String(reason ?? "");
+	const key = FAILURES.find(([re]) => re.test(r))?.[1] ?? "Other";
+	const code = r.replace(/^TRIGGER_GAME_ACTION_STATUS_/, "");
+	return [t(`fail${key}`), message ? `${code} — ${message}` : code, t(`fail${key}Short`)];
+}
+
 /** Copie dans le presse-papiers, aussi en http sur le réseau local (pas de contexte sécurisé). */
 async function copyText(text) {
 	try {
@@ -116,7 +139,7 @@ const el = (tag, cls, text) => {
  * Onglet Debug dans `panel`. `t(key)` : textes ; `request(method, url)` : appel authentifié (Response) ;
  * `onUnauthorized()` : jeton refusé.
  */
-export function createDebug({ panel, t, request, onUnauthorized }) {
+export function createDebug({ panel, t, request, onUnauthorized, lang = () => "en" }) {
 	let visible = false;
 	let timer;
 	let data;
@@ -127,6 +150,7 @@ export function createDebug({ panel, t, request, onUnauthorized }) {
 	const closed = new Set();
 	let previous = new Map();
 	let busy = false;
+	let errorsOnly = false;
 
 	// ---------- Squelette ----------
 	panel.replaceChildren();
@@ -163,17 +187,74 @@ export function createDebug({ panel, t, request, onUnauthorized }) {
 	const tree = el("div", "dbg-tree");
 	treeBox.append(treeHead, tree);
 	const side = el("div", "dbg-side");
-	const evBox = el("div", "dbg-box");
-	const evHead = el("h3");
+	// Journal (colonne de droite) : onglets Actions envoyées / Événements du jeu, et ⤢ pour l'agrandir.
+	const logBox = el("div", "dbg-box dbg-log");
+	const logHead = el("h3", "dbg-log-head");
+	const tabActions = el("button", "dbg-logtab");
+	tabActions.type = "button";
+	const tabEvents = el("button", "dbg-logtab");
+	tabEvents.type = "button";
+	const wideBtn = el("button", "btn-small dbg-wide");
+	wideBtn.type = "button";
+	logHead.append(tabActions, tabEvents, wideBtn);
+	const actTools = el("div", "dbg-log-tools");
+	const actErrLabel = el("label", "dbg-check");
+	const actErrBox = el("input");
+	actErrBox.type = "checkbox";
+	const actErrText = el("span");
+	actErrLabel.append(actErrBox, actErrText);
+	const actCopy = el("button", "btn-small");
+	actCopy.type = "button";
+	const actClear = el("button", "btn-small");
+	actClear.type = "button";
+	actTools.append(actErrLabel, actCopy, actClear);
+	const actTable = el("table", "dbg-acts");
+	const actWrap = el("div", "dbg-acts-wrap");
+	actWrap.append(actTable);
 	const evList = el("div", "dbg-events");
-	evBox.append(evHead, evList);
+	logBox.append(logHead, actTools, actWrap, evList);
 	const statBox = el("div", "dbg-box");
 	const statHead = el("h3");
 	const stats = el("dl", "dbg-stats");
 	statBox.append(statHead, stats);
-	side.append(evBox, statBox);
+	side.append(logBox, statBox);
 	cols.append(treeBox, side);
 	panel.append(note, chips, recbar, tools, cols);
+	let logTab = "actions";
+	let wide = false;
+	/** Lignes du journal dépliées (vue compacte) : clé = heure + action. */
+	const opened = new Set();
+	const showLog = () => {
+		tabActions.setAttribute("aria-pressed", String(logTab === "actions"));
+		tabEvents.setAttribute("aria-pressed", String(logTab === "events"));
+		actTools.hidden = actWrap.hidden = logTab !== "actions";
+		evList.hidden = logTab !== "events";
+		cols.classList.toggle("wide", wide);
+		logBox.classList.toggle("compact", !wide);
+		wideBtn.textContent = wide ? `⤡ ${t("dbgShrink")}` : `⤢ ${t("dbgEnlarge")}`;
+	};
+	tabActions.addEventListener("click", () => ((logTab = "actions"), showLog()));
+	tabEvents.addEventListener("click", () => ((logTab = "events"), showLog()));
+	wideBtn.addEventListener("click", () => {
+		wide = !wide;
+		showLog();
+		renderActions();
+	});
+	actErrBox.addEventListener("change", () => {
+		errorsOnly = actErrBox.checked;
+		renderActions();
+	});
+	actCopy.addEventListener("click", async () => {
+		const lines = shownActions().map((a) =>
+			[new Date(Date.now() - a.ageMs).toLocaleTimeString(), a.action, a.origin, a.locomotion, a.ok ? "OK" : `${a.reason ?? ""}${a.message ? ` (${a.message})` : ""}`, `${a.ms} ms`].join("\t"),
+		);
+		flash(actCopy, await copyText(lines.join("\n")));
+	});
+	actClear.addEventListener("click", async () => {
+		const r = await request("DELETE", "/api/v1/debug/actions");
+		flash(actClear, r.ok);
+		poll();
+	});
 
 	search.addEventListener("input", () => {
 		filter = search.value;
@@ -216,7 +297,9 @@ export function createDebug({ panel, t, request, onUnauthorized }) {
 		copyBtn.textContent = `📋 ${t("dbgCopy")}`;
 		recBtn.textContent = `⏺ ${t("dbgRecord")}`;
 		recStop.textContent = `⏹ ${t("dbgStopDownload")}`;
-		evHead.textContent = t("dbgEvents");
+		actErrText.textContent = t("dbgErrorsOnly");
+		actCopy.textContent = `📋 ${t("dbgCopyShort")}`;
+		actClear.textContent = t("dbgClear");
 		statHead.textContent = t("dbgStream");
 		renderAll();
 	}
@@ -354,6 +437,102 @@ export function createDebug({ panel, t, request, onUnauthorized }) {
 		stats.replaceChildren(...pairs.flatMap(([k, v]) => [el("dt", "", k), el("dd", "", v)]));
 	}
 
+	const shownActions = () => (data?.actions ?? []).filter((a) => !errorsOnly || !a.ok);
+
+	function renderActions() {
+		// Onglets du journal : nombre d'erreurs à côté de « Actions », nombre d'événements à côté de « Événements ».
+		const errors = (data?.actions ?? []).filter((a) => !a.ok).length;
+		tabActions.textContent = errors ? `${t("dbgActions")} · ${errors} ⚠` : t("dbgActions");
+		tabEvents.textContent = data?.events?.length ? `${t("dbgEvents")} · ${data.events.length}` : t("dbgEvents");
+		showLog();
+		const list = shownActions();
+		// Vue compacte (colonne de droite) : heure, action, résultat ; un clic sur une ligne montre le détail.
+		if (!wide) {
+			const rows = list.flatMap((a) => {
+				const key = `${a.at}|${a.action}`;
+				const tr = el("tr", `row${a.ok ? "" : " fail"}${opened.has(key) ? " open" : ""}`);
+				tr.tabIndex = 0;
+				tr.append(el("td", "when", new Date(Date.now() - a.ageMs).toLocaleTimeString()));
+				tr.append(el("td", "act", a.label));
+				const res = el("td", a.ok ? "res ok" : "res bad", a.ok ? "✔" : `⚠ ${failureText(a.reason, a.message, t)[2]}`);
+				tr.append(res);
+				const toggle = () => {
+					if (opened.has(key)) opened.delete(key);
+					else opened.add(key);
+					renderActions();
+				};
+				tr.addEventListener("click", toggle);
+				tr.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle()));
+				if (!opened.has(key)) return [tr];
+				const role = a.crewRole && a.crewRole !== "none" ? (t(`role_${a.crewRole}`) ?? a.crewRole) : null;
+				const detail = [
+					a.action,
+					t(`origin_${a.origin}`) ?? a.origin,
+					[t(`loco_${a.locomotion}`) ?? a.locomotion, role].filter(Boolean).join(" · "),
+					a.ok ? null : failureText(a.reason, a.message, t).slice(0, 2).join(" — "),
+					`${a.ms} ms`,
+				].filter(Boolean);
+				const more = el("tr", "detail");
+				const td = el("td", "", detail.join(" · "));
+				td.colSpan = 3;
+				more.append(td);
+				return [tr, more];
+			});
+			if (!rows.length) {
+				const tr = el("tr");
+				const td = el("td", "dbg-empty", errorsOnly ? t("dbgNoErrors") : t("dbgNoActions"));
+				td.colSpan = 3;
+				tr.append(td);
+				rows.push(tr);
+			}
+			const tbody = el("tbody");
+			tbody.append(...rows);
+			actTable.replaceChildren(tbody);
+			return;
+		}
+		const head = el("tr");
+		const cols6 = [
+			["dbgColTime", ""],
+			["dbgColAction", ""],
+			["dbgColOrigin", "opt"],
+			["dbgColPosition", "opt"],
+			["dbgColResult", ""],
+			["dbgColMs", "opt num"],
+		];
+		for (const [key, cls] of cols6) head.append(el("th", cls, t(key)));
+		const rows = list.map((a) => {
+			const tr = el("tr", a.ok ? "" : "fail");
+			tr.append(el("td", "when", new Date(Date.now() - a.ageMs).toLocaleTimeString()));
+			const act = el("td", "act");
+			act.append(el("b", "", a.label), el("span", "code", a.action));
+			tr.append(act);
+			tr.append(el("td", "opt", t(`origin_${a.origin}`) ?? a.origin));
+			const role = a.crewRole && a.crewRole !== "none" ? (t(`role_${a.crewRole}`) ?? a.crewRole) : null;
+			tr.append(el("td", "opt", [t(`loco_${a.locomotion}`) ?? a.locomotion, role].filter(Boolean).join(" · ")));
+			const res = el("td", a.ok ? "res ok" : "res bad");
+			if (a.ok) res.textContent = "✔ OK";
+			else {
+				const [title, detail] = failureText(a.reason, a.message, t);
+				res.append(el("span", "", `⚠ ${title}`), el("small", "", detail));
+			}
+			tr.append(res);
+			tr.append(el("td", "opt num", `${a.ms} ms`));
+			return tr;
+		});
+		if (!rows.length) {
+			const tr = el("tr");
+			const td = el("td", "dbg-empty", errorsOnly ? t("dbgNoErrors") : t("dbgNoActions"));
+			td.colSpan = 6;
+			tr.append(td);
+			rows.push(tr);
+		}
+		const thead = el("thead");
+		thead.append(head);
+		const tbody = el("tbody");
+		tbody.append(...rows);
+		actTable.replaceChildren(thead, tbody);
+	}
+
 	function renderRecording() {
 		const r = data?.recording;
 		const on = !!r && (r.active || r.full);
@@ -371,6 +550,7 @@ export function createDebug({ panel, t, request, onUnauthorized }) {
 		if (frozen) return;
 		renderTree();
 		renderEvents();
+		renderActions();
 	}
 
 	// ---------- Données ----------
@@ -378,7 +558,7 @@ export function createDebug({ panel, t, request, onUnauthorized }) {
 		if (busy) return;
 		busy = true;
 		try {
-			const r = await request("GET", "/api/v1/debug");
+			const r = await request("GET", `/api/v1/debug?lang=${lang()}`);
 			if (r.status === 401) return onUnauthorized();
 			if (r.ok) {
 				data = await r.json();
@@ -399,7 +579,7 @@ export function createDebug({ panel, t, request, onUnauthorized }) {
 	}
 
 	async function takeRecording() {
-		const r = await request("DELETE", "/api/v1/debug/recording");
+		const r = await request("DELETE", `/api/v1/debug/recording?lang=${lang()}`);
 		if (!r.ok) return flash(recStop, false);
 		const body = await r.json();
 		const url = URL.createObjectURL(new Blob([JSON.stringify(body, null, 1)], { type: "application/json" }));

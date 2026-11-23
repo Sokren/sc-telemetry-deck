@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.7.0",
+		"version": "1.8.0",
 		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Dangerous actions (self destruct, eject, opening doors…) are always refused. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions dangereuses (autodestruction, éjection, ouverture des portes…) sont toujours refusées.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
@@ -602,7 +602,7 @@
 					"Layout"
 				],
 				"summary": "Button grid of the page — grille de boutons de la page",
-				"description": "Tiles of the web page with their current image (same drawings as the Stream Deck keys). Tile settings use the same names and values as the plugin's actions. — FR : tuiles de la page web avec leur image actuelle (mêmes dessins que les touches Stream Deck). Les réglages des tuiles reprennent les noms et valeurs des actions du plugin.",
+				"description": "Tiles of the web page with their current image. Each tile has a type and its settings. — FR : tuiles de la page web avec leur image actuelle. Chaque tuile a un type et ses réglages.",
 				"parameters": [
 					{
 						"name": "lang",
@@ -641,7 +641,7 @@
 					"Layout"
 				],
 				"summary": "Press a tile — appuyer sur une tuile",
-				"description": "Same rules as the matching Stream Deck key; dangerous actions are never sent (alert). — FR : mêmes règles que la touche Stream Deck correspondante ; les actions dangereuses ne sont jamais envoyées (alert).",
+				"description": "Presses the tile: toggles a ship function from its state, sends an action, or starts / stops Morse. An eject tile must be held 1.5 s on the page (hold: true in the tile event). — FR : appuie sur la tuile : bascule une fonction vaisseau selon son état, envoie une action, ou lance / arrête le morse. Une tuile d'éjection se maintient 1,5 s sur la page (hold: true dans l'événement de la tuile).",
 				"parameters": [
 					{
 						"name": "index",
@@ -1228,7 +1228,7 @@
 					"Ship"
 				],
 				"summary": "Ship instruments and warning lights — instruments et voyants du vaisseau",
-				"description": "Ship name, landed, master mode, instruments (shields, hull, decoys and noise countermeasures — count, percent of the largest stock seen for this ship model —, weapons ready to fire, active weapon group, gimbals (display only), hydrogen, quantum fuel, speed, vertical speed, radar altitude, heading, G-force, boost reserve), the ship model (manufacturer, name, type) and the 10 warning lights, as shown in the Ship tab of the page. available: false outside a ship (character not seated) or when the game is closed; countermeasure and weapon instruments can still show while the ship section is late, as on the Stream Deck key. — FR : nom du vaisseau, posé, mode maître, instruments (boucliers, coque, leurres et brouilleurs — nombre, pourcentage du plus grand stock vu pour ce modèle de vaisseau —, armes prêtes à tirer, groupe d’armes actif, cardans (affichage seulement), hydrogène, quantum, vitesse, vitesse verticale, altitude radar, cap, G subis, réserve de boost), le modèle du vaisseau (constructeur, nom, type) et les 10 voyants, comme dans l'onglet Vaisseau de la page. available: false hors du vaisseau (perso pas assis) ou si le jeu est fermé ; les instruments de contre-mesures et d’armes peuvent rester affichés si la section vaisseau est en retard, comme sur la touche Stream Deck.",
+				"description": "Ship name, landed, master mode, instruments (shields, hull, decoys and noise countermeasures — count, percent of the largest stock seen for this ship model —, weapons ready to fire, active weapon group, gimbals (display only), hydrogen, quantum fuel, speed, vertical speed, radar altitude, heading, G-force, boost reserve), the ship model (manufacturer, name, type) and the 10 warning lights, as shown in the Ship tab of the page. available: false outside a ship (character not seated) or when the game is closed; countermeasure and weapon instruments can still show while the ship section is late. — FR : nom du vaisseau, posé, mode maître, instruments (boucliers, coque, leurres et brouilleurs — nombre, pourcentage du plus grand stock vu pour ce modèle de vaisseau —, armes prêtes à tirer, groupe d’armes actif, cardans (affichage seulement), hydrogène, quantum, vitesse, vitesse verticale, altitude radar, cap, G subis, réserve de boost), le modèle du vaisseau (constructeur, nom, type) et les 10 voyants, comme dans l'onglet Vaisseau de la page. available: false hors du vaisseau (perso pas assis) ou si le jeu est fermé ; les instruments de contre-mesures et d’armes peuvent rester affichés si la section vaisseau est en retard.",
 				"parameters": [
 					{
 						"name": "lang",
@@ -1267,7 +1267,7 @@
 					"Telemetry"
 				],
 				"summary": "Debug: everything the game sends — tout ce que le jeu envoie",
-				"description": "Debug mode: every raw section of the telemetry stream with its age (also stale or never received ones), the game schema's fields (to see fields that are planned but not sent), the last 100 game events, the frame rate and the recording state. Read only. Note: the game does not send zero / false / empty values. — FR : mode debug : toutes les sections brutes du flux avec leur âge (même périmées ou jamais reçues), les champs du schéma du jeu (pour voir ceux qui sont prévus mais pas envoyés), les 100 derniers événements, la cadence et l'état de l'enregistrement. Lecture seule. Le jeu n'envoie pas les valeurs nulles (0, false, vide).",
+				"description": "Debug mode: every raw section of the telemetry stream with its age (also stale or never received ones), the game schema's fields (to see fields that are planned but not sent), the last 100 game events, the last 200 actions sent by the web app and the API (with the game's answer), the frame rate and the recording state. Read only. Note: the game does not send zero / false / empty values. — FR : mode debug : toutes les sections brutes du flux avec leur âge (même périmées ou jamais reçues), les champs du schéma du jeu (pour voir ceux qui sont prévus mais pas envoyés), les 100 derniers événements, les 200 dernières actions envoyées par l'appli et l'API (avec la réponse du jeu), la cadence et l'état de l'enregistrement. Lecture seule. Le jeu n'envoie pas les valeurs nulles (0, false, vide).",
 				"responses": {
 					"200": {
 						"description": "Debug state — état du debug",
@@ -1325,7 +1325,7 @@
 					"Telemetry"
 				],
 				"summary": "Stop and get the recording — arrêter et récupérer l'enregistrement",
-				"description": "Stops the recording and returns it (then forgets it): app and schema versions, start time, duration and every frame with its time from the start (t, in ms). — FR : arrête l'enregistrement et le renvoie (puis l'oublie) : versions de l'appli et du schéma, heure de début, durée et chaque trame avec son temps depuis le début (t, en ms).",
+				"description": "Stops the recording and returns it (then forgets it): app and schema versions, start time, duration and every frame with its time from the start (t, in ms), and the actions sent during the recording. — FR : arrête l'enregistrement et le renvoie (puis l'oublie) : versions de l'appli et du schéma, heure de début, durée et chaque trame avec son temps depuis le début (t, en ms), et les actions envoyées pendant l'enregistrement.",
 				"responses": {
 					"200": {
 						"description": "Recording — enregistrement",
@@ -1338,7 +1338,8 @@
 										"schemaVersion",
 										"startedAt",
 										"durationMs",
-										"frames"
+										"frames",
+										"actions"
 									],
 									"properties": {
 										"app": {
@@ -1371,6 +1372,12 @@
 													}
 												}
 											}
+										},
+										"actions": {
+											"type": "array",
+											"items": {
+												"$ref": "#/components/schemas/ActionLogEntry"
+											}
 										}
 									}
 								}
@@ -1389,6 +1396,24 @@
 								}
 							}
 						}
+					}
+				}
+			}
+		},
+		"/api/v1/debug/actions": {
+			"delete": {
+				"operationId": "clearDebugActions",
+				"tags": [
+					"Telemetry"
+				],
+				"summary": "Clear the action log — vider le journal des actions",
+				"description": "Empties the debug action log. — FR : vide le journal des actions du mode debug.",
+				"responses": {
+					"204": {
+						"description": "Cleared — vidé"
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
 					}
 				}
 			}
@@ -2466,7 +2491,8 @@
 					"sections",
 					"events",
 					"recording",
-					"schema"
+					"schema",
+					"actions"
 				],
 				"properties": {
 					"app": {
@@ -2541,6 +2567,74 @@
 						"items": {
 							"$ref": "#/components/schemas/SchemaField"
 						}
+					},
+					"actions": {
+						"type": "array",
+						"description": "Last 200 actions sent by the web app and the API, newest first — 200 dernières actions envoyées, la plus récente en premier",
+						"items": {
+							"$ref": "#/components/schemas/ActionLogEntry"
+						}
+					}
+				}
+			},
+			"ActionLogEntry": {
+				"type": "object",
+				"required": [
+					"at",
+					"action",
+					"label",
+					"origin",
+					"locomotion",
+					"crewRole",
+					"ok",
+					"ms",
+					"ageMs"
+				],
+				"properties": {
+					"at": {
+						"type": "integer",
+						"description": "Send time (ms since epoch) — heure d'envoi"
+					},
+					"ageMs": {
+						"type": "integer"
+					},
+					"action": {
+						"type": "string"
+					},
+					"label": {
+						"type": "string"
+					},
+					"origin": {
+						"type": "string",
+						"enum": [
+							"character",
+							"ship",
+							"view",
+							"grid",
+							"api"
+						],
+						"description": "Where the press came from (page tab, view, grid; api = any call without the page's origin header) — d'où vient l'appui"
+					},
+					"locomotion": {
+						"type": "string",
+						"description": "Character position when sent — position du perso à l'envoi (on_foot, seated, eva, unknown)"
+					},
+					"crewRole": {
+						"type": "string"
+					},
+					"ok": {
+						"type": "boolean"
+					},
+					"reason": {
+						"type": "string",
+						"description": "Game or connection code when not OK (e.g. TRIGGER_GAME_ACTION_STATUS_FAILED, DEADLINE_EXCEEDED) — code du jeu ou de la connexion"
+					},
+					"message": {
+						"type": "string"
+					},
+					"ms": {
+						"type": "integer",
+						"description": "Game response time — temps de réponse du jeu"
 					}
 				}
 			}

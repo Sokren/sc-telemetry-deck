@@ -5,7 +5,7 @@ import { createAutoSwitch, parseAutoSettings, POSITIONS } from "./autoswitch.js"
 import { createLan } from "./lan.js";
 import { holdToPress, HOLD_ACTIONS } from "./hold.js";
 import { createSetup } from "./setup.js";
-import { createDebug } from "./debug.js";
+import { createDebug, failureText } from "./debug.js";
 import { applyTheme, readTheme, saveTheme, themeAccent, THEMES } from "./themes.js";
 import { shipCard } from "./shipcard.js";
 import { createView } from "./view.js";
@@ -77,7 +77,10 @@ function applyTexts() {
 	$("h-instruments").textContent = t("instruments");
 	$("h-lights").textContent = t("warningLights");
 	$("h-functions").textContent = t("functions");
+	$("flight-ready").querySelector(".label").textContent = `✈ ${t("flightReady")}`;
+	$("flight-ready").title = t("flightReadyHint");
 	$("functions-hint").textContent = t("functionsHint");
+	$("h-player-actions").textContent = t("playerActions");
 	$("h-emotes").textContent = t("emotes");
 	$("about-open").textContent = t("about");
 	$("about-close").textContent = t("close");
@@ -171,6 +174,17 @@ $("opt-danger").addEventListener("change", (e) => {
 });
 document.documentElement.classList.toggle("no-danger-alert", !dangerAlert);
 
+// Résumé du perso en tête de l'onglet Vaisseau (par appareil) ; activé par défaut.
+const RECAP_KEY = "sctd-pilot-recap";
+let pilotRecap = storageGet(RECAP_KEY) !== "0";
+function setPilotRecap(on) {
+	pilotRecap = on;
+	storageSet(RECAP_KEY, on ? "1" : "0");
+	$("opt-recap").checked = on;
+	if (lastState) renderPilotRecap(lastState.character);
+}
+$("opt-recap").addEventListener("change", (e) => setPilotRecap(e.target.checked));
+
 // Mode debug (par appareil) : ajoute l'onglet 🐞 Debug, tout le flux brut du jeu.
 const DEBUG_KEY = "sctd-debug";
 let debugOn = storageGet(DEBUG_KEY) === "1";
@@ -179,6 +193,7 @@ const debugTab = createDebug({
 	t: (k) => t(k),
 	request: (method, url) => fetch(url, { method, headers: { authorization: `Bearer ${token}` } }),
 	onUnauthorized: () => showMessage(t("badToken")),
+	lang: () => lang,
 });
 $("tab-debug").hidden = !debugOn;
 $("opt-debug").addEventListener("change", (e) => {
@@ -204,6 +219,8 @@ function renderOptions() {
 	$("opt-h-danger").textContent = t("optDanger");
 	$("opt-danger-label").textContent = t("optDangerLabel");
 	$("opt-danger").checked = dangerAlert;
+	$("opt-recap-label").textContent = t("optRecapLabel");
+	$("opt-recap").checked = pilotRecap;
 	$("opt-h-advanced").textContent = t("optAdvanced");
 	$("opt-debug-label").textContent = t("optDebugLabel");
 	$("opt-debug").checked = debugOn;
@@ -415,7 +432,7 @@ const ownPresses = new Map();
 async function press(index) {
 	ownPresses.set(index, Date.now());
 	try {
-		const r = await fetch(`/api/v1/layout/tiles/${index}/press`, { method: "POST", headers: { authorization: `Bearer ${token}` } });
+		const r = await fetch(`/api/v1/layout/tiles/${index}/press`, { method: "POST", headers: { authorization: `Bearer ${token}`, "x-sctd-origin": "grid" } });
 		if (r.status === 401) return showMessage(t("badToken"));
 		const body = await r.json();
 		flashOn(tileButton(index), body.feedback === "ok" ? "ok" : "alert");
@@ -459,11 +476,29 @@ async function loadEmotes() {
 		myView?.setActions(groups);
 		const emotes = groups.find((g) => g.category === EMOTES)?.actions ?? [];
 		renderEmotes(emotes);
+		renderPlayerActions(groups.find((g) => g.category === PLAYER)?.actions ?? []);
 		// Liste de secours (jeu pas encore joignable) : relue dès que le jeu répond.
 		emotesLoaded = live && emotes.length > 0;
 	} catch {
 		renderEmotes([]);
 	}
+}
+
+/** Actions du perso (essuyer la visière, torche, mobiGlas, carte stellaire), lues dans le jeu comme les émotes. */
+const PLAYER = "player";
+function renderPlayerActions(actions) {
+	$("h-player-actions").hidden = !actions.length;
+	$("char-actions").replaceChildren(
+		...actions.map((a) => {
+			const el = document.createElement("button");
+			el.type = "button";
+			el.className = "card function emote";
+			el.innerHTML = '<div class="label"></div><span class="flash"></span>';
+			el.querySelector(".label").textContent = a.label;
+			el.addEventListener("click", () => triggerEmote(a.name, el));
+			return el;
+		}),
+	);
 }
 
 function renderEmotes(emotes) {
@@ -487,14 +522,31 @@ function renderEmotes(emotes) {
 	);
 }
 
-/** Déclenche une action du jeu (émote ou autre) depuis une carte, avec retour ✔ / ⚠. */
-async function triggerEmote(name, el) {
+/**
+ * Raison d'un ⚠ en info-bulle du bouton (retirée au prochain succès). `body` : réponse du jeu (`reason`, `message`)
+ * ou refus de l'appli (`reason` lisible + `code`).
+ */
+function showFailure(el, body) {
+	if (!("tip" in el.dataset)) el.dataset.tip = el.title;
+	if (!body) return void (el.title = el.dataset.tip);
+	const [head, detail] = body.code ? [body.reason, body.code] : failureText(body.reason, body.message, t);
+	el.title = `⚠ ${head}\n${detail} — ${new Date().toLocaleTimeString()}`;
+}
+
+/** Déclenche une action du jeu (émote ou autre) depuis une carte, avec retour ✔ / ⚠ ; `origin` : pour le journal. */
+async function triggerEmote(name, el, origin = "character") {
 	try {
-		const r = await fetch(`/api/v1/actions/${encodeURIComponent(name)}/trigger`, { method: "POST", headers: { authorization: `Bearer ${token}` } });
+		const r = await fetch(`/api/v1/actions/${encodeURIComponent(name)}/trigger`, {
+			method: "POST",
+			headers: { authorization: `Bearer ${token}`, "x-sctd-origin": origin },
+		});
 		if (r.status === 401) return showMessage(t("badToken"));
-		flashOn(el, r.status === 200 ? "ok" : "alert");
+		const ok = r.status === 200;
+		flashOn(el, ok ? "ok" : "alert");
+		showFailure(el, ok ? null : await r.json().catch(() => ({ reason: String(r.status) })));
 	} catch {
 		flashOn(el, "alert");
+		showFailure(el, { reason: "UNAVAILABLE" });
 	}
 }
 
@@ -517,17 +569,20 @@ async function sendMorse(body, el) {
 }
 
 // ---------- Vaisseau ----------
-async function pressFunction(id, el) {
+async function pressFunction(id, el, origin = "ship") {
 	try {
 		const r = await fetch(`/api/v1/ship/functions/${id}/press?lang=${lang}`, {
 			method: "POST",
-			headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+			headers: { authorization: `Bearer ${token}`, "content-type": "application/json", "x-sctd-origin": origin },
 			body: JSON.stringify({ mode: "toggle" }),
 		});
 		if (r.status === 401) return showMessage(t("badToken"));
-		flashOn(el, r.status === 200 ? "ok" : "alert");
+		const ok = r.status === 200;
+		flashOn(el, ok ? "ok" : "alert");
+		showFailure(el, ok ? null : await r.json().catch(() => ({ reason: String(r.status) })));
 	} catch {
 		flashOn(el, "alert");
+		showFailure(el, { reason: "UNAVAILABLE" });
 	}
 }
 
@@ -571,6 +626,53 @@ function renderShip(status, functions) {
 	});
 }
 
+// ---------- Résumé du perso (onglet Vaisseau) ----------
+const RECAP_VITALS = [
+	["health", "❤️"],
+	["hunger", "🍖"],
+	["thirst", "💧"],
+	["oxygen", "🫁"],
+];
+function renderPilotRecap(c) {
+	const box = $("pilot-recap");
+	// Toujours affiché quand le perso est là (assis ou non), sauf si désactivé.
+	box.hidden = !pilotRecap || !c.available;
+	if (box.hidden) return;
+	const span = (cls, text) => {
+		const el = document.createElement("span");
+		el.className = cls;
+		el.textContent = text;
+		return el;
+	};
+	// Une ligne de texte discrète (variante B) : chaque valeur prend la couleur de son niveau.
+	const items = RECAP_VITALS.map(([id, icon]) => {
+		const v = c.vitals.find((x) => x.id === id);
+		const text = v && v.text !== "—" ? `${v.text}${v.unit === "%" ? " %" : ""}` : "—";
+		const el = span(`pr-item level-${v?.level ?? "none"}`, `${icon} `);
+		el.title = v?.label ?? id;
+		el.append(span("pr-val", text));
+		return el;
+	});
+	// Air respirable : juste une note (oui / non), en orange quand l'air n'est pas respirable.
+	const air = c.vitals.find((x) => x.id === "breathable");
+	const parts = [span("pr-head", `${t("recapTitle")} :`), ...items];
+	if (air && air.text !== "—") {
+		const ok = ["Oui", "Yes"].includes(air.text);
+		parts.push(span(`pr-air${ok ? "" : " bad"}`, ok ? `· ${t("recapAirOk")}` : `· ⚠ ${t("recapAirBad")}`));
+	}
+	const hide = document.createElement("button");
+	hide.type = "button";
+	hide.className = "pr-hide";
+	hide.textContent = "✕";
+	hide.title = t("recapHide");
+	hide.setAttribute("aria-label", t("recapHide"));
+	hide.addEventListener("click", () => setPilotRecap(false));
+	box.replaceChildren(...parts, hide);
+}
+
+// « Prêt au vol » en tête de l'onglet Vaisseau : simple commande du jeu (aucun état lisible).
+$("flight-ready").addEventListener("click", () => triggerEmote("v_flightready", $("flight-ready"), "ship"));
+
 // ---------- Temps réel ----------
 function connect() {
 	source?.close();
@@ -601,6 +703,7 @@ function connect() {
 	source.addEventListener("state", (e) => {
 		lastState = JSON.parse(e.data);
 		renderCharacter(lastState.character);
+		renderPilotRecap(lastState.character);
 		renderShip(lastState.shipStatus, lastState.ship);
 		// Encart « Mon vaisseau » en tête de l'onglet Vaisseau (remplace la ligne de résumé).
 		const inShip = lastState.shipStatus.available && !!lastState.shipStatus.model;
@@ -608,7 +711,8 @@ function connect() {
 		$("ship-head").hidden = inShip;
 		if (inShip) $("ship-card").replaceChildren(shipCard(lastState, 2, t));
 		myView?.setState(lastState);
-		autoSwitch?.update(lastState.character.locomotion);
+		// Onglet Debug : on y reste, la vue automatique ne s'applique pas.
+		if (currentTab !== "debug") autoSwitch?.update(lastState.character.locomotion);
 	});
 	source.addEventListener("views", (e) => myView?.setViews(JSON.parse(e.data).views));
 	source.addEventListener("feedback", (e) => {
@@ -672,8 +776,8 @@ const myView = createView({
 		else showTab("grid");
 	},
 	card,
-	pressFunction,
-	triggerAction: triggerEmote,
+	pressFunction: (id, el) => pressFunction(id, el, "view"),
+	triggerAction: (name, el) => triggerEmote(name, el, "view"),
 	holdToPress,
 	holdActions: HOLD_ACTIONS,
 	morse: sendMorse,

@@ -1838,3 +1838,183 @@ dialog .opt-back {
 	color: var(--faint-2);
 	font-size: 11px;
 }
+/* « Prêt au vol » en tête de l'onglet Vaisseau. */
+.ship-commands {
+	margin: 0 0 12px;
+}
+.card.flight-ready {
+	border-color: var(--accent);
+	min-height: 56px;
+}
+.card.flight-ready .label {
+	color: var(--accent);
+	font-size: 16px;
+	font-weight: 700;
+}
+/* Résumé du perso en tête de l'onglet Vaisseau (assis) : une ligne de texte discrète. */
+.pilot-recap {
+	display: flex;
+	align-items: baseline;
+	gap: 4px 14px;
+	flex-wrap: wrap;
+	font-size: 14px;
+	padding: 6px 12px;
+	margin-bottom: 8px;
+	border-bottom: 1px solid var(--line);
+}
+.pilot-recap[hidden] {
+	display: none;
+}
+.pr-head {
+	color: var(--muted);
+}
+.pr-item {
+	white-space: nowrap;
+}
+.pr-val {
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+.pr-item.level-warn .pr-val {
+	color: var(--warn);
+}
+.pr-item.level-bad .pr-val {
+	color: var(--bad-text);
+}
+.pr-air {
+	color: var(--muted);
+	font-size: 13px;
+}
+.pr-air.bad {
+	color: var(--warn);
+	font-weight: 700;
+}
+.pr-hide {
+	margin-left: auto;
+	background: none;
+	border: 0;
+	color: var(--faint-2);
+	cursor: pointer;
+	font-size: 14px;
+	padding: 0 4px;
+}
+/* Journal (onglet Debug, colonne de droite) : Actions envoyées / Événements, agrandissable. */
+.dbg-cols.wide {
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+}
+.dbg-log-head {
+	flex-wrap: nowrap !important;
+}
+.dbg-logtab {
+	background: none;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	color: var(--muted);
+	font: inherit;
+	font-size: 13px;
+	padding: 2px 4px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.dbg-logtab[aria-pressed="true"] {
+	color: var(--text);
+	border-bottom-color: var(--accent);
+}
+.dbg-log-head .dbg-wide {
+	margin-left: auto;
+	white-space: nowrap;
+}
+.dbg-log-tools {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+	padding: 6px 12px;
+	border-bottom: 1px solid var(--line);
+}
+.dbg-log-tools .dbg-check {
+	margin-right: auto;
+}
+.dbg-log-tools[hidden],
+.dbg-acts-wrap[hidden],
+.dbg-log .dbg-events[hidden] {
+	display: none;
+}
+.dbg-acts-wrap {
+	max-height: 360px;
+	overflow: auto;
+}
+.dbg-cols.wide .dbg-acts-wrap {
+	max-height: 560px;
+}
+.dbg-acts {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+.dbg-acts th {
+	position: sticky;
+	top: 0;
+	background: var(--panel);
+	text-align: left;
+	color: var(--faint-2);
+	font-weight: 400;
+	font-size: 12px;
+	padding: 6px 12px;
+	border-bottom: 1px solid var(--line);
+}
+.dbg-acts td {
+	padding: 5px 10px;
+	border-bottom: 1px solid var(--line);
+	vertical-align: top;
+}
+.dbg-acts .when,
+.dbg-acts .num {
+	color: var(--faint-2);
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+.dbg-acts .num {
+	text-align: right;
+}
+.dbg-acts .act .code {
+	display: block;
+	color: var(--link);
+	font: 12px ui-monospace, Consolas, monospace;
+}
+.dbg-acts td.opt {
+	color: var(--muted);
+	white-space: nowrap;
+}
+.dbg-acts .res.ok {
+	color: var(--ok-text);
+	white-space: nowrap;
+}
+.dbg-acts .res.bad {
+	color: var(--bad-text);
+}
+.dbg-acts .res small {
+	display: block;
+	color: var(--muted);
+	font: 11px ui-monospace, Consolas, monospace;
+}
+.dbg-log.compact tr.row {
+	cursor: pointer;
+}
+.dbg-log.compact tr.row:hover {
+	background: var(--inset);
+}
+.dbg-log.compact tr.row.open td {
+	border-bottom: 0;
+}
+.dbg-log.compact tr.detail td {
+	color: var(--muted);
+	font: 11px ui-monospace, Consolas, monospace;
+	padding-top: 0;
+	overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+	.dbg-acts .opt {
+		display: none;
+	}
+}

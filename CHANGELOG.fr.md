@@ -9,6 +9,16 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
+## [Non publié]
+
+### Ajouté
+- Appli web, onglet **Vaisseau** : un gros bouton **✈ Prêt au vol** (`v_flightready`, simple commande — le jeu n'envoie pas d'état « prêt ») et un **résumé du perso** sur une ligne au-dessus de l'encart du vaisseau — santé, faim, soif, oxygène (couleur selon le niveau) et une note sur l'air respirable ; masquable avec ✕ ou dans ⚙ Options (par appareil).
+- Appli web, onglet **Personnage** : une rangée **Actions** — carte stellaire, essuyer la visière, mobiGlas, torche.
+- Appli web, onglet 🐞 **Debug** : journal des **actions envoyées** (200 dernières : heure, action, origine, position du perso, réponse du jeu, temps de réponse), *Erreurs seulement* / *Copier* / *Vider*, ajouté à l'enregistrement. Un bouton qui affiche ⚠ explique pourquoi au survol. Contrat d'API **1.8.0** : `actions` dans `GET /api/v1/debug` et dans l'enregistrement, `DELETE /api/v1/debug/actions`.
+
+### Modifié
+- Appli web : plus aucune mention du Stream Deck dans la page et la doc de l'API (l'appli est autonome) ; la description de l'appui sur une tuile ne dit plus que les actions dangereuses ne sont jamais envoyées.
+
 ## [0.3.10] — 2026-11-23
 
 ### Ajouté

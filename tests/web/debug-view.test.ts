@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 // @ts-expect-error module JS de la page, sans types
-import { filterRows, formatNumber, recordingFileName, treeRows } from "../../src/web/static/debug.js";
+import { failureText, filterRows, formatNumber, recordingFileName, treeRows } from "../../src/web/static/debug.js";
 
 type Row = { path: string; kind: string };
 
@@ -61,5 +61,20 @@ describe("onglet Debug : arbre", () => {
 		expect(formatNumber(0.998622477054596)).toBe("0.998622");
 		expect(formatNumber(3.4028234663852886e38)).toBe("3.40282e+38");
 		expect(recordingFileName(new Date(2026, 10, 23, 7, 5, 9))).toBe("sc-telemetry-debug-2026-11-23-070509.json");
+	});
+});
+
+describe("onglet Debug : raison d'un refus", () => {
+	const t = (k: string) => k;
+	test("codes du jeu et de la connexion → titre lisible + code court", () => {
+		expect(failureText("TRIGGER_GAME_ACTION_STATUS_FILTERED", undefined, t)).toEqual(["failFiltered", "FILTERED", "failFilteredShort"]);
+		expect(failureText("TRIGGER_GAME_ACTION_STATUS_FAILED", "nope", t)).toEqual(["failFailed", "FAILED — nope", "failFailedShort"]);
+		expect(failureText("DEADLINE_EXCEEDED", undefined, t)[0]).toBe("failTimeout");
+		expect(failureText("UNAVAILABLE", undefined, t)[0]).toBe("failUnavailable");
+		expect(failureText("TRIGGER_GAME_ACTION_STATUS_UNKNOWN_ACTION", undefined, t)).toEqual(["failUnknown", "UNKNOWN_ACTION", "failUnknownShort"]);
+		expect(failureText("TRIGGER_GAME_ACTION_STATUS_MAP_INACTIVE", undefined, t)).toEqual(["failMapInactive", "MAP_INACTIVE", "failMapInactiveShort"]);
+		expect(failureText("TRIGGER_GAME_ACTION_STATUS_RATE_LIMITED", undefined, t)[0]).toBe("failRateLimited");
+		expect(failureText("TRIGGER_GAME_ACTION_STATUS_HOLD_NOT_ALLOWED", undefined, t)[0]).toBe("failHold");
+		expect(failureText("STATUS_9", undefined, t)).toEqual(["failOther", "STATUS_9", "failOtherShort"]);
 	});
 });

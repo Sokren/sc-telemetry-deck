@@ -9,6 +9,16 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
+## [Unreleased]
+
+### Added
+- Web app, **Ship** tab: a big **✈ Flight ready** button (`v_flightready`, command only — the game sends no "ready" state) and a one-line **character summary** above the ship card — health, hunger, thirst, oxygen (coloured by level) and a breathable-air note; hide it with ✕ or in ⚙ Options (per device).
+- Web app, **Character** tab: an **Actions** row — star map, wipe visor, mobiGlas, flashlight.
+- Web app, 🐞 **Debug** tab: **actions sent** log (last 200: time, action, origin, character position, the game's answer, response time), *Errors only* / *Copy* / *Clear*, included in the recording. A button showing ⚠ tells why when hovered. API contract **1.8.0**: `actions` in `GET /api/v1/debug` and in the recording, `DELETE /api/v1/debug/actions`.
+
+### Changed
+- Web app: no more references to the Stream Deck in the page and the API docs (the app stands on its own); the tile-press description no longer claims dangerous actions are never sent.
+
 ## [0.3.10] — 2026-11-23
 
 ### Added
