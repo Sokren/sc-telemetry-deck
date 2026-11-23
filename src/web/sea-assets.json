@@ -9,6 +9,7 @@
 	"static/setup.js",
 	"static/hold.js",
 	"static/debug.js",
+	"static/gauges.js",
 	"static/themes.js",
 	"static/theme-boot.js",
 	"static/i18n.js",
