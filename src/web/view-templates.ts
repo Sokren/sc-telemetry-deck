@@ -51,7 +51,7 @@ const XENEON_TEXT = {
 	character: { fr: "Personnage", en: "Character" },
 } satisfies Record<string, Text>;
 
-/** Poste de pilotage 2560×720 (maquette `docs/superpowers/specs/maquettes/xeneon-edge-pilote.html`). */
+/** Poste de pilotage 2560×720. */
 function xeneonPilot(lang: Lang): ViewInput {
 	const t = (k: keyof typeof XENEON_TEXT) => XENEON_TEXT[k][lang];
 	return {
