@@ -44,3 +44,8 @@ desktop.ini
 # --- Secrets ---
 .env
 .env.*
+
+# --- Notes de travail internes (non publiées) ---
+docs/superpowers/
+roundtable-mcp*
+docs/reddit-post.md
