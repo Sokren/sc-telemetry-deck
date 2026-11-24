@@ -4,6 +4,7 @@ import {
 	type DialRotateEvent,
 	type DidReceiveSettingsEvent,
 	type SendToPluginEvent,
+	type TitleParametersDidChangeEvent,
 	type WillAppearEvent,
 	type WillDisappearEvent,
 } from "@elgato/streamdeck";
@@ -14,6 +15,7 @@ import { renderKeySvg, toFeedback } from "../display/render.js";
 import { DISPLAY_VALUES, isDisplayValueId, readValue, type DisplayValueId } from "../display/values.js";
 import type { TelemetryHub } from "../telemetry/hub.js";
 import { ThrottledRenderer } from "./throttled-renderer.js";
+import { labelWithTitle, readUserTitle, type UserTitle } from "./user-title.js";
 
 export const DIAL_LAYOUT = "layouts/actor-display.json";
 export const VALUES_EVENT = "getValues";
@@ -35,6 +37,8 @@ export type DisplayActionDeps = {
 type Entry = {
 	action: Action<DisplaySettings>;
 	value: DisplayValueId;
+	/** Titre saisi dans le Stream Deck : remplace le libellé par défaut. */
+	title?: UserTitle;
 	unsubscribe: () => void;
 };
 
@@ -80,6 +84,13 @@ export class DisplayAction extends SingletonAction<DisplaySettings> {
 		await this.#render(ev.action.id, true);
 	}
 
+	override async onTitleParametersDidChange(ev: TitleParametersDidChangeEvent<DisplaySettings>): Promise<void> {
+		const entry = this.#entries.get(ev.action.id);
+		if (!entry) return;
+		entry.title = readUserTitle(ev);
+		await this.#render(ev.action.id, true);
+	}
+
 	override async onDialRotate(ev: DialRotateEvent<DisplaySettings>): Promise<void> {
 		const entry = this.#entries.get(ev.action.id);
 		if (!entry) return;
@@ -108,10 +119,10 @@ export class DisplayAction extends SingletonAction<DisplaySettings> {
 				const { action } = entry;
 				const view = toView(entry.value, readValue(entry.value, this.deps.hub.section("actor")), this.deps.lang());
 				if (action.isDial()) {
-					const feedback = toFeedback(view);
+					const feedback = toFeedback(view, labelWithTitle(entry.title && { ...entry.title, shown: false }, view.long) ?? view.long);
 					return { payload: JSON.stringify(feedback), send: () => action.setFeedback(feedback) };
 				}
-				const image = renderKeySvg(view);
+				const image = renderKeySvg(view, labelWithTitle(entry.title, view.short));
 				return { payload: image, send: async () => (action.isKey() ? action.setImage(image) : undefined) };
 			},
 			force,

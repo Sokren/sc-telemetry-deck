@@ -1,4 +1,4 @@
-import type { DialRotateEvent, SendToPluginEvent, WillAppearEvent, WillDisappearEvent } from "@elgato/streamdeck";
+import type { DialRotateEvent, SendToPluginEvent, TitleParametersDidChangeEvent, WillAppearEvent, WillDisappearEvent } from "@elgato/streamdeck";
 import type { JsonValue } from "@elgato/utils";
 import { beforeEach, describe, expect, test } from "vitest";
 import { DisplayAction, type DisplaySettings } from "../../src/actions/display-action.js";
@@ -32,7 +32,9 @@ class FakeAction {
 	isDial() {
 		return this.dial;
 	}
+	lastImage = "";
 	async setImage(img: string) {
+		this.lastImage = decodeURIComponent(img);
 		this.sent.push(`image:${decodeURIComponent(img).includes(">100<") ? "O2=100" : "autre"}`);
 	}
 	async setFeedback(f: { value: string; label: string }) {
@@ -199,5 +201,36 @@ describe("panneau de réglage", () => {
 	test("autre message → ignoré", async () => {
 		await action.onSendToPlugin({ action: new FakeAction("k1"), payload: { event: "x" } } as unknown as SendToPluginEvent<JsonValue, DisplaySettings>);
 		expect(toPI).toEqual([]);
+	});
+});
+
+describe("titre saisi", () => {
+	const titled = (a: FakeAction, title: string, showTitle = false) =>
+		action.onTitleParametersDidChange({ action: a, payload: { settings: a.settings, title, titleParameters: { showTitle } } } as unknown as TitleParametersDidChangeEvent<DisplaySettings>);
+
+	test("touche : le titre remplace le libellé ; vide → libellé par défaut", async () => {
+		const key = new FakeAction("k1");
+		await appear(key, { value: "oxygen" });
+		expect(key.lastImage).toContain(">O₂<");
+		await titled(key, "Air");
+		expect(key.lastImage).toContain(">Air<");
+		expect(key.lastImage).not.toContain(">O₂<");
+		await titled(key, "");
+		expect(key.lastImage).toContain(">O₂<");
+	});
+
+	test("titre affiché par le Stream Deck → pas de libellé dessiné", async () => {
+		const key = new FakeAction("k1");
+		await appear(key, { value: "oxygen" });
+		await titled(key, "Air", true);
+		expect(key.lastImage).not.toContain(">Air<");
+		expect(key.lastImage).not.toContain(">O₂<");
+	});
+
+	test("molette : le titre remplace le libellé de l'écran", async () => {
+		const dial = new FakeAction("d1", true);
+		await appear(dial, { value: "oxygen" });
+		await titled(dial, "Air", true);
+		expect(dial.sent.at(-1)).toMatch(/^feedback:Air=/);
 	});
 });

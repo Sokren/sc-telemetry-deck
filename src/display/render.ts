@@ -18,14 +18,22 @@ function valueSize(text: string): number {
 	return 28;
 }
 
-/** Image de touche 144×144 (data URI SVG) : libellé court, valeur, unité, barre éventuelle. */
-export function renderKeySvg(view: DisplayView): string {
+/**
+ * Image de touche 144×144 (data URI SVG) : libellé, valeur, unité, barre éventuelle.
+ * `label` : libellé du haut (titre saisi, par défaut le libellé court) ; `null` = aucun (le Stream Deck affiche le titre).
+ */
+export function renderKeySvg(view: DisplayView, label: string | null = view.short): string {
 	const parts = [
 		`<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">`,
 		`<rect width="144" height="144" fill="${BG}"/>`,
-		`<text x="72" y="32" font-family="${FONT}" font-size="20" fill="${LABEL}" text-anchor="middle">${escapeXml(view.short)}</text>`,
-		`<text x="72" y="${view.unit ? 84 : 92}" font-family="${FONT}" font-size="${view.size ?? valueSize(view.text)}" font-weight="bold" fill="${VALUE}" text-anchor="middle">${escapeXml(view.text)}</text>`,
 	];
+	if (label !== null) {
+		const size = [...label].length > 11 ? 16 : 20;
+		parts.push(`<text x="72" y="32" font-family="${FONT}" font-size="${size}" fill="${LABEL}" text-anchor="middle">${escapeXml(label)}</text>`);
+	}
+	parts.push(
+		`<text x="72" y="${view.unit ? 84 : 92}" font-family="${FONT}" font-size="${view.size ?? valueSize(view.text)}" font-weight="bold" fill="${VALUE}" text-anchor="middle">${escapeXml(view.text)}</text>`,
+	);
 	if (view.unit) {
 		parts.push(`<text x="72" y="110" font-family="${FONT}" font-size="18" fill="${UNIT}" text-anchor="middle">${escapeXml(view.unit)}</text>`);
 	}
@@ -42,9 +50,9 @@ export function renderKeySvg(view: DisplayView): string {
  * Contenu de l'écran d'une molette (clés de `layouts/actor-display.json`).
  * Le libellé utilise la clé `label` : `title` est réservée au titre de l'action, masqué par le manifeste.
  */
-export function toFeedback(view: DisplayView): { label: string; value: string; indicator: { value: number; bar_fill_c: string } } {
+export function toFeedback(view: DisplayView, label: string = view.long): { label: string; value: string; indicator: { value: number; bar_fill_c: string } } {
 	return {
-		label: view.long,
+		label,
 		value: view.unit ? `${view.text} ${view.unit}` : view.text,
 		indicator:
 			view.bar !== undefined

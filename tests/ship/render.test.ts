@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { isDangerState, SHIP_FUNCTION_IDS } from "../../src/ship/functions.js";
 import en from "../../src/ship/labels.en.json" with { type: "json" };
 import fr from "../../src/ship/labels.fr.json" with { type: "json" };
-import { SHIP_COLORS, renderShipKey, shipFunctionName, toShipView, type ShipView } from "../../src/ship/render.js";
+import { SHIP_COLORS, renderShipKey, renderStatefulKey, shipFunctionName, toShipView, type ShipView } from "../../src/ship/render.js";
 
 const svgOf = (uri: string) => {
 	expect(uri.startsWith("data:image/svg+xml;charset=utf8,")).toBe(true);
@@ -117,5 +117,47 @@ describe("état dangereux (portes ouvertes, verrous ouverts)", () => {
 		const plain = svgOf(renderShipKey(open, "text"));
 		expect(plain).not.toContain(SHIP_COLORS.danger);
 		expect(svgOf(renderShipKey(open, "fill", true))).toContain(`fill="${SHIP_COLORS.dangerFill}"`);
+	});
+});
+
+describe("renderStatefulKey (Ship Action)", () => {
+	const view = (id: ShipView["id"], tone: ShipView["tone"], word = "ON"): ShipView => ({ id, label: "Lbl", word, tone });
+
+	test("libellé en bas ; null → aucun libellé", () => {
+		const a = svgOf(renderStatefulKey(view("lights", "on"), "text", { state: "on", label: "Phares" }));
+		expect(a).toContain(">Phares<");
+		expect(a).toContain(">ON<");
+		const b = svgOf(renderStatefulKey(view("lights", "on"), "text", { state: "on", label: null }));
+		expect(b).not.toContain(">Lbl<");
+		expect(b).not.toContain(">Phares<");
+	});
+
+	test("le pictogramme change de forme avec l'état (phares, verrous, VTOL)", () => {
+		for (const id of ["lights", "doors_locked", "vtol", "night_vision"] as const) {
+			const on = svgOf(renderStatefulKey(view(id, "on"), "text", { state: "on", label: "x" }));
+			const off = svgOf(renderStatefulKey(view(id, "off", "OFF"), "text", { state: "off", label: "x" }));
+			expect(on.replace(/>ON</, ""), id).not.toBe(off.replace(/>OFF</, ""));
+		}
+	});
+
+	test("le train garde son glyphe d'origine", () => {
+		const svg = svgOf(renderStatefulKey(view("gear", "on", "SORTI"), "text", { state: "on", label: "Train" }));
+		expect(svg).toContain('d="M12 4v11M7 10l5 5 5-5M5 20h14"');
+	});
+
+	test("VTOL en mouvement : le moteur pivote selon la phase", () => {
+		const a = svgOf(renderStatefulKey(view("vtol", "moving", "…"), "text", { state: "moving-on", label: "x", phase: 0 }));
+		const b = svgOf(renderStatefulKey(view("vtol", "moving", "…"), "text", { state: "moving-on", label: "x", phase: 0.25 }));
+		expect(a).toContain("rotate(0.0 12 12)");
+		expect(b).toContain("rotate(45.0 12 12)");
+	});
+
+	test("danger : contour rouge et ⚠ ; style B : voyant", () => {
+		const d = svgOf(renderStatefulKey(view("doors_closed", "off", "OUVERTES"), "text", { state: "off", label: "x", danger: true }));
+		expect(d).toContain(SHIP_COLORS.danger);
+		expect(d).toContain("⚠");
+		const led = svgOf(renderStatefulKey(view("lights", "on"), "led", { state: "on", label: "x" }));
+		expect(led).toContain('cx="124"');
+		expect(led).not.toContain(">ON<");
 	});
 });

@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import streamDeck from "@elgato/streamdeck";
+import type { JsonValue } from "@elgato/utils";
 import { ActorAction } from "./actions/actor-action.js";
 import { ActorDisplayAction } from "./actions/actor-display-action.js";
 import { TRIGGER_TIMEOUT_MS } from "./actions/category-action.js";
@@ -67,24 +68,16 @@ streamDeck.actions.registerAction(
 	}),
 );
 
-streamDeck.actions.registerAction(
-	new ShipToggleRegistered({
-		hub,
-		game,
-		lang: () => toLang(streamDeck.info.application.language ?? "en"),
-		sendToPropertyInspector: (payload) => streamDeck.ui.sendToPropertyInspector(payload),
-		log: (msg) => streamDeck.logger.info(msg),
-	}),
-);
-
-streamDeck.actions.registerAction(
-	new ShipAction({
-		game,
-		source,
-		lang: () => toLang(streamDeck.info.application.language ?? "en"),
-		sendToPropertyInspector: (payload) => streamDeck.ui.sendToPropertyInspector(payload),
-		log: (msg) => streamDeck.logger.info(msg),
-	}),
-);
+const shipDeps = {
+	hub,
+	game,
+	source,
+	lang: () => toLang(streamDeck.info.application.language ?? "en"),
+	sendToPropertyInspector: (payload: JsonValue) => streamDeck.ui.sendToPropertyInspector(payload),
+	log: (msg: string) => streamDeck.logger.info(msg),
+};
+// Ship Toggle (ancienne action, masquée) et Ship Action partagent le même code.
+streamDeck.actions.registerAction(new ShipToggleRegistered(shipDeps));
+streamDeck.actions.registerAction(new ShipAction(shipDeps));
 
 streamDeck.connect();

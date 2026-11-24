@@ -9,6 +9,21 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
+## [0.3.14] — 2026-11-24
+
+### ⚠ Breaking change
+- **Ship Toggle is merged into Ship Action** and no longer appears in the Stream Deck action list. **Nothing to redo**: Ship Toggle keys already on your Stream Deck keep working. Their settings (function, mode, style, red warning) are converted to Ship Action automatically the first time they appear, and they now open the Ship Action panel. For a new key with a live state, pick **Ship Action** and choose the function (landing gear, lights, VTOL…).
+- **Ship Action keys set to a function with a state look different**: they show the real state instead of a fixed icon. To get the old look back: *Image* → **No state (fixed icon)**.
+- **A Ship Action press takes the state into account**: "On" on a function that is already on no longer sends anything (✔). Outside a ship, or when the state is unknown, the command is sent as before.
+
+### Added
+- Ship Action: **live state on the key** for landing gear, lights, VTOL, decoupled, G-safe, cruise, ESP, advanced HUD, night vision, NAV / SCM mode, power, doors and locks. Styles A Text, B LED and C Filled, and a red warning when doors or locks are open.
+- Ship Action: **the icon changes with the state** (lights with a glow, eye open or closed, padlock open or closed, door ajar, shield full or dashed…), with a short "pop" when it changes and an animation while moving (VTOL rotates, the others blink orange). The landing gear keeps its icon.
+- Ship Action: **ESP** and **cruise** (display only: the game has no command for it) are in the list.
+
+### Fixed
+- **The title typed in the Stream Deck now shows** on Ship Action (function with a state), Actor Display and Ship Display, dials included. It replaces the default name ("Health", "Gear"…); empty title = default name. If "Show title" is ticked, only the Stream Deck title shows (no duplicate).
+
 ## [0.3.13] — 2026-11-23
 
 ### Added
@@ -186,6 +201,7 @@ First release.
 ### Known issues
 - In 5.0 PTU the game accepts the `mobiglas` action but does not open the mobiGlas.
 
+[0.3.14]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.14
 [0.3.13]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.13
 [0.3.12]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.12
 [0.3.11]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.11

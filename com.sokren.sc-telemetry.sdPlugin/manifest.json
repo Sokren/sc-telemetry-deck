@@ -1,7 +1,7 @@
 {
 	"$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
 	"Name": "SC Telemetry Deck",
-	"Version": "0.3.13.0",
+	"Version": "0.3.14.0",
 	"Author": "Sokren",
 	"Actions": [
 		{
@@ -87,7 +87,8 @@
 			"UUID": "com.sokren.sc-telemetry.ship-toggle",
 			"Icon": "imgs/actions/ship-toggle/icon",
 			"Tooltip": "Ship function with live state: landing gear, lights, VTOL, decoupled, G-safe, power…",
-			"PropertyInspectorPath": "ui/ship-toggle.html",
+			"PropertyInspectorPath": "ui/ship-action.html",
+			"VisibleInActionsList": false,
 			"Controllers": [
 				"Keypad"
 			],
@@ -102,7 +103,7 @@
 			"Name": "Ship Action",
 			"UUID": "com.sokren.sc-telemetry.ship-action",
 			"Icon": "imgs/actions/ship-action/icon",
-			"Tooltip": "Triggers a ship or seat command (flight ready, ATC, ping, quantum, seat modes…).",
+			"Tooltip": "Ship or seat command (flight ready, ATC, quantum…); landing gear, lights, VTOL, power… show their live state.",
 			"PropertyInspectorPath": "ui/ship-action.html",
 			"Controllers": [
 				"Keypad"

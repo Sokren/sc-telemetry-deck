@@ -33,6 +33,6 @@
 	},
 	"com.sokren.sc-telemetry.ship-action": {
 		"Name": "Ship Action",
-		"Tooltip": "Déclenche une commande du vaisseau ou du siège (prêt au vol, ATC, ping, quantum, modes du siège…)."
+		"Tooltip": "Commande du vaisseau ou du siège (prêt au vol, ATC, quantum…) ; train, phares, VTOL, puissance… affichent leur état réel."
 	}
 }

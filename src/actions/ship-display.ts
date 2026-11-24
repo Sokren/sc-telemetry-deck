@@ -4,6 +4,7 @@ import {
 	type DialRotateEvent,
 	type DidReceiveSettingsEvent,
 	type SendToPluginEvent,
+	type TitleParametersDidChangeEvent,
 	type WillAppearEvent,
 	type WillDisappearEvent,
 } from "@elgato/streamdeck";
@@ -15,6 +16,7 @@ import { isShipDisplayValueId, SHIP_DISPLAY_VALUES, shipView, type ShipDisplayVa
 import type { TelemetryHub } from "../telemetry/hub.js";
 import { DIAL_LAYOUT, MIN_INTERVAL_MS, VALUES_EVENT } from "./display-action.js";
 import { ThrottledRenderer } from "./throttled-renderer.js";
+import { labelWithTitle, readUserTitle, type UserTitle } from "./user-title.js";
 
 const DEFAULT_VALUE: ShipDisplayValueId = "countermeasures";
 
@@ -29,7 +31,7 @@ export type ShipDisplayActionDeps = {
 	schedule?: (fn: () => void, ms: number) => void;
 };
 
-type Entry = { action: Action<ShipDisplaySettings>; value: ShipDisplayValueId; unsubscribe: () => void };
+type Entry = { action: Action<ShipDisplaySettings>; value: ShipDisplayValueId; title?: UserTitle; unsubscribe: () => void };
 
 const valueOf = (s: ShipDisplaySettings): ShipDisplayValueId => (isShipDisplayValueId(s.value) ? s.value : DEFAULT_VALUE);
 
@@ -75,6 +77,13 @@ export class ShipDisplay extends SingletonAction<ShipDisplaySettings> {
 		await this.#render(ev.action.id, true);
 	}
 
+	override async onTitleParametersDidChange(ev: TitleParametersDidChangeEvent<ShipDisplaySettings>): Promise<void> {
+		const entry = this.#entries.get(ev.action.id);
+		if (!entry) return;
+		entry.title = readUserTitle(ev);
+		await this.#render(ev.action.id, true);
+	}
+
 	override async onDialRotate(ev: DialRotateEvent<ShipDisplaySettings>): Promise<void> {
 		const entry = this.#entries.get(ev.action.id);
 		if (!entry) return;
@@ -107,10 +116,10 @@ export class ShipDisplay extends SingletonAction<ShipDisplaySettings> {
 				};
 				const view = shipView(entry.value, sections, this.#tracker, this.deps.lang());
 				if (action.isDial()) {
-					const feedback = toFeedback(view);
+					const feedback = toFeedback(view, labelWithTitle(entry.title && { ...entry.title, shown: false }, view.long) ?? view.long);
 					return { payload: JSON.stringify(feedback), send: () => action.setFeedback(feedback) };
 				}
-				const image = renderKeySvg(view);
+				const image = renderKeySvg(view, labelWithTitle(entry.title, view.short));
 				return { payload: image, send: async () => (action.isKey() ? action.setImage(image) : undefined) };
 			},
 			force,

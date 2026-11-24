@@ -33,6 +33,6 @@
 	},
 	"com.sokren.sc-telemetry.ship-action": {
 		"Name": "Ship Action",
-		"Tooltip": "Triggers a ship or seat command (flight ready, ATC, ping, quantum, seat modes…)."
+		"Tooltip": "Ship or seat command (flight ready, ATC, quantum…); landing gear, lights, VTOL, power… show their live state."
 	}
 }

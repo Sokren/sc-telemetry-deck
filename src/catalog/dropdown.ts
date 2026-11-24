@@ -1,3 +1,4 @@
+import type { ShipFunctionId } from "../ship/functions.js";
 import { shipFunctionName } from "../ship/render.js";
 import type { MergedCommand } from "./merged.js";
 import type { GameAction } from "../game/types.js";
@@ -21,6 +22,12 @@ export const SHIP_GROUPS: ActionGroup[] = [
 	{ category: "lights_controller" },
 ];
 
+/**
+ * Fonction avec état présentée en une ligne (valeur `group:…`) bien qu'elle n'ait pas les trois commandes :
+ * `command` = sa seule commande (remplacée dans la liste), absente = lecture seule (ligne toujours proposée).
+ */
+export type StatefulEntry = { id: string; fn: ShipFunctionId; command?: string; category: string };
+
 /** Format des sources de données de `sdpi-components` (élément ou groupe). */
 export type DataSourceItem =
 	| { label: string; value: string; disabled?: boolean }
@@ -32,6 +39,7 @@ export type DataSourceItem =
  * pour que le réglage ne soit pas perdu en silence. Les actions dangereuses ne sont jamais proposées.
  * `merged` : regroupements on / off / bascule présentés en une seule ligne (valeur `group:…`) quand le
  * jeu propose au moins deux de leurs commandes ; placés dans la catégorie de leurs commandes.
+ * `singles` : autres fonctions avec état (une seule commande, ou lecture seule), voir `StatefulEntry`.
  */
 export function buildDropdown(
 	actions: GameAction[],
@@ -39,6 +47,7 @@ export function buildDropdown(
 	lang: Lang,
 	selected?: string,
 	merged: readonly MergedCommand[] = [],
+	singles: readonly StatefulEntry[] = [],
 ): DataSourceItem[] {
 	const offered = actions;
 	const entries = offered.map((a) => ({ category: a.category, label: labelFor(a.name, lang), value: a.name }));
@@ -48,6 +57,14 @@ export function buildDropdown(
 		const names = new Set(members.map((m) => m.name));
 		for (let i = entries.length - 1; i >= 0; i--) if (names.has(entries[i].value)) entries.splice(i, 1);
 		entries.push({ category: members[0].category, label: shipFunctionName(g.fn, lang), value: g.id });
+	}
+	for (const one of singles) {
+		if (one.command) {
+			const i = entries.findIndex((e) => e.value === one.command);
+			if (i < 0) continue;
+			entries.splice(i, 1);
+		}
+		entries.push({ category: one.category, label: shipFunctionName(one.fn, lang), value: one.id });
 	}
 	const items: DataSourceItem[] = [];
 	let found = false;

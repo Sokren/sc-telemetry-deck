@@ -1,5 +1,6 @@
 import type { Lang } from "../catalog/labels.js";
 import type { ShipFunctionId } from "./functions.js";
+import { BASE_ICONS, stateGlyph } from "./icons.js";
 import en from "./labels.en.json" with { type: "json" };
 import fr from "./labels.fr.json" with { type: "json" };
 import type { ShipState } from "./state.js";
@@ -48,27 +49,7 @@ export function toShipView(id: ShipFunctionId, state: ShipState, lang: Lang): Sh
 	}
 }
 
-/** Glyphes au trait (grille 24×24), un par fonction. */
-const ICONS: Record<ShipFunctionId, string> = {
-	gear: "M12 4v11M7 10l5 5 5-5M5 20h14",
-	lights: "M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z",
-	vtol: "M12 20V9M7 14l5-5 5 5M5 4h14",
-	transform: "M4 12h16M8 8l-4 4 4 4M16 8l4 4-4 4",
-	decoupled: "M3 12h5M16 12h5M8 7v10M16 7v10",
-	gsafe: "M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM12 8v5M12 16v.5",
-	cruise: "M3 16a9 9 0 0 1 18 0M12 16l4-5M6 20h12",
-	proximity: "M4 14a8 8 0 0 1 16 0M8 14a4 4 0 0 1 8 0M12 14v6",
-	esp: "M12 3v4M12 17v4M3 12h4M17 12h4M12 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8",
-	advanced_hud: "M3 5h18v14H3zM7 9h10M7 13h6",
-	night_vision: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6",
-	master_nav: "M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18M15 9l-2 5-4 1 2-5z",
-	power_engines: "M12 3c3 4 5 6 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-9z",
-	power_weapons: "M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14M12 2v5M12 17v5M2 12h5M17 12h5",
-	power_shields: "M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM9 12l2 2 4-4",
-	power_main: "M12 3v8M7 6a7 7 0 1 0 10 0",
-	doors_closed: "M6 21V3h12v18M4 21h16M14 12h1",
-	doors_locked: "M6 11h12v10H6zM8 11V7a4 4 0 0 1 8 0v4M12 15v2",
-};
+const ICONS = BASE_ICONS;
 
 const FONT = "Segoe UI, Arial, sans-serif";
 const escapeXml = (s: string) =>
@@ -116,6 +97,78 @@ export function renderShipKey(view: ShipView, style: ShipStyle, danger = false):
 		} else {
 			const led = danger ? SHIP_COLORS.danger : view.tone === "on" ? SHIP_COLORS.on : view.tone === "moving" ? SHIP_COLORS.moving : SHIP_COLORS.off;
 			parts.push(`<circle cx="124" cy="20" r="9" fill="${led}"/>`);
+		}
+	}
+	parts.push(`</svg>`);
+	return `data:image/svg+xml;charset=utf8,${encodeURIComponent(parts.join(""))}`;
+}
+
+/** Options du rendu avec état (Ship Action). */
+export type StatefulKeyOptions = {
+	/** État lu (forme du pictogramme). */
+	state: ShipState;
+	/** Libellé en bas de la touche ; `null` = aucun (le titre du Stream Deck s'affiche à la place). */
+	label: string | null;
+	/** Phase de l'animation de mouvement, de 0 à 1. */
+	phase?: number;
+	/** Agrandissement du pictogramme (« pop » au changement d'état), 1 = normal. */
+	pop?: number;
+	danger?: boolean;
+};
+
+/**
+ * Image de touche 144×144 de Ship Action avec état : pictogramme qui change selon l'état, mot d'état
+ * au milieu, libellé en bas (là où le Stream Deck affiche son titre, pour qu'un titre saisi le remplace).
+ */
+export function renderStatefulKey(view: ShipView, style: ShipStyle, o: StatefulKeyOptions): string {
+	const danger = o.danger ?? false;
+	const filled = style === "fill" && (view.tone === "on" || view.tone === "moving" || danger);
+	const bg = !filled
+		? SHIP_COLORS.background
+		: danger
+			? SHIP_COLORS.dangerFill
+			: view.tone === "on"
+				? SHIP_COLORS.onFill
+				: SHIP_COLORS.movingFill;
+	const stroke = view.tone === "none" ? SHIP_COLORS.dim : view.tone === "off" ? SHIP_COLORS.off : SHIP_COLORS.white;
+	const accent = view.tone === "moving" ? SHIP_COLORS.moving : filled ? "#9FF0CF" : SHIP_COLORS.on;
+	const wordColor = filled ? SHIP_COLORS.white : danger ? SHIP_COLORS.danger : TONE_TEXT[view.tone];
+	const withWord = style !== "led";
+	const glyphState: ShipState = view.tone === "none" ? "unknown" : o.state;
+	const glyph = stateGlyph(view.id, glyphState, { stroke, accent }, o.phase ?? 0);
+	// Pictogramme : 24 × scale px, centré horizontalement, agrandi autour de son centre pour le « pop ».
+	const scale = (withWord ? 2.2 : 2.6) * (o.pop ?? 1);
+	const top = withWord ? 34 : 50;
+	const x = 72 - 12 * scale;
+	const y = top - 12 * scale;
+
+	const parts = [
+		`<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 144 144">`,
+		`<rect width="144" height="144" fill="${bg}"/>`,
+		`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${scale.toFixed(3)})" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${glyph}</g>`,
+	];
+	if (withWord) {
+		const size = [...view.word].length > 7 ? 20 : 24;
+		parts.push(
+			`<text x="72" y="91" font-family="${FONT}" font-size="${size}" font-weight="bold" fill="${wordColor}" text-anchor="middle">${escapeXml(view.word)}</text>`,
+		);
+	}
+	if (o.label !== null) {
+		const color = view.tone === "none" ? SHIP_COLORS.none : SHIP_COLORS.label;
+		const size = [...o.label].length > 11 ? 16 : 19;
+		parts.push(`<text x="72" y="128" font-family="${FONT}" font-size="${size}" fill="${color}" text-anchor="middle">${escapeXml(o.label)}</text>`);
+	}
+	if (danger) {
+		parts.push(`<rect x="3" y="3" width="138" height="138" rx="12" fill="none" stroke="${SHIP_COLORS.danger}" stroke-width="5"/>`);
+		parts.push(`<text x="22" y="32" font-family="${FONT}" font-size="22" fill="${SHIP_COLORS.danger}" text-anchor="middle">⚠</text>`);
+	}
+	if (style === "led") {
+		if (view.tone === "none") {
+			parts.push(`<text x="124" y="30" font-family="${FONT}" font-size="26" font-weight="bold" fill="${SHIP_COLORS.none}" text-anchor="middle">—</text>`);
+		} else {
+			const led = danger ? SHIP_COLORS.danger : view.tone === "on" ? SHIP_COLORS.on : view.tone === "moving" ? SHIP_COLORS.moving : SHIP_COLORS.off;
+			if (view.tone === "on" && !danger) parts.push(`<circle cx="124" cy="20" r="14" fill="${SHIP_COLORS.on}" fill-opacity="0.25"/>`);
+			parts.push(`<circle cx="124" cy="20" r="9" fill="${led}"${view.tone === "moving" ? ` fill-opacity="${(0.4 + 0.6 * Math.abs(Math.cos(Math.PI * (o.phase ?? 0)))).toFixed(2)}"` : ""}/>`);
 		}
 	}
 	parts.push(`</svg>`);

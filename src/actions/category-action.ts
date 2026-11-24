@@ -21,7 +21,7 @@ export const TRIGGER_TIMEOUT_MS = 2000;
 export const DATASOURCE_EVENT = "getActions";
 
 /** Touche reçue à l'appui. */
-type KeyAction = KeyDownEvent<ActionSettings>["action"];
+export type KeyAction = KeyDownEvent<ActionSettings>["action"];
 
 /** Réglages enregistrés par touche. */
 export type ActionSettings = { action?: string };
@@ -61,9 +61,14 @@ export abstract class CategoryAction extends SingletonAction<ActionSettings> {
 			await ev.action.showAlert();
 			return;
 		}
+		await this.pressCommand(ev.action, name);
+	}
+
+	/** Envoie une commande du jeu depuis une touche (✔ / ⚠, journal), avec appui maintenu pour l'éjection. */
+	protected async pressCommand(action: KeyAction, name: string): Promise<void> {
 		// Éjection : rester appuyé HOLD_MS (anneau qui se remplit) ; relâcher avant annule.
-		if (HOLD_ACTIONS.has(name)) return this.#startHold(ev.action, name);
-		await this.#send(ev.action, name);
+		if (HOLD_ACTIONS.has(name)) return this.#startHold(action, name);
+		await this.#send(action, name);
 	}
 
 	override async onKeyUp(ev: KeyUpEvent<ActionSettings>): Promise<void> {

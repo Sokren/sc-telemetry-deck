@@ -9,6 +9,21 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
+## [0.3.14] — 2026-11-24
+
+### ⚠ Changement incompatible
+- **Ship Toggle est fusionné dans Ship Action** et n'apparaît plus dans la liste des actions du Stream Deck. **Rien à refaire** : les touches Ship Toggle déjà posées continuent de marcher. Leurs réglages (fonction, mode, style, alerte rouge) sont convertis automatiquement en Ship Action la première fois qu'elles s'affichent, et elles ouvrent maintenant le panneau de Ship Action. Pour une nouvelle touche avec état, prendre **Ship Action** et choisir la fonction (train, phares, VTOL…).
+- **Les touches Ship Action d'une fonction avec état changent d'apparence** : elles affichent l'état réel au lieu d'une icône fixe. Pour retrouver l'ancien rendu : *Image* → **Sans état (icône fixe)**.
+- **Un appui sur Ship Action tient compte de l'état** : « Allumer » sur une fonction déjà allumée n'envoie plus rien (✔). Hors du vaisseau, ou si l'état est inconnu, la commande est envoyée comme avant.
+
+### Ajouté
+- Ship Action : **état sur la touche** pour le train, les phares, le VTOL, le découplage, le G-safe, la croisière, l'ESP, le HUD avancé, la vision nocturne, le mode NAV / SCM, la puissance, les portes et les verrous. Styles A Texte, B Voyant et C Fond coloré, et alerte rouge quand les portes ou les verrous sont ouverts.
+- Ship Action : **le pictogramme change selon l'état** (phares avec halo, œil ouvert ou fermé, cadenas ouvert ou fermé, porte entrouverte, bouclier plein ou en pointillé…), avec un petit « pop » au changement et une animation pendant un mouvement (le VTOL pivote, les autres clignotent en orange). Le train garde son icône.
+- Ship Action : l'**ESP** et la **croisière** (affichage seul : le jeu n'a pas de commande) sont dans la liste.
+
+### Corrigé
+- **Le titre saisi dans le Stream Deck s'affiche** sur Ship Action (fonction avec état), Actor Display et Ship Display, molettes comprises. Il remplace le nom par défaut (« Santé », « Train »…) ; titre vide = nom par défaut. Si l'option « Afficher le titre » est cochée, seul le titre du Stream Deck s'affiche (pas de doublon).
+
 ## [0.3.13] — 2026-11-23
 
 ### Ajouté
@@ -193,6 +208,7 @@ Première version.
 ### Problèmes connus
 - En 5.0 PTU, le jeu accepte l'action `mobiglas` mais n'ouvre pas le mobiGlas.
 
+[0.3.14]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.14
 [0.3.13]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.13
 [0.3.12]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.12
 [0.3.11]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.11

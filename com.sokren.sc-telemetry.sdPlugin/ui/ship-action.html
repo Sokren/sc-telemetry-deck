@@ -6,7 +6,7 @@
 		<script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
 	</head>
 	<body>
-		<!-- Liste fournie par le plugin (événement « getActions ») : commandes regroupées (on / off / bascule) en une ligne. -->
+		<!-- Liste fournie par le plugin (événement « getActions ») : fonctions avec état (on / off / bascule) en une ligne. -->
 		<sdpi-item label="Action">
 			<sdpi-select setting="action" datasource="getActions" hot-reload loading="…"></sdpi-select>
 		</sdpi-item>
@@ -17,10 +17,27 @@
 				<option value="off">Éteindre / Off</option>
 			</sdpi-select>
 		</sdpi-item>
+		<sdpi-item label="Image">
+			<sdpi-select setting="style" default="text">
+				<option value="text">A — Texte / Text</option>
+				<option value="led">B — Voyant / LED</option>
+				<option value="fill">C — Fond coloré / Filled</option>
+				<option value="plain">Sans état (icône fixe) / No state (fixed icon)</option>
+			</sdpi-select>
+		</sdpi-item>
+		<sdpi-item label="Alerte / Warning">
+			<sdpi-checkbox setting="dangerAlert" default="true" label="Rouge si dangereux / Red when dangerous"></sdpi-checkbox>
+		</sdpi-item>
 		<sdpi-item>
 			<p>
-				Le mode s'applique aux fonctions regroupées (phares, train, VTOL, puissance…) ; il est ignoré pour les commandes simples.<br />
-				The mode applies to grouped functions (lights, landing gear, VTOL, power…); it is ignored for single commands.
+				Fonctions avec état (train, phares, VTOL, puissance, portes…) : la touche montre l'état réel du vaisseau,
+				« — » hors du vaisseau. Un appui mène à l'état voulu (« Allumer » sur une fonction déjà allumée n'envoie rien).
+				Le titre du Stream Deck remplace le nom affiché ; vide = nom par défaut.
+				Mode, image et alerte sont ignorés pour les commandes simples.<br />
+				Functions with a state (landing gear, lights, VTOL, power, doors…): the key shows the ship's real state,
+				"—" outside a ship. A press leads to the wanted state ("On" on a function already on sends nothing).
+				The Stream Deck title replaces the displayed name; empty = default name.
+				Mode, image and warning are ignored for single commands.
 			</p>
 		</sdpi-item>
 	</body>
