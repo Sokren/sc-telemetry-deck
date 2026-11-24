@@ -2,8 +2,8 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.11.0",
-		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Sensitive actions (self destruct, eject, opening doors…) are sent like any other: check before calling them. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions sensibles (autodestruction, éjection, ouverture des portes…) sont envoyées comme les autres : vérifiez avant de les appeler.",
+		"version": "1.12.0",
+		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Sensitive actions (self destruct, eject, opening doors…) are sent like any other: check before calling them. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions sensibles (autodestruction, éjection, ouverture des portes…) sont envoyées comme les autres : vérifiez avant de les appeler. External tokens: besides the app token, you can create named tokens (POST /api/v1/access/tokens, from the PC) at one of three levels — read (game state, events), pilot (read + actions, ship functions, Morse, without the protected actions) or pilot_full (pilot + eject, self destruct and unlocking the ship). They are accepted only in the Authorization header, only from the PC unless their lan flag is set, and only on the routes of their level; anything else gets 403 forbidden with a reason. The app token is unchanged. — FR : jetons externes : en plus du jeton de l’appli, tu peux créer des jetons nommés (POST /api/v1/access/tokens, depuis le PC) à l’un des trois niveaux — read (état du jeu, événements), pilot (lecture + actions, fonctions vaisseau, morse, sans les actions protégées) ou pilot_full (pilot + éjection, autodestruction et déverrouillage du vaisseau). Ils ne sont acceptés que dans l’en-tête Authorization, que depuis le PC sauf si leur option lan est cochée, et que sur les routes de leur niveau ; sinon 403 forbidden avec une raison. Le jeton de l’appli ne change pas.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
 		}
@@ -41,6 +41,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -103,6 +113,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -139,6 +159,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					},
 					"502": {
 						"description": "Game refused or unreachable — refus du jeu ou jeu injoignable",
@@ -191,6 +221,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -239,6 +279,16 @@
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
 					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
+					},
 					"404": {
 						"description": "Unknown id — identifiant inconnu",
 						"content": {
@@ -284,6 +334,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					},
 					"404": {
 						"description": "No recent data — pas de données récentes",
@@ -336,6 +396,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -383,6 +453,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					},
 					"404": {
 						"description": "Unknown id — identifiant inconnu",
@@ -471,6 +551,16 @@
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
 					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
+					},
 					"404": {
 						"description": "Unknown id — identifiant inconnu",
 						"content": {
@@ -536,6 +626,16 @@
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
 					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
+					},
 					"409": {
 						"description": "Already playing — émission déjà en cours",
 						"content": {
@@ -571,6 +671,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					},
 					"404": {
 						"description": "Nothing playing — aucune émission",
@@ -1403,6 +1513,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -1442,6 +1562,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -1481,6 +1611,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external token — refusé à ce jeton externe",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					}
 				}
 			}
@@ -1743,6 +1883,308 @@
 					}
 				}
 			}
+		},
+		"/api/v1/access/tokens": {
+			"get": {
+				"operationId": "listAccessTokens",
+				"tags": [
+					"Access"
+				],
+				"summary": "External tokens — jetons externes",
+				"description": "Lists the external tokens (never the token itself). — FR : liste les jetons externes (jamais le jeton lui-même). App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Tokens — jetons",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"required": [
+										"tokens"
+									],
+									"additionalProperties": false,
+									"properties": {
+										"tokens": {
+											"type": "array",
+											"maxItems": 20,
+											"items": {
+												"$ref": "#/components/schemas/AccessToken"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "createAccessToken",
+				"tags": [
+					"Access"
+				],
+				"summary": "Create an external token — créer un jeton externe",
+				"description": "Creates a named token (1–32 characters) at level read, pilot or pilot_full, lan true or false; at most 20. The token (secret) is returned only here: copy it now. 400 invalid_token, 409 too_many. — FR : crée un jeton nommé (1 à 32 caractères) au niveau read, pilot ou pilot_full, lan vrai ou faux ; 20 au plus. Le jeton (secret) n’est renvoyé qu’ici : copie-le tout de suite. 400 invalid_token, 409 too_many. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"allOf": [
+									{
+										"$ref": "#/components/schemas/AccessTokenInput"
+									},
+									{
+										"required": [
+											"name",
+											"level",
+											"lan"
+										]
+									}
+								]
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Created — créé",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"required": [
+										"token",
+										"secret"
+									],
+									"additionalProperties": false,
+									"properties": {
+										"token": {
+											"$ref": "#/components/schemas/AccessToken"
+										},
+										"secret": {
+											"type": "string",
+											"pattern": "^sct_ext_[A-Za-z0-9_-]{43}$"
+										}
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "invalid_token",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "too_many (20)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/access/tokens/{id}": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"put": {
+				"operationId": "updateAccessToken",
+				"tags": [
+					"Access"
+				],
+				"summary": "Change an external token — modifier un jeton externe",
+				"description": "Changes name, level or lan (fields omitted are kept). — FR : modifie le nom, le niveau ou lan (champs absents gardés). App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AccessTokenInput"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Changed — modifié",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AccessToken"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "invalid_token",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "revokeAccessToken",
+				"tags": [
+					"Access"
+				],
+				"summary": "Revoke an external token — révoquer un jeton externe",
+				"description": "The token stops working at once. — FR : le jeton ne marche plus, tout de suite. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"204": {
+						"description": "Revoked — révoqué"
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/access/tokens/{id}/log": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"get": {
+				"operationId": "accessTokenLog",
+				"tags": [
+					"Access"
+				],
+				"summary": "External token log — journal d’un jeton externe",
+				"description": "Last 100 calls of this token (kept in memory, lost when the app restarts), refusals counted, protected actions flagged. — FR : les 100 derniers appels de ce jeton (en mémoire, perdus au redémarrage), refus comptés, actions protégées marquées. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Log — journal",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AccessLog"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
@@ -1750,7 +2192,7 @@
 			"bearerAuth": {
 				"type": "http",
 				"scheme": "bearer",
-				"description": "Token shown by the app (settings.json). — FR : jeton affiché par l'appli (settings.json)."
+				"description": "App token (settings.json, every right) or an external token sct_ext_… (its level only, header only). — FR : jeton de l’appli (settings.json, tous les droits) ou jeton externe sct_ext_… (son niveau seulement, en-tête seulement)."
 			}
 		},
 		"responses": {
@@ -3347,6 +3789,143 @@
 								}
 							}
 						}
+					}
+				}
+			},
+			"Forbidden": {
+				"type": "object",
+				"required": [
+					"error",
+					"reason"
+				],
+				"additionalProperties": false,
+				"properties": {
+					"error": {
+						"const": "forbidden"
+					},
+					"reason": {
+						"enum": [
+							"level",
+							"lan",
+							"dangerous_action"
+						],
+						"description": "level: route not open to this token's level; lan: token not allowed off the PC; dangerous_action: protected action (eject, self destruct, unlock) needs pilot_full — FR : level : route fermée à ce niveau ; lan : jeton interdit hors du PC ; dangerous_action : action protégée (éjection, autodestruction, déverrouillage), il faut pilot_full"
+					}
+				}
+			},
+			"AccessToken": {
+				"type": "object",
+				"required": [
+					"id",
+					"name",
+					"level",
+					"lan",
+					"last4",
+					"created"
+				],
+				"additionalProperties": false,
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 32
+					},
+					"level": {
+						"enum": [
+							"read",
+							"pilot",
+							"pilot_full"
+						]
+					},
+					"lan": {
+						"type": "boolean",
+						"description": "Usable from other devices of the local network — FR : utilisable depuis les autres appareils du réseau local"
+					},
+					"last4": {
+						"type": "string",
+						"description": "Last 4 characters, to recognize it — FR : 4 derniers caractères, pour le reconnaître"
+					},
+					"created": {
+						"type": "string",
+						"format": "date-time"
+					}
+				}
+			},
+			"AccessTokenInput": {
+				"type": "object",
+				"additionalProperties": false,
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1,
+						"maxLength": 32
+					},
+					"level": {
+						"enum": [
+							"read",
+							"pilot",
+							"pilot_full"
+						]
+					},
+					"lan": {
+						"type": "boolean"
+					}
+				}
+			},
+			"AccessLog": {
+				"type": "object",
+				"required": [
+					"entries",
+					"refused",
+					"lastUsed"
+				],
+				"additionalProperties": false,
+				"properties": {
+					"entries": {
+						"type": "array",
+						"maxItems": 100,
+						"items": {
+							"type": "object",
+							"required": [
+								"at",
+								"method",
+								"path",
+								"status"
+							],
+							"additionalProperties": false,
+							"properties": {
+								"at": {
+									"type": "string",
+									"format": "date-time"
+								},
+								"method": {
+									"type": "string"
+								},
+								"path": {
+									"type": "string"
+								},
+								"status": {
+									"type": "integer"
+								},
+								"sensitive": {
+									"const": true,
+									"description": "A protected action was sent — FR : une action protégée a été envoyée"
+								}
+							}
+						}
+					},
+					"refused": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"lastUsed": {
+						"type": [
+							"string",
+							"null"
+						]
 					}
 				}
 			}

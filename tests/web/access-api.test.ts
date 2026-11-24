@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { PROTECTED_ACTIONS } from "../../src/game/dangerous.js";
 import { AccessStore, type AccessLevel } from "../../src/web/access.js";
-import { startTestServer, type TestServer } from "./harness.js";
+import { startTestServer, validateResponse, type TestServer } from "./harness.js";
 
 /** Routes ouvertes aux jetons externes, par niveau minimal ; toute autre route non publique : jeton principal seulement. */
 const READ = [
@@ -181,5 +181,71 @@ describe("jetons externes : actions protégées", () => {
 		} finally {
 			await srv.close();
 		}
+	});
+});
+
+describe("gestion des jetons externes (jeton principal, PC)", () => {
+	test("créer, lister sans secret ni empreinte, modifier, journal, révoquer", async () => {
+		const srv = await startTestServer({ game: null });
+		try {
+			const c = await srv.call("POST", "/api/v1/access/tokens", { body: { name: "VoiceAttack", level: "pilot", lan: false } });
+			expect(c.status).toBe(201);
+			validateResponse("/api/v1/access/tokens", "POST", 201, c.body);
+			const { token, secret } = c.body;
+			expect(secret.startsWith("sct_ext_")).toBe(true);
+			expect(token).not.toHaveProperty("hash");
+			const list = await srv.call("GET", "/api/v1/access/tokens");
+			validateResponse("/api/v1/access/tokens", "GET", 200, list.body);
+			expect(JSON.stringify(list.body)).not.toContain(secret);
+			expect(JSON.stringify(list.body)).not.toContain(srv.deps.settings.access![0].hash);
+			expect(list.body.tokens).toEqual([token]);
+
+			expect((await statusOf("GET", "/api/v1/status", secret, srv)).status).toBe(200);
+			const log = await srv.call("GET", `/api/v1/access/tokens/${token.id}/log`);
+			validateResponse("/api/v1/access/tokens/{id}/log", "GET", 200, log.body);
+			expect(log.body.entries).toEqual([expect.objectContaining({ method: "GET", path: "/api/v1/status", status: 200 })]);
+
+			const up = await srv.call("PUT", `/api/v1/access/tokens/${token.id}`, { body: { level: "pilot_full", lan: true } });
+			expect(up.status).toBe(200);
+			validateResponse("/api/v1/access/tokens/{id}", "PUT", 200, up.body);
+			expect(up.body).toMatchObject({ level: "pilot_full", lan: true });
+			expect((await statusOf("POST", "/api/v1/actions/v_eject/trigger", secret, srv)).status).not.toBe(403);
+			const marked = await srv.call("GET", `/api/v1/access/tokens/${token.id}/log`);
+			expect(marked.body.entries.at(-1)).toMatchObject({ path: "/api/v1/actions/{name}/trigger", sensitive: true });
+
+			expect((await srv.call("DELETE", `/api/v1/access/tokens/${token.id}`)).status).toBe(204);
+			expect((await statusOf("GET", "/api/v1/status", secret, srv)).status).toBe(401);
+			expect((await srv.call("DELETE", `/api/v1/access/tokens/${token.id}`)).status).toBe(404);
+		} finally {
+			await srv.close();
+		}
+	});
+
+	test("erreurs : corps invalide 400, trop de jetons 409, inconnu 404", async () => {
+		const srv = await startTestServer({ game: null });
+		try {
+			const bad = await srv.call("POST", "/api/v1/access/tokens", { body: { name: "", level: "read", lan: false } });
+			expect(bad.status).toBe(400);
+			expect(bad.body).toEqual({ error: "invalid_token" });
+			for (let i = 0; i < 20; i++) expect((await srv.call("POST", "/api/v1/access/tokens", { body: { name: `t${i}`, level: "read", lan: false } })).status).toBe(201);
+			const many = await srv.call("POST", "/api/v1/access/tokens", { body: { name: "trop", level: "read", lan: false } });
+			expect(many.status).toBe(409);
+			expect(many.body).toEqual({ error: "too_many" });
+			expect((await srv.call("PUT", "/api/v1/access/tokens/nope", { body: { lan: true } })).status).toBe(404);
+			expect((await srv.call("GET", "/api/v1/access/tokens/nope/log")).status).toBe(404);
+		} finally {
+			await srv.close();
+		}
+	});
+
+	test("hors PC → pc_only ; jeton externe (même Pilotage complet) → refusé", async () => {
+		const remote = await startTestServer({ game: null, extra: { isLocal: () => false } });
+		try {
+			expect((await remote.call("GET", "/api/v1/access/tokens")).body).toEqual({ error: "pc_only" });
+		} finally {
+			await remote.close();
+		}
+		const r = await statusOf("GET", "/api/v1/access/tokens", secrets.pilot_full);
+		expect(r).toEqual({ status: 403, body: { error: "forbidden", reason: "level" } });
 	});
 });

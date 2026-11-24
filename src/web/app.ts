@@ -9,6 +9,7 @@ import type { TelemetryHub } from "../telemetry/hub.js";
 import type { WebSettings } from "./config.js";
 import { createHandler, type Route } from "./http.js";
 import { AccessStore } from "./access.js";
+import { accessRoutes } from "./routes/access.js";
 import { isLoopback, LanManager } from "./lan.js";
 import { MorseControl } from "./morse-control.js";
 import { CountermeasureTracker } from "../display/countermeasures.js";
@@ -198,6 +199,7 @@ export function createApp(deps: AppDeps): App {
 		...panelRoutes({ hub: deps.hub, countermeasures }),
 		...morseRoutes({ morse }),
 		...updateRoutes({ updates }),
+		...accessRoutes({ store: access, isLocal }),
 		...viewsRoutes({ views, version: deps.version }),
 		...lanRoutes({
 			lan,
