@@ -11,6 +11,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 
 ## [Non publié]
 
+### Ajouté
+- API : **jetons externes** pour les outils (VoiceAttack, overlay, bot…). Créés depuis le PC (`POST /api/v1/access/tokens`) avec un nom et un niveau : **Lecture** (état du jeu, événements), **Pilotage** (lecture + actions, fonctions du vaisseau, morse, sans les actions protégées) ou **Pilotage complet** (avec l'éjection, l'autodestruction et le déverrouillage du vaisseau). Acceptés seulement dans l'en-tête `Authorization`, depuis le PC sauf si l'option réseau local est cochée, et seulement sur les routes de leur niveau ; révocables, avec un journal des derniers appels. Le jeton de l'appli ne change pas. Contrat d'API **1.12.0**.
+
 ## [0.3.15] — 2026-11-24
 
 ### Ajouté

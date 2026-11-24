@@ -11,6 +11,9 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 
 ## [Unreleased]
 
+### Added
+- API: **external tokens** for tools (VoiceAttack, overlay, bot…). Created from the PC (`POST /api/v1/access/tokens`) with a name and a level: **Read** (game state, events), **Pilot** (read + actions, ship functions, Morse, without the protected actions) or **Full pilot** (with eject, self destruct and unlocking the ship). Accepted only in the `Authorization` header, from the PC unless their local-network option is set, and only on the routes of their level; revocable, with a log of the last calls. The app token is unchanged. API contract **1.12.0**.
+
 ## [0.3.15] — 2026-11-24
 
 ### Added
