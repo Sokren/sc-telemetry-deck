@@ -41,7 +41,8 @@ export function actionRoutes(deps: { game: Pick<GameApi, "trigger">; source: Act
 			path: "/api/v1/actions/{name}/trigger",
 			access: "pilot",
 			handle: async ({ params, caller, mark }) => {
-				if (PROTECTED_ACTIONS.has(params.name)) {
+				// Comparaison sans casse ni espaces : le jeu pourrait accepter « V_EJECT » ou « v_eject ».
+				if (PROTECTED_ACTIONS.has(params.name.trim().toLowerCase())) {
 					if (!mayTriggerDangerous(caller)) return { status: 403, json: { error: "forbidden", reason: "dangerous_action" } };
 					mark("sensitive");
 				}

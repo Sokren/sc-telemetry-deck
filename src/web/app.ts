@@ -186,8 +186,8 @@ export function createApp(deps: AppDeps): App {
 			method: "GET",
 			path: "/api/v1/events",
 			access: "read",
-			handle: async ({ req, res, lang }) => {
-				events.connect(req, res, lang);
+			handle: async ({ req, res, lang, caller }) => {
+				events.connect(req, res, lang, caller.kind === "external" ? caller.token.id : undefined);
 				return { stream: true };
 			},
 		},
@@ -199,7 +199,7 @@ export function createApp(deps: AppDeps): App {
 		...panelRoutes({ hub: deps.hub, countermeasures }),
 		...morseRoutes({ morse }),
 		...updateRoutes({ updates }),
-		...accessRoutes({ store: access, isLocal }),
+		...accessRoutes({ store: access, isLocal, closeStreams: (id) => events.closeFor(id) }),
 		...viewsRoutes({ views, version: deps.version }),
 		...lanRoutes({
 			lan,

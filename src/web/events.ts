@@ -26,7 +26,8 @@ export type EventHubDeps = {
 	intervalMs?: number;
 };
 
-type Client = { res: ServerResponse; remote: string; lang: Lang; status?: string; tiles: string[]; state?: string; views?: string };
+/** `tokenId` : jeton externe qui a ouvert le flux (fermé si ce jeton est révoqué ou modifié). */
+type Client = { res: ServerResponse; remote: string; lang: Lang; status?: string; tiles: string[]; state?: string; views?: string; tokenId?: string };
 
 const PING_MS = 15_000;
 
@@ -46,9 +47,9 @@ export class EventHub {
 		this.#interval = deps.intervalMs ?? 250;
 	}
 
-	connect(req: IncomingMessage, res: ServerResponse, lang: Lang): void {
+	connect(req: IncomingMessage, res: ServerResponse, lang: Lang, tokenId?: string): void {
 		res.writeHead(200, { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-store", connection: "keep-alive" });
-		const client: Client = { res, remote: req.socket?.remoteAddress ?? "", lang, tiles: [] };
+		const client: Client = { res, remote: req.socket?.remoteAddress ?? "", lang, tiles: [], ...(tokenId ? { tokenId } : {}) };
 		this.#clients.add(client);
 		if (this.#clients.size === 1) this.#start();
 		req.on("close", () => this.#remove(client));
@@ -68,6 +69,14 @@ export class EventHub {
 	/** Renvoie aux pages ce qui a changé hors du flux du jeu (ex. capacité « actions »). */
 	refresh(): void {
 		if (this.#clients.size > 0) this.#schedule();
+	}
+
+	/** Ferme les flux ouverts avec ce jeton externe (révoqué ou modifié). */
+	closeFor(tokenId: string): void {
+		for (const c of [...this.#clients].filter((x) => x.tokenId === tokenId)) {
+			c.res.end();
+			this.#remove(c);
+		}
 	}
 
 	close(): void {

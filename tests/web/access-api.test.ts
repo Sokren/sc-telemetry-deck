@@ -249,3 +249,36 @@ describe("gestion des jetons externes (jeton principal, PC)", () => {
 		expect(r).toEqual({ status: 403, body: { error: "forbidden", reason: "level" } });
 	});
 });
+
+describe("corrections de la relecture", () => {
+	test("révoquer ou modifier un jeton ferme ses flux d'événements ouverts", async () => {
+		const srv = await startTestServer({ game: null });
+		try {
+			const open = async () => {
+				const c = await srv.call("POST", "/api/v1/access/tokens", { body: { name: `t${Math.random()}`, level: "read", lan: false } });
+				const res = await fetch(`${srv.url}/api/v1/events`, { headers: { authorization: `Bearer ${c.body.secret}` } });
+				const reader = res.body!.getReader();
+				await reader.read(); // premier envoi : le flux est ouvert
+				const ended = (async () => {
+					for (;;) if ((await reader.read()).done) return true;
+				})();
+				return { id: c.body.token.id as string, ended };
+			};
+			const timeout = (p: Promise<boolean>) => Promise.race([p, new Promise<boolean>((r) => setTimeout(() => r(false), 2000))]);
+			const a = await open();
+			expect((await srv.call("DELETE", `/api/v1/access/tokens/${a.id}`)).status).toBe(204);
+			expect(await timeout(a.ended)).toBe(true);
+			const b = await open();
+			expect((await srv.call("PUT", `/api/v1/access/tokens/${b.id}`, { body: { lan: true } })).status).toBe(200);
+			expect(await timeout(b.ended)).toBe(true);
+		} finally {
+			await srv.close();
+		}
+	});
+
+	test("liste rouge insensible à la casse et aux espaces", async () => {
+		for (const name of ["V_EJECT", "V_Self_Destruct", "%20v_eject"]) {
+			expect(await statusOf("POST", `/api/v1/actions/${name}/trigger`, secrets.pilot)).toEqual({ status: 403, body: { error: "forbidden", reason: "dangerous_action" } });
+		}
+	});
+});

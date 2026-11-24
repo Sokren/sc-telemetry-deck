@@ -13,7 +13,12 @@ const view = ({ hash: _hash, ...rest }: AccessToken) => rest;
  * Gestion des jetons externes : jeton principal seulement (aucun niveau `access`), depuis le PC seulement.
  * Le jeton créé n'est renvoyé qu'une fois, dans la réponse à la création.
  */
-export function accessRoutes(deps: { store: AccessStore; isLocal: (req: IncomingMessage) => boolean }): Route[] {
+export function accessRoutes(deps: {
+	store: AccessStore;
+	isLocal: (req: IncomingMessage) => boolean;
+	/** Ferme les flux d'événements ouverts avec ce jeton (révoqué ou modifié : ses droits ont changé). */
+	closeStreams?: (id: string) => void;
+}): Route[] {
 	const { store } = deps;
 	const body = (x: unknown) => (x && typeof x === "object" && !Array.isArray(x) ? (x as Record<string, unknown>) : {});
 	return [
@@ -43,6 +48,7 @@ export function accessRoutes(deps: { store: AccessStore; isLocal: (req: Incoming
 				const r = store.update(params.id, { name: b.name, level: b.level, lan: b.lan });
 				if (r === "unknown") return notFound;
 				if (r === "invalid") return invalid;
+				deps.closeStreams?.(r.id);
 				return { status: 200, json: view(r) };
 			},
 		},
@@ -51,7 +57,9 @@ export function accessRoutes(deps: { store: AccessStore; isLocal: (req: Incoming
 			path: "/api/v1/access/tokens/{id}",
 			handle: async ({ req, params }) => {
 				if (!deps.isLocal(req)) return pcOnly;
-				return store.remove(params.id) ? { status: 204 } : notFound;
+				if (!store.remove(params.id)) return notFound;
+				deps.closeStreams?.(params.id);
+				return { status: 204 };
 			},
 		},
 		{
