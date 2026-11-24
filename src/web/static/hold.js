@@ -36,11 +36,12 @@ export function holdToPress(el, onDone, enabled = () => true) {
 		e.preventDefault();
 		start = performance.now();
 		el.classList.add("holding");
-		frame();
+		// Minuteur d'abord : frame() ne relance l'animation que s'il existe (sinon la case restait à 0).
 		timer = setTimeout(() => {
 			stop();
 			onDone();
 		}, HOLD_MS);
+		frame();
 	};
 
 	el.addEventListener("pointerdown", (e) => {
