@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { parseAccess, type AccessToken } from "./access.js";
 
 /**
  * Réglages de l'appli web, enregistrés dans `settings.json`.
@@ -9,7 +10,16 @@ import path from "node:path";
  * `lanNetwork` : carte réseau choisie quand il y en a plusieurs.
  */
 /** `updateCheck: false` : vérification automatique des nouvelles versions désactivée (absent = activée). */
-export type WebSettings = { port: number; lan: boolean; lanAll?: boolean; lanNetwork?: string; token: string; updateCheck?: boolean };
+/** `access` : jetons externes (empreintes seulement, `src/web/access.ts`), absent quand il n'y en a aucun. */
+export type WebSettings = {
+	port: number;
+	lan: boolean;
+	lanAll?: boolean;
+	lanNetwork?: string;
+	token: string;
+	updateCheck?: boolean;
+	access?: AccessToken[];
+};
 
 export const DEFAULT_PORT = 8743;
 const MIN_TOKEN = 32;
@@ -53,6 +63,8 @@ export function loadSettings(dir: string): WebSettings {
 		token: typeof raw.token === "string" && raw.token.length >= MIN_TOKEN ? raw.token : newToken(),
 		...(raw.updateCheck === false ? { updateCheck: false } : {}),
 	};
+	const access = parseAccess(raw.access);
+	if (access.length) settings.access = access;
 	saveSettings(dir, settings);
 	return settings;
 }

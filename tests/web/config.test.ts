@@ -65,3 +65,15 @@ describe("réglages de l'appli web", () => {
 		expect(fs.readFileSync(path.join(dir, "settings.json.bak"), "utf-8")).toBe("{pas du json");
 	});
 });
+
+describe("réglages : jetons externes", () => {
+	test("entrées invalides ignorées, valides gardées ; absent → pas de clé", () => {
+		const dir = tmp();
+		const ok = { id: "abc", name: "VA", level: "read", lan: false, hash: "b".repeat(64), last4: "wxyz", created: "2026-11-24T10:00:00.000Z" };
+		fs.writeFileSync(path.join(dir, "settings.json"), JSON.stringify({ port: 8743, lan: false, token: "t".repeat(32), access: [ok, { id: "x", level: "god" }, 3] }));
+		expect(loadSettings(dir).access).toEqual([ok]);
+		const dir2 = tmp();
+		fs.writeFileSync(path.join(dir2, "settings.json"), JSON.stringify({ port: 8743, lan: false, token: "t".repeat(32), access: "zzz" }));
+		expect(loadSettings(dir2)).not.toHaveProperty("access");
+	});
+});
