@@ -1,7 +1,9 @@
 import { ACTOR_GROUPS, SHIP_GROUPS } from "../../catalog/dropdown.js";
 import { groupLabel, labelFor } from "../../catalog/labels.js";
 import type { ActionSource } from "../../catalog/source.js";
+import { PROTECTED_ACTIONS } from "../../game/dangerous.js";
 import type { GameApi } from "../../game/types.js";
+import { mayTriggerDangerous } from "../access.js";
 import type { Route } from "../http.js";
 
 export const TRIGGER_TIMEOUT_MS = 2000;
@@ -14,9 +16,10 @@ export function actionRoutes(deps: { game: Pick<GameApi, "trigger">; source: Act
 			method: "GET",
 			path: "/api/v1/actions",
 			access: "read",
-			handle: async ({ lang }) => {
+			handle: async ({ lang, caller }) => {
 				const { actions, live } = await deps.source.getActions();
-				const offered = actions;
+				// Un jeton externe sans « Pilotage complet » ne voit pas les actions protégées.
+				const offered = mayTriggerDangerous(caller) ? actions : actions.filter((a) => !PROTECTED_ACTIONS.has(a.name));
 				const categories = [...new Set(offered.map((a) => a.category))].sort((a, b) => {
 					const ia = KNOWN_ORDER.indexOf(a);
 					const ib = KNOWN_ORDER.indexOf(b);
@@ -37,7 +40,11 @@ export function actionRoutes(deps: { game: Pick<GameApi, "trigger">; source: Act
 			method: "POST",
 			path: "/api/v1/actions/{name}/trigger",
 			access: "pilot",
-			handle: async ({ params }) => {
+			handle: async ({ params, caller, mark }) => {
+				if (PROTECTED_ACTIONS.has(params.name)) {
+					if (!mayTriggerDangerous(caller)) return { status: 403, json: { error: "forbidden", reason: "dangerous_action" } };
+					mark("sensitive");
+				}
 				const result = await deps.game.trigger(params.name, TRIGGER_TIMEOUT_MS);
 				return result.ok ? { status: 200, json: { ok: true } } : { status: 502, json: result };
 			},

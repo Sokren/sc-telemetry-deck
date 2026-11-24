@@ -1,3 +1,5 @@
+import { PROTECTED_ACTIONS } from "../../game/dangerous.js";
+import { mayTriggerDangerous } from "../access.js";
 import type { Lang } from "../../catalog/labels.js";
 import type { GameApi } from "../../game/types.js";
 import { isDangerState, isReadOnly, SHIP_FUNCTION_IDS, shipFunction, type ShipFunctionId } from "../../ship/functions.js";
@@ -46,6 +48,7 @@ const REFUSALS: Record<RefusalCode, Record<Lang, string>> = {
 };
 
 export type PressOutcome =
+	| { status: 403; json: { error: "forbidden"; reason: "dangerous_action" } }
 	| { status: 200; json: { decision: "sent"; action: string; ok: true } | { decision: "noop" } }
 	| { status: 409; json: { decision: "refused"; code: RefusalCode; reason: string } }
 	| { status: 502; json: { decision: "sent"; action: string; ok: false; reason: string; message?: string } };
@@ -56,6 +59,8 @@ export async function pressShipFunction(
 	mode: ShipMode,
 	deps: { hub: Pick<TelemetryHub, "section">; game: Pick<GameApi, "trigger"> },
 	lang: Lang = "en",
+	/** `false` : une commande protégée (déverrouillage) est refusée sans rien envoyer ; `onProtected` : elle part. */
+	guard: { allowProtected: boolean; onProtected?: () => void } = { allowProtected: true },
 ): Promise<PressOutcome> {
 	const fn = shipFunction(id);
 	const state = readShipState(id, deps.hub.section("vehicle"), deps.hub.section("actor"));
@@ -65,6 +70,10 @@ export async function pressShipFunction(
 		// La raison de `decidePress` (module partagé) est en français : on expose un code stable et une raison traduite.
 		const code: RefusalCode = state === "unavailable" ? "unavailable" : "no_command";
 		return { status: 409, json: { decision: "refused", code, reason: REFUSALS[code][lang] } };
+	}
+	if (PROTECTED_ACTIONS.has(decision.action)) {
+		if (!guard.allowProtected) return { status: 403, json: { error: "forbidden", reason: "dangerous_action" } };
+		guard.onProtected?.();
 	}
 	const result = await deps.game.trigger(decision.action, TRIGGER_TIMEOUT_MS);
 	return result.ok
@@ -91,11 +100,14 @@ export function shipRoutes(deps: { hub: Pick<TelemetryHub, "section">; game: Pic
 			method: "POST",
 			path: "/api/v1/ship/functions/{id}/press",
 			access: "pilot",
-			handle: async ({ params, body, lang }) => {
+			handle: async ({ params, body, lang, caller, mark }) => {
 				if (!isId(params.id)) return { status: 404, json: { error: "not_found" } };
 				const asked = (body as { mode?: unknown } | undefined)?.mode;
 				if (asked !== undefined && !MODES.includes(asked as ShipMode)) return { status: 400, json: { error: "bad_request" } };
-				return pressShipFunction(params.id, (asked as ShipMode | undefined) ?? "toggle", deps, lang);
+				return pressShipFunction(params.id, (asked as ShipMode | undefined) ?? "toggle", deps, lang, {
+					allowProtected: mayTriggerDangerous(caller),
+					onProtected: () => mark("sensitive"),
+				});
 			},
 		},
 	];

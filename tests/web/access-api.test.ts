@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { PROTECTED_ACTIONS } from "../../src/game/dangerous.js";
 import { AccessStore, type AccessLevel } from "../../src/web/access.js";
 import { startTestServer, type TestServer } from "./harness.js";
 
@@ -101,6 +103,83 @@ describe("jetons externes : réseau local", () => {
 			expect((await statusOf("GET", "/api/v1/status", lan.secret, remote)).status).toBe(200);
 		} finally {
 			await remote.close();
+		}
+	});
+});
+
+describe("jetons externes : actions protégées", () => {
+	const titan = JSON.parse(readFileSync(new URL("../fixtures/titan-pilote.json", import.meta.url), "utf-8"));
+	const locked = structuredClone(titan);
+	locked.vehicle.state.doors = { open_state: "DOOR_OPEN_STATE_CLOSED", lock_state: "DOOR_LOCK_STATE_LOCKED" };
+
+	async function ship() {
+		const sent: string[] = [];
+		const srv = await startTestServer({ game: { frames: [locked], holdOpen: true, trigger: (r) => (sent.push(r.action_name), { status: 1 }) } });
+		for (let i = 0; i < 40 && (await srv.call("GET", "/api/v1/telemetry/vehicle")).status !== 200; i++) await new Promise((r) => setTimeout(r, 50));
+		const store = new AccessStore(srv.deps.settings, () => {});
+		const mk = (level: AccessLevel) => {
+			const r = store.create({ name: level, level, lan: false });
+			if (typeof r === "string") throw new Error(r);
+			return r;
+		};
+		return { srv, sent, pilot: mk("pilot"), full: mk("pilot_full"), read: mk("read") };
+	}
+
+	test("déclencher : liste rouge refusée au Pilotage, acceptée au Pilotage complet (journal marqué) et au jeton principal", async () => {
+		const { srv, sent, pilot, full } = await ship();
+		try {
+			for (const name of PROTECTED_ACTIONS) {
+				expect(await statusOf("POST", `/api/v1/actions/${name}/trigger`, pilot.secret, srv)).toEqual({ status: 403, body: { error: "forbidden", reason: "dangerous_action" } });
+			}
+			expect(sent).toEqual([]);
+			for (const name of PROTECTED_ACTIONS) expect((await statusOf("POST", `/api/v1/actions/${name}/trigger`, full.secret, srv)).status).toBe(200);
+			expect((await srv.call("POST", "/api/v1/actions/v_eject/trigger")).status).toBe(200);
+			expect(sent).toEqual([...PROTECTED_ACTIONS, "v_eject"]);
+			// Le reste est normal au niveau Pilotage.
+			for (const name of ["v_power_set_off", "v_open_all_doors", "v_emergency_exit"]) expect((await statusOf("POST", `/api/v1/actions/${name}/trigger`, pilot.secret, srv)).status).toBe(200);
+		} finally {
+			await srv.close();
+		}
+	});
+
+	test("appuyer : déverrouiller les portes refusé au Pilotage (rien envoyé), accepté au Pilotage complet", async () => {
+		const { srv, sent, pilot, full } = await ship();
+		try {
+			for (const mode of ["off", "toggle"]) {
+				const r = await fetch(`${srv.url}/api/v1/ship/functions/doors_locked/press`, {
+					method: "POST",
+					headers: { authorization: `Bearer ${pilot.secret}`, "content-type": "application/json" },
+					body: JSON.stringify({ mode }),
+				});
+				expect(r.status).toBe(403);
+				expect(await r.json()).toEqual({ error: "forbidden", reason: "dangerous_action" });
+			}
+			expect(sent).toEqual([]);
+			const ok = await fetch(`${srv.url}/api/v1/ship/functions/doors_locked/press`, {
+				method: "POST",
+				headers: { authorization: `Bearer ${full.secret}`, "content-type": "application/json" },
+				body: JSON.stringify({ mode: "off" }),
+			});
+			expect(ok.status).toBe(200);
+			expect(sent).toEqual(["v_unlock_all_doors"]);
+		} finally {
+			await srv.close();
+		}
+	});
+
+	test("liste des actions : sans les actions protégées pour Lecture et Pilotage, avec pour Pilotage complet", async () => {
+		const { srv, read, pilot, full } = await ship();
+		try {
+			const names = async (secret: string) =>
+				((await statusOf("GET", "/api/v1/actions", secret, srv)).body.groups as { actions: { name: string }[] }[]).flatMap((g) => g.actions.map((a) => a.name));
+			for (const secret of [read.secret, pilot.secret]) {
+				const list = await names(secret);
+				expect(list.filter((n) => PROTECTED_ACTIONS.has(n))).toEqual([]);
+				expect(list).toContain("v_power_set_off");
+			}
+			expect((await names(full.secret)).filter((n) => PROTECTED_ACTIONS.has(n)).sort()).toEqual([...PROTECTED_ACTIONS].sort());
+		} finally {
+			await srv.close();
 		}
 	});
 });
