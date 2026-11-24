@@ -9,11 +9,13 @@ export function panelRoutes(deps: { hub: Pick<TelemetryHub, "section">; counterm
 		{
 			method: "GET",
 			path: "/api/v1/character",
+			access: "read",
 			handle: async ({ lang }) => ({ status: 200, json: characterOf(deps.hub.section("actor"), lang) }),
 		},
 		{
 			method: "GET",
 			path: "/api/v1/ship/status",
+			access: "read",
 			handle: async ({ lang }) => ({ status: 200, json: shipStatusOf(deps.hub.section("vehicle"), deps.hub.section("actor"), lang, {
 					weapons: deps.hub.section("weapons"),
 					tracker: deps.countermeasures,

@@ -77,17 +77,20 @@ export function shipRoutes(deps: { hub: Pick<TelemetryHub, "section">; game: Pic
 		{
 			method: "GET",
 			path: "/api/v1/ship/functions",
+			access: "read",
 			handle: async ({ lang }) => ({ status: 200, json: SHIP_FUNCTION_IDS.map((id) => shipStateOf(id, deps.hub, lang)) }),
 		},
 		{
 			method: "GET",
 			path: "/api/v1/ship/functions/{id}",
+			access: "read",
 			handle: async ({ params, lang }) =>
 				isId(params.id) ? { status: 200, json: shipStateOf(params.id, deps.hub, lang) } : { status: 404, json: { error: "not_found" } },
 		},
 		{
 			method: "POST",
 			path: "/api/v1/ship/functions/{id}/press",
+			access: "pilot",
 			handle: async ({ params, body, lang }) => {
 				if (!isId(params.id)) return { status: 404, json: { error: "not_found" } };
 				const asked = (body as { mode?: unknown } | undefined)?.mode;

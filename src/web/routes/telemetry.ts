@@ -7,6 +7,7 @@ export function telemetryRoutes(deps: { hub: Pick<TelemetryHub, "section"> }): R
 		{
 			method: "GET",
 			path: "/api/v1/telemetry/{section}",
+			access: "read",
 			handle: async ({ params }) => {
 				const section = deps.hub.section(params.section);
 				return section ? { status: 200, json: section } : { status: 404, json: { error: "no_data" } };

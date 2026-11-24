@@ -10,8 +10,8 @@ export type AccessLevel = "read" | "pilot" | "pilot_full";
 export const ACCESS_LEVELS: readonly AccessLevel[] = ["read", "pilot", "pilot_full"];
 
 export type AccessToken = { id: string; name: string; level: AccessLevel; lan: boolean; hash: string; last4: string; created: string };
-/** Appelant d'une requête : jeton principal ou jeton externe. */
-export type Caller = { kind: "main" } | { kind: "external"; token: AccessToken };
+/** Appelant d'une requête : jeton principal, jeton externe, ou anonyme (routes publiques : documentation). */
+export type Caller = { kind: "main" } | { kind: "external"; token: AccessToken } | { kind: "anonymous" };
 export type AccessLogEntry = { at: string; method: string; path: string; status: number; sensitive?: true };
 
 export const MAX_TOKENS = 20;
@@ -55,7 +55,7 @@ export function levelAllows(level: AccessLevel, needed: "read" | "pilot"): boole
 
 /** Actions protégées (éjection, autodestruction, déverrouillage) : jeton principal et Pilotage complet seulement. */
 export function mayTriggerDangerous(caller: Caller): boolean {
-	return caller.kind === "main" || caller.token.level === "pilot_full";
+	return caller.kind === "main" || (caller.kind === "external" && caller.token.level === "pilot_full");
 }
 
 export class AccessStore {

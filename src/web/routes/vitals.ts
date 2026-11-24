@@ -32,11 +32,13 @@ export function vitalRoutes(deps: { hub: Pick<TelemetryHub, "section"> }): Route
 		{
 			method: "GET",
 			path: "/api/v1/vitals",
+			access: "read",
 			handle: async ({ lang }) => ({ status: 200, json: DISPLAY_VALUES.map((id) => vitalOf(id, deps.hub.section("actor"), lang)) }),
 		},
 		{
 			method: "GET",
 			path: "/api/v1/vitals/{id}",
+			access: "read",
 			handle: async ({ params, lang }) =>
 				isDisplayValueId(params.id)
 					? { status: 200, json: vitalOf(params.id, deps.hub.section("actor"), lang) }

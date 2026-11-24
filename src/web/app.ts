@@ -8,6 +8,7 @@ import type { GameApi } from "../game/types.js";
 import type { TelemetryHub } from "../telemetry/hub.js";
 import type { WebSettings } from "./config.js";
 import { createHandler, type Route } from "./http.js";
+import { AccessStore } from "./access.js";
 import { isLoopback, LanManager } from "./lan.js";
 import { MorseControl } from "./morse-control.js";
 import { CountermeasureTracker } from "../display/countermeasures.js";
@@ -163,6 +164,9 @@ export function createApp(deps: AppDeps): App {
 	updates.start();
 	const lan = deps.lanFactory?.(deps.settings, save) ?? new LanManager({ settings: deps.settings, save, listen: async () => true, cards: () => [] });
 	const views = new ViewStore(deps.viewFile);
+	// Jetons externes (empreintes dans settings.json) ; « sur le PC » = même règle que les routes du réseau local.
+	const access = new AccessStore(deps.settings, save);
+	const isLocal = deps.isLocal ?? ((req: IncomingMessage) => isLoopback(req.socket.remoteAddress));
 	const events = new EventHub({ hub: deps.hub, game: deps.game, morse, layout, status, countermeasures, views: (lang) => ({ views: views.list(lang) }) });
 	// Vue enregistrée (depuis n'importe quel appareil) → renvoyée à toutes les pages connectées.
 	const stopView = views.onChange(() => events.refresh());
@@ -174,11 +178,13 @@ export function createApp(deps: AppDeps): App {
 		{
 			method: "GET",
 			path: "/api/v1/status",
+			access: "read",
 			handle: async () => ({ status: 200, json: status() }),
 		},
 		{
 			method: "GET",
 			path: "/api/v1/events",
+			access: "read",
 			handle: async ({ req, res, lang }) => {
 				events.connect(req, res, lang);
 				return { stream: true };
@@ -195,7 +201,7 @@ export function createApp(deps: AppDeps): App {
 		...viewsRoutes({ views, version: deps.version }),
 		...lanRoutes({
 			lan,
-			isLocal: deps.isLocal ?? ((req) => isLoopback(req.socket.remoteAddress)),
+			isLocal,
 			remotes: () => events.remotes(),
 			onToken: () => events.close(),
 		}),
@@ -225,7 +231,7 @@ export function createApp(deps: AppDeps): App {
 	return {
 		routes: tracked,
 		lan,
-		handler: createHandler(tracked, () => deps.settings.token, deps.fallback),
+		handler: createHandler(tracked, { main: () => deps.settings.token, store: access, isLocal }, deps.fallback),
 		close: () => {
 			stopCapability();
 			stopView();

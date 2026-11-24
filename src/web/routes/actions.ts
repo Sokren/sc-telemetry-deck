@@ -13,6 +13,7 @@ export function actionRoutes(deps: { game: Pick<GameApi, "trigger">; source: Act
 		{
 			method: "GET",
 			path: "/api/v1/actions",
+			access: "read",
 			handle: async ({ lang }) => {
 				const { actions, live } = await deps.source.getActions();
 				const offered = actions;
@@ -35,6 +36,7 @@ export function actionRoutes(deps: { game: Pick<GameApi, "trigger">; source: Act
 		{
 			method: "POST",
 			path: "/api/v1/actions/{name}/trigger",
+			access: "pilot",
 			handle: async ({ params }) => {
 				const result = await deps.game.trigger(params.name, TRIGGER_TIMEOUT_MS);
 				return result.ok ? { status: 200, json: { ok: true } } : { status: 502, json: result };

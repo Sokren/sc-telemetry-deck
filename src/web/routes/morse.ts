@@ -6,6 +6,7 @@ export function morseRoutes(deps: { morse: MorseControl }): Route[] {
 		{
 			method: "POST",
 			path: "/api/v1/morse",
+			access: "pilot",
 			handle: async ({ body }) => {
 				const request = (body && typeof body === "object" ? body : {}) as MorseRequest;
 				const result = deps.morse.start(request);
@@ -17,6 +18,7 @@ export function morseRoutes(deps: { morse: MorseControl }): Route[] {
 		{
 			method: "DELETE",
 			path: "/api/v1/morse",
+			access: "pilot",
 			handle: async () => (deps.morse.stop() ? { status: 204 } : { status: 404, json: { error: "not_playing" } }),
 		},
 	];

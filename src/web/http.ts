@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { toLang, type Lang } from "../catalog/labels.js";
+import { levelAllows, TOKEN_PREFIX, type AccessStore, type Caller } from "./access.js";
 
 export type Method = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -11,6 +12,10 @@ export type Ctx = {
 	lang: Lang;
 	req: IncomingMessage;
 	res: ServerResponse;
+	/** Appelant : jeton principal, jeton externe, ou anonyme (routes publiques). */
+	caller: Caller;
+	/** Marque la requête dans le journal du jeton externe (action protégée envoyée). */
+	mark: (tag: "sensitive") => void;
 };
 
 /** Réponse d'une route ; `stream` : la route écrit elle-même la réponse (Server-Sent Events). */
@@ -22,6 +27,8 @@ export type Route = {
 	path: string;
 	/** Accessible sans jeton (documentation, page). */
 	public?: boolean;
+	/** Niveau minimal d'un jeton externe ; absent = jeton principal seulement (liste blanche). */
+	access?: "read" | "pilot";
 	/** Taille maximale du corps en octets (64 Ko par défaut). */
 	maxBody?: number;
 	handle(ctx: Ctx): Promise<Reply>;
@@ -94,10 +101,16 @@ export function send(res: ServerResponse, reply: Exclude<Reply, { stream: true }
 	res.end(payload);
 }
 
+/** Jetons acceptés : le principal (en-tête ou `?t=`) et les jetons externes (en-tête seulement). */
+export type Auth = { main: () => string; store?: AccessStore; isLocal?: (req: IncomingMessage) => boolean };
+
+/** Refus d'un jeton externe (403), avec la raison. */
+const forbidden = (reason: "level" | "lan") => ({ status: 403, json: { error: "forbidden", reason } });
+
 /** Gestionnaire HTTP : routage, jeton, corps JSON, langue. */
 export function createHandler(
 	routes: Route[],
-	token: () => string,
+	auth: Auth,
 	fallback?: (req: IncomingMessage, res: ServerResponse) => boolean,
 ): (req: IncomingMessage, res: ServerResponse) => void {
 	const compiled = routes.map(compile);
@@ -118,9 +131,35 @@ export function createHandler(
 				if (!fallback?.(req, res)) send(res, { status: 404, json: { error: "not_found" } });
 				return;
 			}
-			if (!match.route.public && !sameToken(tokenOf(req, url.searchParams), token())) {
-				send(res, { status: 401, json: { error: "unauthorized" } });
-				return;
+			let caller: Caller = { kind: "anonymous" };
+			if (!match.route.public) {
+				const given = tokenOf(req, url.searchParams);
+				const header = req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.slice(7).trim() : undefined;
+				const external = header?.startsWith(TOKEN_PREFIX) ? auth.store?.find(header) : undefined;
+				if (sameToken(given, auth.main())) caller = { kind: "main" };
+				else if (external) caller = { kind: "external", token: external };
+				else {
+					send(res, { status: 401, json: { error: "unauthorized" } });
+					return;
+				}
+			}
+			let sensitive = false;
+			const record = (status: number) => {
+				if (caller.kind !== "external") return;
+				const entry = { at: new Date().toISOString(), method, path: match.route.path, status, ...(sensitive ? { sensitive: true as const } : {}) };
+				auth.store?.record(caller.token.id, entry);
+			};
+			if (caller.kind === "external") {
+				const refusal = !caller.token.lan && !(auth.isLocal?.(req) ?? true)
+					? forbidden("lan")
+					: !match.route.access || !levelAllows(caller.token.level, match.route.access)
+						? forbidden("level")
+						: undefined;
+				if (refusal) {
+					record(403);
+					send(res, refusal);
+					return;
+				}
 			}
 			let body: unknown;
 			if (method === "POST" || method === "PUT") {
@@ -128,6 +167,7 @@ export function createHandler(
 					const text = await readBody(req, match.route.maxBody ?? MAX_BODY);
 					body = text.trim() ? JSON.parse(text) : undefined;
 				} catch {
+					record(400);
 					send(res, { status: 400, json: { error: "bad_request" } });
 					return;
 				}
@@ -139,7 +179,12 @@ export function createHandler(
 				lang: langOf(req, url.searchParams),
 				req,
 				res,
+				caller,
+				mark: () => {
+					sensitive = true;
+				},
 			});
+			record("stream" in reply ? 200 : reply.status);
 			if (!("stream" in reply)) send(res, reply);
 		})().catch(() => {
 			if (!res.headersSent) send(res, { status: 500, json: { error: "internal" } });
