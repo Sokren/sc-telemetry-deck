@@ -11,6 +11,8 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 
 ## [Non publié]
 
+## [0.3.15] — 2026-11-24
+
 ### Ajouté
 - Appli web : **modèles de vues**. **＋** propose *Vierge* ou **Xeneon Edge – pilote** (poste de pilotage pour écran tactile large 2560×720) ; la vue créée se modifie comme les autres. Fichiers à importer dans `docs/vues/` (`npm run templates:export` les régénère).
 - Appli web : sections en **tiers** de largeur (**−** / **+** : tiers ↔ demie ↔ pleine) et **sections hautes** (↕, sur deux lignes : deux sections peuvent s'empiler à côté), pour les écrans larges.
@@ -22,6 +24,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 
 ### Corrigé
 - Appli web : appui maintenu (éjection) — la progression ne s'animait pas (anneau de la grille, case qui se remplit dans une vue).
+- Appli web : fenêtre **Tablette / téléphone** — le QR code restait parfois une image cassée après avoir activé l'accès réseau (ou changé de carte réseau) depuis la fenêtre ; il s'affiche maintenant tout de suite, et un échec de chargement est réessayé.
 - Contrat d'API **1.11.0** : `GET /api/v1/views/templates`, `POST /api/v1/views` avec `template`, largeur `third`, taille `0.25`, section `tall`, habillage `cockpit`, styles `tape` / `switch` / `slide` / `hold`, colonne `col`, style `line`, `words` (mots des deux états) sur les fonctions du vaisseau.
 
 ## [0.3.14] — 2026-11-24
@@ -223,6 +226,7 @@ Première version.
 ### Problèmes connus
 - En 5.0 PTU, le jeu accepte l'action `mobiglas` mais n'ouvre pas le mobiGlas.
 
+[0.3.15]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.15
 [0.3.14]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.14
 [0.3.13]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.13
 [0.3.12]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.12

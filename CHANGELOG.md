@@ -11,6 +11,8 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 
 ## [Unreleased]
 
+## [0.3.15] — 2026-11-24
+
 ### Added
 - Web app: **view templates**. **＋** offers *Blank* or **Xeneon Edge – pilot** (pilot station for a wide 2560×720 touch screen); the new view can be edited like any other. Import files in `docs/vues/` (`npm run templates:export` regenerates them).
 - Web app: **one-third** width sections (**−** / **+**: third ↔ half ↔ full) and **tall sections** (↕, two rows: two sections can stack beside it), for wide screens.
@@ -22,6 +24,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 
 ### Fixed
 - Web app: press-and-hold (eject) — the progress did not animate (ring on the grid, item filling up in a view).
+- Web app: **Tablet / phone** window — the QR code sometimes stayed a broken image after turning on network access (or changing network card) from the window; it now shows right away, and a failed load is retried.
 - API contract **1.11.0**: `GET /api/v1/views/templates`, `POST /api/v1/views` with `template`, `third` width, `0.25` size, `tall` section, `cockpit` look, `tape` / `switch` / `slide` / `hold` styles, `col` column, `line` style, `words` (both state words) on ship functions.
 
 ## [0.3.14] — 2026-11-24
@@ -216,6 +219,7 @@ First release.
 ### Known issues
 - In 5.0 PTU the game accepts the `mobiglas` action but does not open the mobiGlas.
 
+[0.3.15]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.15
 [0.3.14]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.14
 [0.3.13]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.13
 [0.3.12]: https://github.com/Sokren/sc-telemetry-deck/releases/tag/v0.3.12
