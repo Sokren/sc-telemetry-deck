@@ -4,7 +4,7 @@
 
 import { renderGauge, stylesFor } from "./gauges.js";
 import { moneyText } from "./numbers.js";
-import { openExport, openImport } from "./share.js";
+import { openExport, openImport, openNewView } from "./share.js";
 import { shipCard } from "./shipcard.js";
 
 const MAX_SECTIONS = 20;
@@ -30,29 +30,85 @@ const morseText = (s) =>
 		.replace(/ +/g, " ")
 		.trim();
 /** Types de case qui acceptent un style (comme l'appli). */
-const STYLED_KINDS = ["vital", "instrument", "character_info", "ship_info"];
+const STYLED_KINDS = ["vital", "instrument", "character_info", "ship_info", "ship_function", "action"];
+/** Types de case de valeur (jauges, chiffre, règle). */
+const VALUE_KINDS = ["vital", "instrument", "character_info", "ship_info"];
+/** Nom libre : `base`, sinon « base 2 », « base 3 »… (coupé pour tenir en 24 caractères). */
+export function uniqueName(base, names) {
+	const taken = new Set(names);
+	if (!taken.has(base)) return base;
+	for (let n = 2; ; n++) {
+		const suffix = ` ${n}`;
+		const name = [...base].slice(0, MAX_NAME - suffix.length).join("").trimEnd() + suffix;
+		if (!taken.has(name)) return name;
+	}
+}
+/** Actions toujours en rouge (autodestruction, éjection), quel que soit leur style. */
+const RED_ACTIONS = new Set(["v_self_destruct", "v_eject"]);
+/** Section haute ou non, clés dans l'ordre de l'appli (id, title, width, tall, items) : copies comparables. */
+export function setTall(section, on) {
+	const { id, title, width, items } = section;
+	for (const k of Object.keys(section)) delete section[k];
+	Object.assign(section, { id, title, width, ...(on ? { tall: true } : {}), items });
+}
+/** Glisser : part de la course à atteindre pour envoyer (relâché avant → rien). */
+export const SLIDE_DONE = 0.98;
+/** Avancement du curseur (0–1) pour un déplacement `dx` sur une course `max` (px). */
+export const slideProgress = (dx, max) => (max > 0 ? Math.min(1, Math.max(0, dx / max)) : 0);
+/**
+ * Geste d'envoi d'une action : le style choisi (glisser / maintenir), sinon maintenir pour les actions qui l'exigent
+ * (éjection), sinon un appui.
+ */
+export function confirmModeFor(ref, style, holdActions) {
+	if (style === "slide" || style === "hold") return style;
+	return holdActions?.has(ref) ? "hold" : "press";
+}
 /** Cases sans nom affiché modifiable (comme l'appli) ; cases jamais plus petites que 1×. */
 const NO_LABEL = ["morse", "morse_free", "ship_card"];
 const MIN_SIZE_1 = ["annunciators", "ship_card"];
 const MAX_LABEL = 24;
 /**
- * Largeur d'une case en emplacements (`size` compté en cases 1× : un emplacement = 0.5). Une section pleine largeur
- * en a 8, une demi-section 4 ; le bouton fait le tour des largeurs possibles dans la section.
+ * Largeur d'une case en emplacements (`size` compté en cases 1× : un emplacement = 0.25). Une section pleine largeur
+ * en a 16, une demi-section ou un tiers 8 ; le bouton fait le tour des largeurs possibles dans la section.
  */
-const slots = (size) => Math.round(size * 2);
-function nextSize(item, section) {
-	const all = section.width === "half" ? [0.5, 1, 1.5, 2] : [0.5, 1, 1.5, 2, 3, 4];
-	const list = MIN_SIZE_1.includes(item.kind) ? all.filter((s) => s >= 1) : all;
-	const i = list.indexOf(item.size);
-	return i < 0 || i === list.length - 1 ? list[0] : list[i + 1];
+export const sizeSlots = (size) => Math.round(size * 4);
+/** Emplacements d'une ligne : 16 en pleine largeur, 8 en demi ou tiers (le bouton affiche toujours des entiers). */
+export const sectionSlots = (width) => (width === "full" ? 16 : 8);
+/**
+ * Colonne (1 à `slots`) sous l'abscisse `x` d'une grille `{ left, width, gap }` de `slots` colonnes égales.
+ * Hors de la grille : première ou dernière colonne.
+ */
+export function slotAt(x, grid, slots) {
+	const step = (grid.width + grid.gap) / slots;
+	return Math.min(slots, Math.max(1, Math.floor((x - grid.left) / step) + 1));
 }
-const sizeClass = (size) => `w${slots(size)}`;
+/** Colonne de départ ramenée à gauche pour que la case (`span` emplacements) tienne dans la ligne ; absente = rien. */
+export function fitCol(col, span, slots) {
+	if (col === undefined) return undefined;
+	return Math.max(1, Math.min(col, slots - Math.min(span, slots) + 1));
+}
+/**
+ * Taille voisine (`dir` = 1 plus grand, -1 plus petit) parmi celles possibles dans la section, ou `undefined` à la
+ * borne. Une case plus large que sa section (après un changement de largeur) redescend dans la section.
+ */
+export function sizeStep(item, section, dir) {
+	// Demi et tiers : 8 emplacements (plus étroits dans un tiers).
+	const all = section.width === "full" ? [0.25, 0.5, 1, 1.5, 2, 3, 4] : [0.25, 0.5, 1, 1.5, 2];
+	const list = MIN_SIZE_1.includes(item.kind) ? all.filter((s) => s >= 1) : all;
+	return dir > 0 ? list.find((s) => s > item.size) : list.findLast((s) => s < item.size);
+}
+const sizeClass = (size) => `w${sizeSlots(size)}`;
+/** Largeurs de section, de la plus étroite à la plus large. */
+const WIDTHS = ["third", "half", "full"];
+/** Largeur voisine (`dir` = 1 plus large, -1 plus étroite), ou `undefined` à la borne. */
+export const widthStep = (w, dir) => WIDTHS[WIDTHS.indexOf(w) + dir];
 /** Case avec ses clés dans l'ordre enregistré par l'appli (comparaison des copies sans re-rendu inutile). */
-const ordered = ({ id, kind, ref, size, settings, label, display }) => ({
+const ordered = ({ id, kind, ref, size, col, settings, label, display }) => ({
 	id,
 	kind,
 	...(ref !== undefined ? { ref } : {}),
 	size,
+	...(col !== undefined ? { col } : {}),
 	...(settings ? { settings } : {}),
 	...(label ? { label } : {}),
 	...(display ? { display: orderedDisplay(display) } : {}),
@@ -117,7 +173,7 @@ export function createView(ctx) {
 	const fmt = (key, ...args) => args.reduce((s, a, i) => s.replace(`{${i}}`, a), t(key));
 	const INFO = {
 		character_info: { position: "infoPosition", role: "infoRole", seat: "infoSeat" },
-		ship_info: { name: "infoShipName", master_mode: "infoMasterMode", landed: "infoLanded" },
+		ship_info: { name: "infoShipName", master_mode: "infoMasterMode", landed: "infoLanded", boost: "infoBoost" },
 	};
 	function actionLabel(name) {
 		for (const g of actionGroups) for (const a of g.actions) if (a.name === name) return a.label;
@@ -211,14 +267,119 @@ export function createView(ctx) {
 		return { box, update };
 	}
 
+	/** Aperçu d'un style de bouton dans le menu ⚙ (carte, interrupteur, glisser, maintenir). */
+	function controlPreview(style, item) {
+		const label = shownLabel(item);
+		if (style === "switch") {
+			const f = state?.ship.find((x) => x.id === item.ref);
+			const sw = el("div", "vswitch");
+			sw.dataset.state = "off";
+			sw.append(el("span", "vsw-knob"), el("span", "vsw-off", f?.words.off ?? "OFF"), el("span", "vsw-on", f?.words.on ?? "ON"));
+			return sw;
+		}
+		if (style === "slide") {
+			const s = el("div", "vslide");
+			s.append(el("span", "vslide-knob", "›››"), el("span", "vslide-text", label));
+			return s;
+		}
+		if (style === "hold") return el("div", "card function vhold-prev", `⏱ ${label}`);
+		return el("div", "card function", label);
+	}
+
+	/** Interrupteur : côté « off » | côté « on », curseur sur l'état lu ; un appui envoie l'autre état. */
+	function switchContent(item, box) {
+		const sw = button("vswitch");
+		const knob = el("span", "vsw-knob");
+		const off = el("span", "vsw-off");
+		const on = el("span", "vsw-on");
+		const label = el("span", "vsw-label");
+		sw.append(knob, off, on, label, el("span", "flash"));
+		sw.addEventListener("click", () => {
+			if (!unlocked && sw.dataset.readonly !== "1") ctx.pressFunction(item.ref, sw);
+		});
+		box.append(sw);
+		const update = () => {
+			const f = state?.ship.find((x) => x.id === item.ref);
+			const st = f?.state;
+			// Pendant un mouvement (train qui sort…), le curseur va déjà vers l'état visé.
+			const side = st === "on" || st === "moving-on" ? "on" : st === "off" || st === "moving-off" ? "off" : "unknown";
+			sw.dataset.state = side;
+			sw.dataset.readonly = f?.readOnly ? "1" : "";
+			sw.classList.toggle("danger", !!f?.danger);
+			sw.classList.toggle("moving", st === "moving-on" || st === "moving-off");
+			off.textContent = f?.words.off ?? "—";
+			on.textContent = f?.words.on ?? "—";
+			label.textContent = item.label ?? f?.label ?? labelOf(item);
+			sw.title = f?.readOnly ? t("readOnlyFunction") : "";
+		};
+		return { box, update };
+	}
+
+	/** Glisser pour envoyer : le curseur doit aller au bout ; relâché avant, il revient sans rien envoyer. */
+	function slideContent(item, box) {
+		const s = el("div", `vslide${RED_ACTIONS.has(item.ref) ? " red" : ""}`);
+		s.setAttribute("role", "button");
+		s.tabIndex = 0;
+		const knob = el("span", "vslide-knob", "›››");
+		const text = el("span", "vslide-text");
+		s.append(knob, text, el("span", "flash"));
+		box.append(s);
+		let x0 = null;
+		const course = () => s.clientWidth - knob.offsetWidth - 6;
+		const reset = () => {
+			x0 = null;
+			s.classList.remove("sliding");
+			knob.style.removeProperty("transform");
+		};
+		knob.addEventListener("pointerdown", (e) => {
+			if (unlocked || e.button !== 0) return;
+			e.preventDefault();
+			e.stopPropagation();
+			x0 = e.clientX;
+			s.classList.add("sliding");
+			knob.setPointerCapture?.(e.pointerId);
+		});
+		knob.addEventListener("pointermove", (e) => {
+			if (x0 === null) return;
+			// Échelle de la page (vue mise à l'échelle) : distance mesurée en px de la case.
+			const scale = s.getBoundingClientRect().width / (s.offsetWidth || 1) || 1;
+			const max = course();
+			const p = slideProgress((e.clientX - x0) / scale, max);
+			knob.style.transform = `translateX(${p * max}px)`;
+			if (p >= SLIDE_DONE) {
+				reset();
+				ctx.triggerAction(item.ref, s);
+			}
+		});
+		for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) knob.addEventListener(type, reset);
+		const update = () => {
+			text.textContent = fmt("slideToSend", shownLabel(item));
+		};
+		return { box, update };
+	}
+
+	/** Voyant boost : gris au repos, allumé quand on boost (`instruments.boost.engaged`). */
+	function boostContent(item, box) {
+		const card = el("div", "card vboost");
+		box.append(card);
+		const update = () => {
+			const s = state?.shipStatus;
+			card.textContent = item.label ?? t("boostLight");
+			card.dataset.state = !s?.available ? "unknown" : s.boostEngaged ? "on" : "off";
+		};
+		return { box, update };
+	}
+
 	/** Contenu d'une case et sa fonction de mise à jour. */
 	function itemContent(item) {
 		const box = el("div", "vcontent");
 		switch (item.kind) {
+			case "ship_info":
+				if (item.ref === "boost") return boostContent(item, box);
+				return valueContent(item, box);
 			case "vital":
 			case "instrument":
 			case "character_info":
-			case "ship_info":
 				return valueContent(item, box);
 			case "ship_card": {
 				const update = () => box.replaceChildren(shipCard(state, item.size >= 2 ? 2 : 1, t));
@@ -243,6 +404,7 @@ export function createView(ctx) {
 				return { box, update };
 			}
 			case "ship_function": {
+				if (item.display?.style === "switch") return switchContent(item, box);
 				const b = button("card function");
 				b.append(el("div", "label"), el("div", "value"), el("span", "flash"));
 				b.addEventListener("click", () => {
@@ -261,16 +423,18 @@ export function createView(ctx) {
 				return { box, update };
 			}
 			case "action": {
-				const b = button("card function emote");
-				b.append(el("div", "label"), el("span", "flash"));
-				const hold = ctx.holdActions?.has(item.ref);
+				const mode = confirmModeFor(item.ref, item.display?.style, ctx.holdActions);
+				if (mode === "slide") return slideContent(item, box);
+				const b = button(`card function emote${RED_ACTIONS.has(item.ref) ? " red" : ""}`);
+				const hold = mode === "hold";
+				b.append(el("div", "label"), ...(hold ? [el("div", "vhold-hint", t("holdHint"))] : []), el("span", "flash"));
 				b.addEventListener("click", () => {
-					if (!unlocked) ctx.triggerAction(item.ref, b);
+					if (!unlocked && !hold) ctx.triggerAction(item.ref, b);
 				});
 				// Éjection : rester appuyé (anneau rouge) ; en édition, la case se déplace normalement.
 				if (hold) {
 					b.classList.add("hold-action");
-					b.title = t("holdToEject");
+					b.title = item.ref === "v_eject" ? t("holdToEject") : t("holdToSend");
 					ctx.holdToPress(b, () => ctx.triggerAction(item.ref, b), () => !unlocked);
 				}
 				box.append(b);
@@ -403,17 +567,28 @@ export function createView(ctx) {
 	function renderItem(section, item) {
 		const wrap = el("div", `vitem ${sizeClass(item.size)}`);
 		wrap.dataset.id = item.id;
+		// Colonne de départ : les emplacements d'avant restent vides (placement libre).
+		const col = fitCol(item.col, sizeSlots(item.size), sectionSlots(section.width));
+		if (col !== undefined) wrap.style.gridColumnStart = String(col);
 		const { box, update } = itemContent(item);
 		wrap.append(box);
 		if (unlocked) {
 			const ctl = el("div", "vctl");
-			const next = nextSize(item, section);
-			// Comme le bouton des sections : largeur actuelle → largeur après un clic.
-			const size = button("", `${slots(item.size)} → ${slots(next)}`, fmt("itemSize", slots(item.size), slots(next)));
-			size.addEventListener("click", () => {
-				item.size = next;
-				changed();
-			});
+			// Largeur : − / nombre d'emplacements pris / + (bouton grisé à la borne).
+			const size = el("span", "vsize");
+			const step = (dir, text, key) => {
+				const to = sizeStep(item, section, dir);
+				const b = button("", text, to === undefined ? t(key) : fmt(`${key}To`, sizeSlots(to)));
+				b.disabled = to === undefined;
+				b.addEventListener("click", () => {
+					item.size = to;
+					changed();
+				});
+				return b;
+			};
+			const count = el("span", "vsize-n", String(sizeSlots(item.size)));
+			count.title = fmt("itemSize", sizeSlots(item.size), sectionSlots(section.width));
+			size.append(step(-1, "−", "itemSmaller"), count, step(1, "+", "itemBigger"));
 			const del = button("", "✕", t("removeItem"));
 			del.addEventListener("click", () => {
 				section.items = section.items.filter((i) => i !== item);
@@ -439,7 +614,7 @@ export function createView(ctx) {
 	}
 
 	function renderSection(section) {
-		const sec = el("section", `vsec ${section.width}`);
+		const sec = el("section", `vsec ${section.width}${section.tall ? " tall" : ""}`);
 		sec.dataset.id = section.id;
 		const head = el("div", "vhead");
 		if (unlocked) {
@@ -454,9 +629,25 @@ export function createView(ctx) {
 			input.addEventListener("keydown", (e) => e.key === "Enter" && input.blur());
 			head.append(input);
 			const ctl = el("div", "vsctl");
-			const width = button("", section.width === "half" ? "½ → 1" : "1 → ½", t("sectionWidth"));
-			width.addEventListener("click", () => {
-				section.width = section.width === "half" ? "full" : "half";
+			// Largeur : − / pleine, demie ou tiers / + (bouton grisé à la borne), comme la taille des cases.
+			const width = el("span", "vsize");
+			const wstep = (dir, text, key) => {
+				const to = widthStep(section.width, dir);
+				const b = button("", text, to === undefined ? t(key) : fmt(`${key}To`, t(`width_${to}`)));
+				b.disabled = to === undefined;
+				b.addEventListener("click", () => {
+					section.width = to;
+					changed();
+				});
+				return b;
+			};
+			const wname = el("span", "vsize-n vsize-w", t(`width_${section.width}`));
+			wname.title = t("sectionWidth");
+			width.append(wstep(-1, "−", "sectionNarrower"), wname, wstep(1, "+", "sectionWider"));
+			const tall = button(section.tall ? "on" : "", "↕", t("sectionTall"));
+			tall.setAttribute("aria-pressed", String(!!section.tall));
+			tall.addEventListener("click", () => {
+				setTall(section, !section.tall);
 				changed();
 			});
 			const handle = button("vhandle", "⋮⋮", t("moveSection"));
@@ -467,7 +658,7 @@ export function createView(ctx) {
 				view.sections = view.sections.filter((s) => s !== section);
 				changed();
 			});
-			ctl.append(width, handle, del);
+			ctl.append(width, tall, handle, del);
 			head.append(ctl);
 		} else head.append(el("h2", "vtitle", section.title));
 		const grid = el("div", "vgrid");
@@ -485,7 +676,9 @@ export function createView(ctx) {
 		closeMenu();
 		updaters = new Map();
 		root.classList.toggle("editing", unlocked);
-		root.classList.toggle("hud", view?.look === "hud");
+		// Cockpit : le HUD (cadres, chiffres) plus les boutons centrés et les jauges sur une ligne de la maquette.
+		root.classList.toggle("hud", view?.look === "hud" || view?.look === "cockpit");
+		root.classList.toggle("cockpit", view?.look === "cockpit");
 		if (!view) return root.replaceChildren(el("p", "hint", t("connecting")));
 		const list = el("div", "vsections");
 		list.append(...view.sections.map(renderSection));
@@ -558,14 +751,15 @@ export function createView(ctx) {
 		for (const [look, key] of [
 			["standard", "lookStandard"],
 			["hud", "lookHud"],
+			["cockpit", "lookCockpit"],
 		]) {
 			const b = button("vlook-opt", t(key));
 			b.setAttribute("role", "radio");
 			b.setAttribute("aria-checked", String((view.look ?? "standard") === look));
 			b.addEventListener("click", () => {
 				if ((view.look ?? "standard") === look) return;
-				if (look === "hud") view.look = "hud";
-				else delete view.look;
+				if (look === "standard") delete view.look;
+				else view.look = look;
 				publish();
 				changed();
 			});
@@ -818,12 +1012,12 @@ export function createView(ctx) {
 		const list = el("div", "vslist");
 		list.setAttribute("role", "radiogroup");
 		list.setAttribute("aria-label", t("itemStyle"));
-		for (const style of stylesFor(item.kind, isGauge)) {
+		for (const style of stylesFor(item.kind, isGauge, item.ref)) {
 			const b = button("vsopt");
 			b.setAttribute("role", "radio");
 			b.setAttribute("aria-checked", String(style === current));
 			const preview = el("div", "vsprev");
-			preview.append(renderGauge(style, data, 1)?.el ?? ctx.card(data));
+			preview.append(VALUE_KINDS.includes(item.kind) ? (renderGauge(style, data, 1)?.el ?? ctx.card(data)) : controlPreview(style, item));
 			b.append(preview, el("span", "", t(`style_${style}`)));
 			b.addEventListener("click", () => {
 				const display = orderedDisplay({ ...item.display, style: style === "card" ? undefined : style });
@@ -901,6 +1095,7 @@ export function createView(ctx) {
 		// Les boutons 1× / 2× / ✕ restent cliquables ; le reste de la case sert de poignée.
 		if (type === "item" && e.target.closest(".vctl")) return;
 		drag = { type, node, id: node.dataset.id, x: e.clientX, y: e.clientY, started: false, pointer: e.pointerId };
+		if (type === "item") drag.item = view.sections.flatMap((s) => s.items).find((i) => i.id === drag.id);
 		window.addEventListener("pointermove", onMove);
 		window.addEventListener("pointerup", onUp);
 		window.addEventListener("pointercancel", cancelDrag);
@@ -937,20 +1132,13 @@ export function createView(ctx) {
 		const hit = document.elementFromPoint(e.clientX, e.clientY);
 		if (!hit) return;
 		if (drag.type === "item") {
-			const target = hit.closest(".vitem");
-			if (target && target !== drag.node && root.contains(target)) {
-				const r = target.getBoundingClientRect();
-				if (e.clientX < r.left + r.width / 2) target.before(drag.ph);
-				else target.after(drag.ph);
-				return;
-			}
 			const grid = hit.closest(".vsec")?.querySelector(".vgrid");
-			if (grid && root.contains(grid) && drag.ph.parentElement !== grid) grid.append(drag.ph);
+			if (grid && root.contains(grid)) placeItem(grid, e.clientX - drag.dx, e.clientY);
 		} else {
 			const target = hit.closest(".vsec");
 			if (target && target !== drag.node && root.contains(target)) {
 				const r = target.getBoundingClientRect();
-				const before = target.classList.contains("half") && window.innerWidth >= 1000 ? e.clientX < r.left + r.width / 2 : e.clientY < r.top + r.height / 2;
+				const before = (target.classList.contains("half") || target.classList.contains("third")) && window.innerWidth >= 1000 ? e.clientX < r.left + r.width / 2 : e.clientY < r.top + r.height / 2;
 				if (before) target.before(drag.ph);
 				else target.after(drag.ph);
 			}
@@ -959,6 +1147,33 @@ export function createView(ctx) {
 		const edge = 60;
 		if (e.clientY < edge) window.scrollBy(0, -12);
 		else if (e.clientY > window.innerHeight - edge) window.scrollBy(0, 12);
+	}
+
+	/**
+	 * Place l'emplacement fantôme dans `grid` : colonne sous le bord gauche de la case glissée (`x`), et rang dans
+	 * l'ordre de lecture d'après les cases déjà posées (au-dessus, ou sur la même ligne et plus à gauche = avant).
+	 */
+	function placeItem(grid, x, y) {
+		const section = view.sections.find((s) => s.id === grid.closest(".vsec")?.dataset.id);
+		if (!section) return;
+		const slots = sectionSlots(section.width);
+		const cs = getComputedStyle(grid);
+		// Téléphone : grille plus étroite que la section (colonnes imposées) → pas de colonne libre.
+		const cols = cs.gridTemplateColumns.split(" ").length;
+		const r = grid.getBoundingClientRect();
+		const gap = parseFloat(cs.columnGap) || 0;
+		const span = Math.min(sizeSlots(drag.item.size), slots);
+		drag.col = cols === slots ? fitCol(slotAt(x + 4, { left: r.left, width: r.width, gap }, slots), span, slots) : undefined;
+		drag.ph.style.gridColumnStart = drag.col === undefined ? "" : String(drag.col);
+		const others = [...grid.children].filter((c) => c.classList.contains("vitem") && c !== drag.node);
+		const colX = drag.col === undefined ? x : r.left + ((drag.col - 1) * (r.width + gap)) / slots;
+		const next = others.find((c) => {
+			const b = c.getBoundingClientRect();
+			return b.top > y || (b.bottom > y && b.left > colX);
+		});
+		if (next) {
+			if (drag.ph.nextElementSibling !== next) next.before(drag.ph);
+		} else if (grid.lastElementChild !== drag.ph) grid.append(drag.ph);
 	}
 
 	function onUp(e) {
@@ -974,6 +1189,10 @@ export function createView(ctx) {
 				const item = fromSection.items.find((i) => i.id === d.id);
 				fromSection.items = fromSection.items.filter((i) => i !== item);
 				toSection.items.splice(countBefore(d.ph, "vitem", d.node), 0, item);
+				// Colonne où elle a été lâchée (emplacements d'avant laissés vides) ; téléphone : à la suite.
+				if (d.col === undefined || d.col === 1) delete item.col;
+				else item.col = d.col;
+				Object.assign(item, ordered(item));
 			}
 		} else {
 			const before = countBefore(d.ph, "vsec", d.node);
@@ -1062,11 +1281,19 @@ export function createView(ctx) {
 			render();
 		},
 		/** « ＋ » : crée une vue vide et renvoie son id (ou `null`), à ouvrir déverrouillée. */
-		async addView() {
+		/** Fenêtre « Nouvelle vue » : Vierge ou un modèle ; `onCreated(id)` après la création. */
+		openNewView(onCreated) {
+			if (views && views.length >= MAX_VIEWS) return ctx.showMessage(t("tooManyViews"));
+			openNewView({ t, fmt, api, lang: ctx.lang }, async (template) => onCreated(await this.addView(template)));
+		},
+		/** Crée une vue : vide (« Vue N »), ou depuis un modèle `{ id, name }` (nom rendu unique). */
+		async addView(template) {
 			const fail = (key) => (ctx.showMessage(t(key)), null);
 			if (views && views.length >= MAX_VIEWS) return fail("tooManyViews");
+			const names = (views ?? []).map((v) => v.name);
+			const body = template ? { template: template.id, name: uniqueName(template.name, names) } : { name: newViewName() };
 			try {
-				const r = await api("/api/v1/views", { method: "POST", body: JSON.stringify({ name: newViewName() }) });
+				const r = await api("/api/v1/views", { method: "POST", body: JSON.stringify(body) });
 				if (r.status === 401) return fail("badToken");
 				if (r.status === 409) return fail("tooManyViews");
 				if (!r.ok) return fail("viewSaveFailed");

@@ -374,7 +374,9 @@ h2 {
 .function[data-state="unavailable"] .value {
 	color: var(--faint);
 }
-.card .flash {
+.card .flash,
+.vswitch .flash,
+.vslide .flash {
 	position: absolute;
 	inset: 0;
 	display: flex;
@@ -386,12 +388,16 @@ h2 {
 	transition: opacity 0.3s;
 	pointer-events: none;
 }
-.card .flash.ok {
+.card .flash.ok,
+.vswitch .flash.ok,
+.vslide .flash.ok {
 	color: var(--ok);
 	background: color-mix(in srgb, var(--panel) 70%, transparent);
 	opacity: 1;
 }
-.card .flash.alert {
+.card .flash.alert,
+.vswitch .flash.alert,
+.vslide .flash.alert {
 	color: var(--warn);
 	background: color-mix(in srgb, var(--panel) 70%, transparent);
 	opacity: 1;
@@ -524,7 +530,8 @@ dialog button {
 }
 .vsections {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	/* 6 colonnes : pleine = 6, demie = 3, tiers = 2. */
+	grid-template-columns: repeat(6, minmax(0, 1fr));
 	gap: 16px;
 	align-items: start;
 	max-width: 1400px;
@@ -538,6 +545,16 @@ dialog button {
 }
 .vsec.full {
 	grid-column: 1 / -1;
+}
+.vsec.half {
+	grid-column: span 3;
+}
+.vsec.third {
+	grid-column: span 2;
+}
+/* Vue en tiers (écran large type Xeneon Edge) : toute la largeur de l'écran. */
+.vsections:has(> .vsec.third) {
+	max-width: none;
 }
 .editing .vsec {
 	border: 1px dashed var(--line-strong);
@@ -593,47 +610,56 @@ dialog button {
 	cursor: grab;
 	touch-action: none;
 }
-/* 8 colonnes : une case S en prend 1, une case 1× 2, une case 2× 4. */
+/* 16 colonnes : une case ¼ en prend 1, une case ½ 2, une case 1× 4, une case 2× 8. */
 .vgrid {
 	display: grid;
-	grid-template-columns: repeat(8, minmax(0, 1fr));
+	grid-template-columns: repeat(16, minmax(0, 1fr));
 	gap: 10px;
 	min-height: 40px;
 }
-.vsec.half .vgrid {
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+.vsec.half .vgrid,
+.vsec.third .vgrid {
+	grid-template-columns: repeat(8, minmax(0, 1fr));
 }
 .vitem {
 	position: relative;
 	min-width: 0;
-	grid-column: span 2;
+	grid-column: auto / span 4;
 }
-/* Largeur en emplacements (w1 à w8) ; plus large que la grille (demi-section, téléphone) → toute la ligne. */
+/* Largeur en emplacements (w1 à w16) ; plus large que la grille (demi-section, tiers, téléphone) → toute la ligne. */
 .vitem.w1,
 .vph.w1 {
-	grid-column: span 1;
+	grid-column: auto / span 1;
 }
-.vitem.w3,
-.vph.w3 {
-	grid-column: span 3;
-}
-.vitem.w4,
-.vph.w4 {
-	grid-column: span 4;
+.vitem.w2,
+.vph.w2 {
+	grid-column: auto / span 2;
 }
 .vitem.w6,
 .vph.w6 {
-	grid-column: span 6;
+	grid-column: auto / span 6;
 }
 .vitem.w8,
 .vph.w8 {
-	grid-column: span 8;
+	grid-column: auto / span 8;
 }
-.vsec.half .vitem.w6,
-.vsec.half .vitem.w8,
-.vsec.half .vph.w6,
-.vsec.half .vph.w8 {
-	grid-column: span 4;
+.vitem.w12,
+.vph.w12 {
+	grid-column: auto / span 12;
+}
+.vitem.w16,
+.vph.w16 {
+	grid-column: auto / span 16;
+}
+.vsec.half .vitem.w12,
+.vsec.half .vitem.w16,
+.vsec.half .vph.w12,
+.vsec.half .vph.w16,
+.vsec.third .vitem.w12,
+.vsec.third .vitem.w16,
+.vsec.third .vph.w12,
+.vsec.third .vph.w16 {
+	grid-column: auto / span 8;
 }
 .vcontent,
 .vcontent > .card {
@@ -807,7 +833,7 @@ dialog button {
 	min-height: 60px;
 }
 .vph {
-	grid-column: span 2;
+	grid-column: auto / span 2;
 }
 
 .vph.full {
@@ -886,16 +912,20 @@ dialog button {
 	.vsections {
 		grid-template-columns: minmax(0, 1fr);
 	}
+	.vsec.half,
+	.vsec.third {
+		grid-column: 1 / -1;
+	}
 }
 @media (max-width: 599px) {
 	.vgrid {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: repeat(8, minmax(0, 1fr));
 	}
-	.vitem.w6,
-	.vitem.w8,
-	.vph.w6,
-	.vph.w8 {
-		grid-column: span 4;
+	.vitem.w12,
+	.vitem.w16,
+	.vph.w12,
+	.vph.w16 {
+		grid-column: auto / span 8;
 	}
 }
 #myview:not(.editing) .vgrid:empty {
@@ -2543,19 +2573,24 @@ dialog .opt-back {
 
 /* Cases S : moins hautes, texte plus petit, nom sur une ligne. */
 .vitem.w1 .vcontent > .card,
-.vitem.w1 .gauge {
+.vitem.w1 .gauge,
+.vitem.w2 .vcontent > .card,
+.vitem.w2 .gauge {
 	min-height: 56px;
 	padding: 6px;
 }
 .vitem.w1 .card .label,
-.vitem.w1 .glabel {
+.vitem.w1 .glabel,
+.vitem.w2 .card .label,
+.vitem.w2 .glabel {
 	font-size: 11px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	max-width: 100%;
 }
-.vitem.w1 .card .value {
+.vitem.w1 .card .value,
+.vitem.w2 .card .value {
 	font-size: 16px;
 	margin: 0 0 4px;
 }
@@ -2606,10 +2641,12 @@ dialog .opt-back {
 	font-size: 14px;
 }
 /* Case d'un emplacement : boutons d'édition resserrés pour tenir sur une ligne. */
-.vitem.w1 .vctl {
+.vitem.w1 .vctl,
+.vitem.w2 .vctl {
 	gap: 2px;
 }
-.vitem.w1 .vctl button {
+.vitem.w1 .vctl button,
+.vitem.w2 .vctl button {
 	padding: 0 4px;
 	font-size: 11px;
 }
@@ -2622,4 +2659,609 @@ dialog .opt-back {
 	max-width: 100%;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+/* Voyant boost (Ma vue) : gris au repos, allumé quand on boost. */
+.vboost {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	letter-spacing: 3px;
+	/* Éteint : gris, mais lisible (le gris « discret » se perdait sur fond sombre). */
+	color: color-mix(in srgb, var(--text) 75%, var(--bg));
+	border: 1px solid var(--line-strong);
+	transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.vboost[data-state="on"] {
+	color: #1a0d00;
+	background: var(--warn);
+	box-shadow: 0 0 16px color-mix(in srgb, var(--warn) 60%, transparent);
+}
+.vboost[data-state="unknown"] {
+	opacity: 0.5;
+}
+
+/* ---------- Ma vue : règle de cap, interrupteur, glisser ---------- */
+.g-tape {
+	position: relative;
+	height: 100%;
+	min-height: 58px;
+	overflow: hidden;
+	background: var(--inset);
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	-webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+	mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+.g-tape .tstrip {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	will-change: transform;
+}
+.g-tape .tstrip i {
+	position: absolute;
+	bottom: 0;
+	width: 2px;
+	height: 9px;
+	background: var(--muted);
+}
+.g-tape .tstrip i.major {
+	height: 16px;
+	background: var(--text);
+}
+.g-tape .tstrip b {
+	position: absolute;
+	bottom: 18px;
+	transform: translateX(-50%);
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--muted);
+}
+.g-tape .tstrip b.card {
+	color: var(--link);
+	font-size: 14px;
+}
+.g-tape .tvalue {
+	position: absolute;
+	left: 50%;
+	top: 4px;
+	transform: translateX(-50%);
+	z-index: 1;
+	padding: 0 8px;
+	background: var(--panel);
+	border: 1px solid var(--link);
+	border-radius: 6px;
+	color: var(--link);
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+.g-tape::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	bottom: 0;
+	transform: translateX(-50%);
+	border: 6px solid transparent;
+	border-bottom-color: var(--link);
+}
+.g-tape .glabel {
+	display: none;
+}
+.g-tape.tunknown .tstrip {
+	opacity: 0.3;
+}
+
+.vswitch {
+	position: relative;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+	min-height: 52px;
+	padding: 0;
+	background: var(--inset);
+	border: 1px solid var(--line-strong);
+	border-radius: 12px;
+	color: var(--muted);
+	font: inherit;
+	font-weight: 700;
+	letter-spacing: 2px;
+	cursor: pointer;
+	overflow: hidden;
+}
+.vswitch .vsw-knob {
+	position: absolute;
+	top: 4px;
+	bottom: 4px;
+	left: 4px;
+	width: calc(50% - 8px);
+	border-radius: 9px;
+	background: var(--raised);
+	border: 1px solid var(--line-strong);
+	transition: left 0.28s cubic-bezier(0.5, 1.6, 0.5, 1), background 0.2s, border-color 0.2s;
+}
+.vswitch .vsw-off,
+.vswitch .vsw-on {
+	position: relative;
+	text-align: center;
+	transition: color 0.2s;
+}
+.vswitch .vsw-label {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 2px;
+	font-size: 10px;
+	font-weight: 400;
+	letter-spacing: 1px;
+	text-align: center;
+	color: var(--muted);
+}
+.vswitch[data-state="off"] .vsw-off {
+	color: var(--text);
+}
+.vswitch[data-state="on"] .vsw-knob {
+	left: calc(50% + 4px);
+	background: color-mix(in srgb, var(--ok) 25%, var(--inset));
+	border-color: var(--ok);
+}
+.vswitch[data-state="on"] .vsw-on {
+	color: var(--ok-text);
+}
+.vswitch[data-state="unknown"] .vsw-knob {
+	left: 25%;
+	opacity: 0.4;
+}
+.vswitch[data-readonly="1"] {
+	cursor: default;
+	opacity: 0.7;
+}
+.vswitch.moving .vsw-knob {
+	border-style: dashed;
+}
+
+.vslide {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	min-height: 52px;
+	padding-left: 72px;
+	border: 1px solid var(--warn-line);
+	border-radius: 12px;
+	background: repeating-linear-gradient(135deg, var(--inset) 0 10px, color-mix(in srgb, var(--warn) 12%, var(--inset)) 10px 20px);
+	color: var(--warn);
+	font-weight: 600;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	user-select: none;
+	overflow: hidden;
+}
+.vslide .vslide-knob {
+	position: absolute;
+	left: 3px;
+	top: 3px;
+	bottom: 3px;
+	width: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 9px;
+	background: var(--warn);
+	color: var(--bg);
+	font-size: 18px;
+	cursor: grab;
+	touch-action: none;
+	transition: transform 0.2s;
+}
+.vslide.sliding .vslide-knob {
+	transition: none;
+	cursor: grabbing;
+}
+.vslide .vslide-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 13px;
+}
+.editing .vslide .vslide-knob {
+	cursor: inherit;
+}
+
+/* Fenêtre « Nouvelle vue » : Vierge ou un modèle. */
+.vnew-intro {
+	margin: 0 0 12px;
+	color: var(--muted);
+}
+.vnew-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.vnew-opt {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 3px;
+	padding: 10px 14px;
+	border: 1px solid var(--line-strong);
+	border-radius: 10px;
+	background: var(--card);
+	color: var(--text);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+.vnew-opt:hover {
+	background: var(--hover);
+}
+.vnew-opt span,
+.vnew-opt small {
+	color: var(--muted);
+}
+.vnew-note {
+	margin-top: 10px;
+	color: var(--muted);
+}
+
+/* ---------- Ma vue : section haute (deux lignes de la grille, grand écran) ---------- */
+.vsec.tall {
+	grid-row: span 2;
+	align-self: stretch;
+}
+@media (max-width: 999px) {
+	.vsec.tall {
+		grid-row: auto;
+	}
+}
+.vsctl button.on {
+	color: var(--accent);
+	border-color: var(--accent);
+}
+
+/* ---------- Habillage « Cockpit » (poste de pilotage, maquette Xeneon Edge) ---------- */
+/* Sur la base du HUD : boutons à coins coupés, nom centré en gras, état dessous, allumé = fond bleu ;
+   jauges en barre sur une seule ligne (NOM ━━━ 78 %) ; actions dangereuses à confirmer en rouge. */
+#myview.cockpit {
+	--ck-on: var(--link);
+	--ck-cut: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+#myview.cockpit .vsec {
+	clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+#myview.cockpit .vsec::after {
+	display: none;
+}
+#myview.cockpit .vgrid {
+	gap: 8px;
+}
+#myview.cockpit .vcontent > .card.function,
+#myview.cockpit .vcontent > .card.emote {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+	min-height: 56px;
+	padding: 6px 8px;
+	text-align: center;
+	background: color-mix(in srgb, var(--card) 70%, var(--bg));
+	border: 1px solid var(--line-strong);
+	border-radius: 0;
+	clip-path: var(--ck-cut);
+}
+#myview.cockpit .card.function .label,
+#myview.cockpit .card.emote .label {
+	color: var(--text);
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+}
+#myview.cockpit .card.function .value {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 400;
+	letter-spacing: 0.04em;
+}
+#myview.cockpit .card.function[data-state="on"] {
+	border-color: var(--ck-on);
+	background: color-mix(in srgb, var(--ck-on) 14%, var(--bg));
+	box-shadow: inset 0 0 18px color-mix(in srgb, var(--ck-on) 22%, transparent);
+}
+#myview.cockpit .card.function[data-state="on"] .label,
+#myview.cockpit .card.function[data-state="on"] .value {
+	color: var(--ck-on);
+}
+#myview.cockpit .vitem.w8 .card.emote .label,
+#myview.cockpit .vitem.w16 .card.emote .label {
+	font-size: 20px;
+	letter-spacing: 0.2em;
+}
+#myview.cockpit .vitem.w8 .vcontent > .card.emote {
+	min-height: 72px;
+}
+/* Jauges en barre : une ligne. */
+#myview.cockpit .gauge.g-bar,
+#myview.cockpit .gauge.g-line {
+	flex-direction: row;
+	min-height: 36px;
+	gap: 10px;
+	padding: 4px 10px;
+	border-radius: 0;
+}
+#myview.cockpit .g-bar .glabel,
+#myview.cockpit .g-line .glabel {
+	order: -1;
+	flex: 0 0 auto;
+	width: 40%;
+	max-width: 130px;
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+#myview.cockpit .g-bar .gbar {
+	flex: 1;
+	height: 12px;
+	border-radius: 0;
+}
+#myview.cockpit .g-bar .gbar i {
+	border-radius: 0;
+}
+#myview.cockpit .g-bar .gvalue,
+#myview.cockpit .g-line .gvalue {
+	flex: 0 0 auto;
+	min-width: 56px;
+	text-align: right;
+	font-size: 17px;
+}
+/* Chiffres en tuiles : nom en petit en haut, valeur en gros. */
+#myview.cockpit .gauge.g-number {
+	align-items: flex-start;
+	min-height: 56px;
+	border-radius: 0;
+}
+#myview.cockpit .g-number .glabel {
+	order: -1;
+	font-size: 11px;
+}
+#myview.cockpit .g-number .gvalue {
+	font-size: 26px;
+}
+#myview.cockpit .vswitch,
+#myview.cockpit .vslide {
+	border-radius: 0;
+	clip-path: var(--ck-cut);
+}
+#myview.cockpit .vswitch .vsw-knob,
+#myview.cockpit .vslide .vslide-knob {
+	border-radius: 0;
+}
+#myview.cockpit .vswitch {
+	min-height: 64px;
+	font-size: 20px;
+}
+#myview.cockpit .vswitch[data-state="off"] .vsw-knob {
+	background: color-mix(in srgb, var(--ck-on) 14%, var(--bg));
+	border-color: var(--ck-on);
+}
+#myview.cockpit .vswitch[data-state="off"] .vsw-off {
+	color: var(--ck-on);
+}
+#myview.cockpit .vswitch[data-state="on"] .vsw-knob {
+	background: color-mix(in srgb, var(--warn) 16%, var(--bg));
+	border-color: var(--warn);
+}
+#myview.cockpit .vswitch[data-state="on"] .vsw-on {
+	color: var(--warn);
+}
+
+/* Autodestruction et éjection : toujours en rouge, dans tous les habillages. */
+.vslide.red {
+	border-color: var(--bad);
+	background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--bad) 10%, var(--bg)) 0 10px, color-mix(in srgb, var(--bad) 18%, var(--bg)) 10px 20px);
+	color: var(--bad-text);
+}
+.vslide.red .vslide-knob {
+	background: var(--bad);
+	color: #fff;
+}
+.vcontent > .card.red {
+	border-color: var(--bad);
+	background: color-mix(in srgb, var(--bad) 12%, var(--bg));
+}
+.vcontent > .card.red .label,
+.vcontent > .card.red .value {
+	color: var(--bad-text);
+}
+/* Maintenir : la case se remplit pendant l'appui (comme la maquette). */
+/* Dans une vue, la case se remplit de gauche à droite : pas d'anneau par-dessus (il la cachait). */
+.vcontent > .card.hold-action {
+	position: relative;
+	overflow: hidden;
+}
+.vcontent > .card.hold-action .hold-ring {
+	display: none;
+}
+.vcontent > .card.hold-action::before {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: calc(var(--hold, 0) * 100%);
+	background: color-mix(in srgb, var(--bad) 60%, transparent);
+	pointer-events: none;
+}
+.vcontent > .card.hold-action > .label,
+.vcontent > .card.hold-action > .vhold-hint {
+	position: relative;
+}
+.vhold-hint {
+	font-size: 12px;
+	color: var(--muted);
+}
+.card.red .vhold-hint {
+	color: var(--bad-text);
+}
+/* Cockpit : sections et cases plus compactes (tout tient sur un écran 2560×720). */
+#myview.cockpit .vsec {
+	padding: 8px 12px 10px;
+}
+#myview.cockpit .vhead {
+	min-height: 28px;
+}
+#myview.cockpit .vcontent > .card.function,
+#myview.cockpit .vcontent > .card.emote,
+#myview.cockpit .gauge.g-number,
+#myview.cockpit .vslide {
+	min-height: 48px;
+}
+#myview.cockpit .vsections {
+	gap: 10px;
+}
+#myview.cockpit .vhead {
+	margin-bottom: 4px;
+}
+#myview.cockpit .vcontent > .card {
+	min-height: 48px;
+	padding: 6px 10px;
+}
+#myview.cockpit .gauge.g-bar {
+	min-height: 32px;
+}
+/* Cockpit : voyants sur une seule ligne (comme la barre du haut de la maquette), aide « vue verrouillée » masquée. */
+#myview.cockpit .vcontent > .card:has(> .lights) {
+	display: flex;
+	align-items: center;
+}
+#myview.cockpit .card > .lights + .label,
+#myview.cockpit .card > .label:has(+ .lights) {
+	display: none;
+}
+#myview.cockpit .lights {
+	flex-wrap: nowrap;
+	gap: 4px;
+	width: 100%;
+	max-width: none;
+}
+#myview.cockpit .light {
+	flex: 1;
+	min-width: 0;
+	padding: 4px 0;
+	border-radius: 0;
+	font-size: 11px;
+	font-weight: 700;
+	text-align: center;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+#myview.cockpit .vhint {
+	display: none;
+}
+#myview.cockpit .vcontent > .card.red {
+	border-color: var(--bad);
+	background: color-mix(in srgb, var(--bad) 14%, var(--bg));
+}
+#myview.cockpit .card.red .label {
+	color: var(--bad-text);
+}
+/* Cockpit : les cases remplissent toute la hauteur de leur section (une section haute n'a plus de vide en bas)
+   et le texte est plus gros, pour rester lisible de loin sur un écran large. */
+#myview.cockpit .vsec {
+	display: flex;
+	flex-direction: column;
+}
+#myview.cockpit .vgrid {
+	flex: 1;
+	align-content: stretch;
+}
+#myview.cockpit .vtitle {
+	font-size: 14px;
+}
+#myview.cockpit .card.function .label,
+#myview.cockpit .card.emote .label {
+	font-size: 18px;
+}
+#myview.cockpit .card.function .value,
+#myview.cockpit .vhold-hint {
+	font-size: 14px;
+}
+#myview.cockpit .vitem.w8 .card.emote .label,
+#myview.cockpit .vitem.w16 .card.emote .label {
+	font-size: 24px;
+}
+#myview.cockpit .g-bar .glabel,
+#myview.cockpit .g-line .glabel,
+#myview.cockpit .g-number .glabel {
+	font-size: 14px;
+}
+#myview.cockpit .g-bar .gvalue,
+#myview.cockpit .g-line .gvalue {
+	font-size: 20px;
+}
+#myview.cockpit .g-number .gvalue {
+	font-size: 30px;
+}
+#myview.cockpit .light {
+	font-size: 13px;
+}
+/* Style « ligne » : nom à gauche, valeur à droite, sur une ligne (comme une barre, sans la barre). */
+.gauge.g-line {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	min-height: 32px;
+}
+.g-line .glabel {
+	order: -1;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+#myview.cockpit .gauge.g-line {
+	min-height: 32px;
+	padding: 4px 10px;
+	border-radius: 0;
+}
+#myview.cockpit .g-line .glabel {
+	width: auto;
+	max-width: none;
+	flex: 1;
+}
+/* Placement libre : sur téléphone (grille plus étroite), les cases se suivent sans colonne imposée. */
+@media (max-width: 599px) {
+	.vitem,
+	.vph {
+		grid-column-start: auto !important;
+	}
+}
+/* Largeur d'une case : − nombre + */
+.vsize {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+}
+.vsize-n {
+	min-width: 1.6em;
+	text-align: center;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+.vsize button:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+.vsize-w {
+	min-width: 3.6em;
 }

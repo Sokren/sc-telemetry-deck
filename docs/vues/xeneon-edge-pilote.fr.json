@@ -1,0 +1,377 @@
+{
+	"format": "sc-telemetry-deck.views",
+	"format_version": 1,
+	"app_version": "0.3.13",
+	"exported_at": "2026-11-24T00:00:00.000Z",
+	"views": [
+		{
+			"name": "Xeneon Edge – pilote",
+			"sections": [
+				{
+					"id": "ship",
+					"title": "Vaisseau",
+					"width": "full",
+					"items": [
+						{
+							"id": "ship_name",
+							"kind": "ship_info",
+							"ref": "name",
+							"size": 0.5
+						},
+						{
+							"id": "decoys",
+							"kind": "instrument",
+							"ref": "decoys",
+							"size": 0.5,
+							"display": {
+								"style": "line"
+							}
+						},
+						{
+							"id": "noise",
+							"kind": "instrument",
+							"ref": "noise",
+							"size": 0.5,
+							"display": {
+								"style": "line"
+							}
+						},
+						{
+							"id": "heading",
+							"kind": "instrument",
+							"ref": "heading",
+							"size": 1,
+							"display": {
+								"style": "tape"
+							}
+						},
+						{
+							"id": "boost_light",
+							"kind": "ship_info",
+							"ref": "boost",
+							"size": 0.5
+						},
+						{
+							"id": "annunciators",
+							"kind": "annunciators",
+							"size": 1
+						}
+					]
+				},
+				{
+					"id": "flight",
+					"title": "Vol · IFCS",
+					"width": "third",
+					"tall": true,
+					"items": [
+						{
+							"id": "flight_ready",
+							"kind": "action",
+							"ref": "v_flightready",
+							"size": 2
+						},
+						{
+							"id": "master_nav",
+							"kind": "ship_function",
+							"ref": "master_nav",
+							"size": 1,
+							"col": 3,
+							"display": {
+								"style": "switch"
+							}
+						},
+						{
+							"id": "decoupled",
+							"kind": "ship_function",
+							"ref": "decoupled",
+							"size": 0.5,
+							"col": 1
+						},
+						{
+							"id": "gsafe",
+							"kind": "ship_function",
+							"ref": "gsafe",
+							"size": 0.5
+						},
+						{
+							"id": "proximity",
+							"kind": "ship_function",
+							"ref": "proximity",
+							"size": 0.5
+						},
+						{
+							"id": "esp",
+							"kind": "ship_function",
+							"ref": "esp",
+							"size": 0.5
+						},
+						{
+							"id": "speed",
+							"kind": "instrument",
+							"ref": "speed",
+							"size": 0.5,
+							"display": {
+								"style": "number"
+							}
+						},
+						{
+							"id": "radar_altitude",
+							"kind": "instrument",
+							"ref": "radar_altitude",
+							"size": 0.5,
+							"display": {
+								"style": "number"
+							}
+						},
+						{
+							"id": "vertical_speed",
+							"kind": "instrument",
+							"ref": "vertical_speed",
+							"size": 0.5,
+							"display": {
+								"style": "number"
+							}
+						},
+						{
+							"id": "g_force",
+							"kind": "instrument",
+							"ref": "g_force",
+							"size": 0.5,
+							"display": {
+								"style": "number"
+							}
+						}
+					]
+				},
+				{
+					"id": "energy",
+					"title": "Quantique · Énergie",
+					"width": "third",
+					"tall": true,
+					"items": [
+						{
+							"id": "power_main",
+							"kind": "ship_function",
+							"ref": "power_main",
+							"size": 0.5
+						},
+						{
+							"id": "power_weapons",
+							"kind": "ship_function",
+							"ref": "power_weapons",
+							"size": 0.5
+						},
+						{
+							"id": "power_engines",
+							"kind": "ship_function",
+							"ref": "power_engines",
+							"size": 0.5
+						},
+						{
+							"id": "power_shields",
+							"kind": "ship_function",
+							"ref": "power_shields",
+							"size": 0.5
+						},
+						{
+							"id": "shields",
+							"kind": "instrument",
+							"ref": "shields",
+							"size": 2,
+							"display": {
+								"style": "bar"
+							}
+						},
+						{
+							"id": "hull",
+							"kind": "instrument",
+							"ref": "hull",
+							"size": 2,
+							"display": {
+								"style": "bar"
+							}
+						},
+						{
+							"id": "hydrogen",
+							"kind": "instrument",
+							"ref": "hydrogen",
+							"size": 2,
+							"display": {
+								"style": "bar"
+							}
+						},
+						{
+							"id": "quantum",
+							"kind": "instrument",
+							"ref": "quantum",
+							"size": 2,
+							"display": {
+								"style": "bar"
+							}
+						},
+						{
+							"id": "boost",
+							"kind": "instrument",
+							"ref": "boost",
+							"size": 2,
+							"display": {
+								"style": "bar"
+							}
+						},
+						{
+							"id": "quantum_drive",
+							"kind": "action",
+							"ref": "v_toggle_qdrive_engagement",
+							"size": 2
+						}
+					]
+				},
+				{
+					"id": "aux",
+					"title": "Atterrissage · Aux",
+					"width": "third",
+					"items": [
+						{
+							"id": "gear",
+							"kind": "ship_function",
+							"ref": "gear",
+							"size": 0.5
+						},
+						{
+							"id": "vtol",
+							"kind": "ship_function",
+							"ref": "vtol",
+							"size": 0.5
+						},
+						{
+							"id": "atc",
+							"kind": "action",
+							"ref": "v_atc_request",
+							"size": 0.5
+						},
+						{
+							"id": "docking",
+							"kind": "action",
+							"ref": "v_toggle_docking_request",
+							"size": 0.5
+						},
+						{
+							"id": "lights",
+							"kind": "ship_function",
+							"ref": "lights",
+							"size": 0.5
+						},
+						{
+							"id": "night_vision",
+							"kind": "ship_function",
+							"ref": "night_vision",
+							"size": 0.5
+						},
+						{
+							"id": "ping",
+							"kind": "action",
+							"ref": "v_invoke_ping",
+							"size": 1
+						},
+						{
+							"id": "self_destruct",
+							"kind": "action",
+							"ref": "v_self_destruct",
+							"size": 1,
+							"display": {
+								"style": "slide"
+							}
+						},
+						{
+							"id": "eject",
+							"kind": "action",
+							"ref": "v_eject",
+							"size": 0.5,
+							"col": 7,
+							"display": {
+								"style": "hold"
+							}
+						}
+					]
+				},
+				{
+					"id": "character",
+					"title": "Personnage",
+					"width": "third",
+					"items": [
+						{
+							"id": "health",
+							"kind": "vital",
+							"ref": "health",
+							"size": 1,
+							"display": {
+								"style": "bar"
+							}
+						},
+						{
+							"id": "oxygen",
+							"kind": "vital",
+							"ref": "oxygen",
+							"size": 1,
+							"display": {
+								"style": "bar"
+							}
+						},
+						{
+							"id": "hunger",
+							"kind": "vital",
+							"ref": "hunger",
+							"size": 1,
+							"display": {
+								"style": "bar"
+							}
+						},
+						{
+							"id": "thirst",
+							"kind": "vital",
+							"ref": "thirst",
+							"size": 1,
+							"display": {
+								"style": "bar"
+							}
+						},
+						{
+							"id": "body_temperature",
+							"kind": "vital",
+							"ref": "body_temperature",
+							"size": 0.5,
+							"display": {
+								"style": "number"
+							}
+						},
+						{
+							"id": "external_temperature",
+							"kind": "vital",
+							"ref": "external_temperature",
+							"size": 0.5,
+							"display": {
+								"style": "number"
+							}
+						},
+						{
+							"id": "heart_rate",
+							"kind": "vital",
+							"ref": "heart_rate",
+							"size": 0.5,
+							"display": {
+								"style": "number"
+							}
+						},
+						{
+							"id": "breathable",
+							"kind": "vital",
+							"ref": "breathable",
+							"size": 0.5
+						}
+					]
+				}
+			],
+			"look": "cockpit"
+		}
+	]
+}

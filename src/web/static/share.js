@@ -304,3 +304,37 @@ export function openImport(ctx, onImported) {
 	dlg.showModal();
 	area.focus();
 }
+
+/**
+ * Fenêtre « Nouvelle vue » : Vierge, puis les modèles de l'appli (GET /api/v1/views/templates) avec leur
+ * description et la taille d'écran conseillée. `onPick(null)` = vierge, `onPick({ id, name })` = modèle.
+ */
+export function openNewView(ctx, onPick) {
+	const { t, fmt, api, lang } = ctx;
+	const dlg = dialog(t("newViewTitle"));
+	const list = el("div", "vnew-list");
+	const choice = (title, text, extra, pick) => {
+		const b = button("vnew-opt");
+		b.append(el("b", "", title), el("span", "", text));
+		if (extra) b.append(el("small", "", extra));
+		b.addEventListener("click", () => {
+			dlg.close();
+			pick();
+		});
+		return b;
+	};
+	list.append(choice(t("templateBlank"), t("templateBlankText"), "", () => onPick(null)));
+	const note = el("div", "vnew-note", t("templatesLoading"));
+	dlg.append(el("p", "vnew-intro", t("newViewIntro")), list, note);
+	footer(dlg, t);
+	document.body.append(dlg);
+	dlg.showModal();
+	api(`/api/v1/views/templates?lang=${lang()}`)
+		.then((r) => (r.ok ? r.json() : Promise.reject()))
+		.then(({ templates }) => {
+			note.remove();
+			for (const tp of templates)
+				list.append(choice(tp.name, tp.description, fmt("templateSize", tp.size.width, tp.size.height), () => onPick({ id: tp.id, name: tp.name })));
+		})
+		.catch(() => (note.textContent = t("templatesFailed")));
+}

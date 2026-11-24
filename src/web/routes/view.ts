@@ -1,12 +1,28 @@
 import type { Route } from "../http.js";
-import { MAX_VIEWS, parseViewInput, type ViewStore } from "../view.js";
+import type { Lang } from "../../catalog/labels.js";
+import { MAX_VIEWS, normalizeViewName, parseViewInput, type ViewInput, type ViewStore } from "../view.js";
 import { buildExport, encodeCode, readImport } from "../view-export.js";
+import { templateById, templateSummary, VIEW_TEMPLATES } from "../view-templates.js";
 
 const invalid = { status: 400, json: { error: "invalid_view" } } as const;
 const unknown = { status: 404, json: { error: "unknown_view" } } as const;
 
 /** Corps d'import : jusqu'à 10 vues pleines (bien plus que les 64 Ko par défaut). */
 const MAX_IMPORT_BODY = 1_048_576;
+
+/**
+ * Corps `{ template, name? }` : contenu du modèle (nom du modèle, ou celui donné) ; `undefined` sans `template`.
+ * `template` avec `sections` ou `look` → corps invalide.
+ */
+function fromTemplate(body: unknown, lang: Lang): ViewInput | "unknown_template" | null | undefined {
+	if (!body || typeof body !== "object" || !("template" in body)) return undefined;
+	const o = body as Record<string, unknown>;
+	if ("sections" in o || "look" in o || (o.name !== undefined && typeof o.name !== "string")) return null;
+	const t = templateById(o.template);
+	if (!t) return "unknown_template";
+	const view = t.build(lang);
+	return typeof o.name === "string" && o.name.trim() ? { ...view, name: normalizeViewName(o.name, lang) } : view;
+}
 
 /** « Ma vue » : liste, création, modification, suppression, export et import des vues (chacune enregistrée séparément). */
 export function viewsRoutes(deps: { views: ViewStore; version: string }): Route[] {
@@ -53,10 +69,17 @@ export function viewsRoutes(deps: { views: ViewStore; version: string }): Route[
 			handle: async ({ lang }) => ({ status: 200, json: { views: deps.views.list(lang) } }),
 		},
 		{
+			method: "GET",
+			path: "/api/v1/views/templates",
+			handle: async ({ lang }) => ({ status: 200, json: { templates: VIEW_TEMPLATES.map((t) => templateSummary(t, lang)) } }),
+		},
+		{
 			method: "POST",
 			path: "/api/v1/views",
 			handle: async ({ body, lang }) => {
-				const input = parseViewInput(body, lang);
+				const templated = fromTemplate(body, lang);
+				const input = templated === undefined ? parseViewInput(body, lang) : templated;
+				if (input === "unknown_template") return { status: 400, json: { error: "unknown_template" } };
 				if (!input) return invalid;
 				const view = deps.views.create(input, lang);
 				return view === "too_many" ? { status: 409, json: { error: "too_many_views" } } : { status: 201, json: view };

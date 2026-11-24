@@ -27,23 +27,50 @@ export type ItemKind = (typeof ITEM_KINDS)[number];
 export type MorseItemSettings = { text?: string; light: MorseLight; unitMs: number; repeat: number };
 
 /** Styles d'affichage d'une case de valeur (`card` = carte, le défaut, jamais enregistré). */
-export const ITEM_STYLES = ["card", "ring", "arc", "bar", "vbar", "segments", "vsegments", "number"] as const;
+export const ITEM_STYLES = ["card", "ring", "arc", "bar", "vbar", "segments", "vsegments", "number", "line", "tape", "switch", "slide", "hold"] as const;
 export type ItemStyle = (typeof ITEM_STYLES)[number];
 /** Habillages d'une vue (`standard` = le défaut, jamais enregistré). */
-export const VIEW_LOOKS = ["standard", "hud"] as const;
+export const VIEW_LOOKS = ["standard", "hud", "cockpit"] as const;
+/** Habillage enregistré (le défaut `standard` ne l'est jamais). */
+export type SavedLook = Exclude<(typeof VIEW_LOOKS)[number], "standard">;
 export type ViewLook = (typeof VIEW_LOOKS)[number];
 /** Types de case qui acceptent un style. */
-export const STYLED_KINDS: readonly ItemKind[] = ["vital", "instrument", "character_info", "ship_info"];
+export const STYLED_KINDS: readonly ItemKind[] = ["vital", "instrument", "character_info", "ship_info", "ship_function", "action"];
+const GAUGE_STYLES = ["ring", "arc", "bar", "vbar", "segments", "vsegments", "number", "line"] as const;
+
+/**
+ * Styles permis (hors carte, le défaut) pour un type de case : jauges sur les valeurs, chiffre seulement sur les infos
+ * (du texte), règle sur le cap, interrupteur sur une fonction vaisseau, glisser / maintenir sur une action ; aucun
+ * sur le voyant boost.
+ */
+export function stylesAllowed(kind: ItemKind, ref?: unknown): readonly Exclude<ItemStyle, "card">[] {
+	switch (kind) {
+		case "vital":
+			return GAUGE_STYLES;
+		case "instrument":
+			return ref === "heading" ? [...GAUGE_STYLES, "tape"] : GAUGE_STYLES;
+		case "character_info":
+			return ["number", "line"];
+		case "ship_info":
+			return ref === "boost" ? [] : ["number", "line"];
+		case "ship_function":
+			return ["switch"];
+		case "action":
+			return ["slide", "hold"];
+		default:
+			return [];
+	}
+}
 /** Échelle du solde : `full` tous les chiffres, `k` en milliers, `m` en millions ; absent = compact automatique. */
 export const MONEY_LENGTHS = ["full", "k", "m"] as const;
 /** Réglages d'affichage d'une case : style (jauges, chiffre) et échelle du solde. */
 export type ItemDisplay = { style?: Exclude<ItemStyle, "card">; length?: (typeof MONEY_LENGTHS)[number] };
 
 /**
- * Largeur d'une case, comptée en cases 1× : un emplacement = 0.5. Une section pleine largeur fait 8 emplacements
- * (size 4), une demi-section 4 (size 2) ; une case plus large que sa section en prend toute la largeur.
+ * Largeur d'une case, comptée en cases 1× : un emplacement = 0.25. Une section pleine largeur fait 16 emplacements
+ * (size 4), une demi-section ou un tiers 8 (size 2) ; une case plus large que sa section en prend toute la largeur.
  */
-export const ITEM_SIZES = [0.5, 1, 1.5, 2, 3, 4] as const;
+export const ITEM_SIZES = [0.25, 0.5, 1, 1.5, 2, 3, 4] as const;
 export type ItemSize = (typeof ITEM_SIZES)[number];
 export const MAX_LABEL = 24;
 /** Cases sans nom affiché modifiable (message morse, encart « Mon vaisseau »). */
@@ -56,13 +83,22 @@ export type ViewItem = {
 	kind: ItemKind;
 	ref?: string;
 	size: ItemSize;
+	/**
+	 * Colonne de départ (1 à 16, comptée en emplacements) : la case commence là, en laissant vides les emplacements
+	 * d'avant sur sa ligne. Absente = juste après la case précédente.
+	 */
+	col?: number;
 	settings?: MorseItemSettings;
 	label?: string;
 	display?: ItemDisplay;
 };
-export type ViewSection = { id: string; title: string; width: "half" | "full"; items: ViewItem[] };
+/** Largeur d'une section : pleine, demie ou tiers d'écran. */
+export const SECTION_WIDTHS = ["full", "half", "third"] as const;
+export type SectionWidth = (typeof SECTION_WIDTHS)[number];
+/** `tall` (seulement s'il est vrai) : section haute, sur deux lignes de la grille (grand écran). */
+export type ViewSection = { id: string; title: string; width: SectionWidth; tall?: true; items: ViewItem[] };
 export type Layout = { sections: ViewSection[] };
-export type ViewInput = { name: string; sections: ViewSection[]; look?: "hud" };
+export type ViewInput = { name: string; sections: ViewSection[]; look?: SavedLook };
 export type NamedView = { id: string } & ViewInput;
 
 export const MAX_VIEWS = 10;
@@ -80,7 +116,7 @@ const ACTION = /^[a-z0-9_]{1,64}$/;
 const REFS: Partial<Record<ItemKind, readonly string[]>> = {
 	vital: DISPLAY_VALUES,
 	instrument: INSTRUMENTS,
-	ship_info: ["name", "master_mode", "landed"],
+	ship_info: ["name", "master_mode", "landed", "boost"],
 	character_info: ["position", "role", "seat"],
 	ship_function: SHIP_FUNCTION_IDS,
 };
@@ -159,16 +195,13 @@ function parseDisplay(kind: ItemKind, ref: unknown, x: unknown): ItemDisplay | u
 	if (!o) return undefined;
 	const display: ItemDisplay = {};
 	const style = o.style;
-	const known = STYLED_KINDS.includes(kind) && style !== "card" && (ITEM_STYLES as readonly unknown[]).includes(style);
-	// Infos perso / vaisseau : du texte, jamais de pourcentage → chiffre seulement.
-	const info = kind === "character_info" || kind === "ship_info";
-	if (known && (!info || style === "number")) display.style = style as ItemDisplay["style"];
+	if ((stylesAllowed(kind, ref) as readonly unknown[]).includes(style)) display.style = style as ItemDisplay["style"];
 	if (kind === "vital" && ref === "balance" && (MONEY_LENGTHS as readonly unknown[]).includes(o.length)) display.length = o.length as ItemDisplay["length"];
 	return Object.keys(display).length ? display : undefined;
 }
 
 /** `look` normalisé : seul `hud` est gardé (le défaut et les valeurs inconnues sont omis). */
-const lookOf = (x: unknown): { look?: "hud" } => (x === "hud" ? { look: "hud" } : {});
+const lookOf = (x: unknown): { look?: SavedLook } => (x === "hud" || x === "cockpit" ? { look: x } : {});
 
 /** Nom affiché : 1 à 24 caractères (un emoji compte pour un), espaces autour retirés ; sinon rien. */
 function parseLabel(kind: ItemKind, x: unknown): { label?: string } {
@@ -183,35 +216,39 @@ function extras(kind: ItemKind, o: Obj): { label?: string; display?: ItemDisplay
 	return { ...parseLabel(kind, o.label), ...(display ? { display } : {}) };
 }
 
+/** Colonne de départ gardée si c'est un entier de 1 à 16 (ligne pleine), sinon ignorée. */
+const colOf = (x: unknown): { col?: number } => (Number.isInteger(x) && (x as number) >= 1 && (x as number) <= 16 ? { col: x as number } : {});
+
 function parseItem(x: unknown): ViewItem | undefined {
 	const o = obj(x);
 	if (!o || typeof o.id !== "string" || !ID.test(o.id)) return undefined;
 	if (!(ITEM_KINDS as readonly unknown[]).includes(o.kind)) return undefined;
 	if (!(ITEM_SIZES as readonly unknown[]).includes(o.size)) return undefined;
 	const kind = o.kind as ItemKind;
-	const size = (o.size === 0.5 && MIN_SIZE_1.includes(kind) ? 1 : o.size) as ItemSize;
+	const size = ((o.size as number) < 1 && MIN_SIZE_1.includes(kind) ? 1 : o.size) as ItemSize;
+	const col = colOf(o.col);
 	// Cases sans `ref` : voyants, encart « Mon vaisseau ».
-	if (kind === "annunciators" || kind === "ship_card") return { id: o.id, kind, size, ...extras(kind, o) };
+	if (kind === "annunciators" || kind === "ship_card") return { id: o.id, kind, size, ...col, ...extras(kind, o) };
 	if (kind === "morse" || kind === "morse_free") {
 		const settings = parseMorseSettings(o.settings, kind === "morse");
-		return settings ? { id: o.id, kind, size, settings } : undefined;
+		return settings ? { id: o.id, kind, size, ...col, settings } : undefined;
 	}
 	if (typeof o.ref !== "string") return undefined;
 	if (kind === "action") {
 		if (!ACTION.test(o.ref)) return undefined;
 	} else if (!REFS[kind]?.includes(o.ref)) return undefined;
-	return { id: o.id, kind, ref: o.ref, size, ...extras(kind, o) };
+	return { id: o.id, kind, ref: o.ref, size, ...col, ...extras(kind, o) };
 }
 
 function parseSection(x: unknown): ViewSection | undefined {
 	const o = obj(x);
 	if (!o || typeof o.id !== "string" || !ID.test(o.id)) return undefined;
-	if (o.width !== "half" && o.width !== "full") return undefined;
+	if (!(SECTION_WIDTHS as readonly unknown[]).includes(o.width)) return undefined;
 	if (!Array.isArray(o.items) || o.items.length > MAX_ITEMS) return undefined;
 	const items = o.items.map(parseItem);
 	if (items.some((i) => !i)) return undefined;
 	const title = (typeof o.title === "string" ? o.title.trim() : "").slice(0, MAX_TITLE).trim() || "Section";
-	return { id: o.id, title, width: o.width, items: items as ViewItem[] };
+	return { id: o.id, title, width: o.width as SectionWidth, ...(o.tall === true ? { tall: true as const } : {}), items: items as ViewItem[] };
 }
 
 /** Sections validées (ids de sections et de cases uniques dans la vue), ou `undefined`. */

@@ -28,7 +28,7 @@ describe("parseViewInput", () => {
 		["nom d'action invalide", (v: any) => v.sections[0].items.push({ id: "x", kind: "action", ref: "../x", size: 1 })],
 		["taille 5", (v: any) => (v.sections[0].items[0].size = 5)],
 		["taille 2,5", (v: any) => (v.sections[0].items[0].size = 2.5)],
-		["largeur inconnue", (v: any) => (v.sections[0].width = "third")],
+		["largeur inconnue", (v: any) => (v.sections[0].width = "quarter")],
 		["ids de section en double", (v: any) => (v.sections[1].id = v.sections[0].id)],
 		["ids de case en double", (v: any) => (v.sections[1].items[0].id = v.sections[0].items[0].id)],
 		["id invalide", (v: any) => (v.sections[0].id = "a b")],
@@ -274,10 +274,49 @@ describe("readSections", () => {
 	});
 
 	test("section illisible → invalid_section", () => {
-		expect(readSections([{ id: "s", title: "S", width: "third", items: [] }, 3]).skipped).toEqual([
+		expect(readSections([{ id: "s", title: "S", width: "quarter", items: [] }, 3]).skipped).toEqual([
 			{ section: "S", reason: "invalid_section" },
 			{ reason: "invalid_section" },
 		]);
+	});
+
+	test("section en tiers relue telle quelle", () => {
+		const v = parseViewInput({ name: "X", sections: [{ id: "a", title: "A", width: "third", items: [] }] }, "fr");
+		expect(v?.sections[0].width).toBe("third");
+		expect(readSections([{ id: "a", title: "A", width: "third", items: [] }]).skipped).toEqual([]);
+	});
+
+	test("largeur inconnue → vue refusée", () => {
+		expect(parseViewInput({ name: "X", sections: [{ id: "a", title: "A", width: "quarter", items: [] }] }, "fr")).toBeUndefined();
+	});
+
+	test("ancienne vue (demi / plein, styles existants) relue identique", () => {
+		const old = {
+			name: "Ancienne",
+			look: "hud" as const,
+			sections: [
+				...defaultLayout("fr").sections,
+				{
+					id: "styles",
+					title: "Styles",
+					width: "half" as const,
+					items: (["ring", "arc", "bar", "vbar", "segments", "vsegments", "number"] as const).map((style, i) => ({
+						id: `s${i}`,
+						kind: "vital" as const,
+						ref: "health",
+						size: 1 as const,
+						display: { style },
+					})),
+				},
+			],
+		};
+		expect(parseViewInput(old, "fr")).toEqual(old);
+	});
+
+	test("nouvelle valeur : voyant boost", () => {
+		const r = readSections([{ id: "s", title: "S", width: "half", items: [item("b", "ship_info", "boost")] }]);
+		expect(r.skipped).toEqual([]);
+		expect(r.sections[0].items.map((i) => i.ref)).toEqual(["boost"]);
 	});
 
 	test("une action dangereuse est gardée", () => {
@@ -288,6 +327,52 @@ describe("readSections", () => {
 
 	test("même résultat que l'ancienne lecture du fichier", () => {
 		expect(readSections(defaultLayout("fr").sections)).toEqual({ sections: defaultLayout("fr").sections, skipped: [] });
+	});
+});
+
+describe("styles par type (cap, interrupteur, glisser, maintenir)", () => {
+	const one = (it: unknown) => parseViewInput({ name: "A", sections: [{ id: "s", title: "S", width: "half", items: [it] }] }, "fr")?.sections[0].items[0];
+	const it = (kind: string, ref: string, style: string) => ({ id: "x", kind, ref, size: 1, display: { style } });
+	test.each([
+		["instrument", "heading", "tape"],
+		["ship_function", "master_nav", "switch"],
+		["ship_function", "lights", "switch"],
+		["action", "v_self_destruct", "slide"],
+		["action", "v_eject", "hold"],
+		["action", "v_flightready", "slide"],
+		["action", "v_lights", "hold"],
+	])("%s %s + %s → gardé", (kind, ref, style) => expect(one(it(kind, ref, style))?.display).toEqual({ style }));
+	test.each([
+		["instrument", "speed", "tape"],
+		["ship_function", "gear", "ring"],
+		["action", "v_eject", "tape"],
+		["action", "v_eject", "card"],
+		["vital", "health", "switch"],
+		["ship_info", "boost", "number"],
+	])("%s %s + %s → style ignoré, case gardée", (kind, ref, style) => {
+		const r = one(it(kind, ref, style));
+		expect(r).toBeDefined();
+		expect(r?.display).toBeUndefined();
+	});
+	test("ligne (nom à gauche, valeur à droite) : sur toutes les valeurs, pas sur un bouton", () => {
+		expect(one(it("instrument", "decoys", "line"))?.display).toEqual({ style: "line" });
+		expect(one(it("vital", "health", "line"))?.display).toEqual({ style: "line" });
+		expect(one(it("ship_info", "name", "line"))?.display).toEqual({ style: "line" });
+		expect(one(it("ship_function", "gear", "line"))?.display).toBeUndefined();
+	});
+	test("les jauges existantes restent permises sur le cap", () => expect(one(it("instrument", "heading", "number"))?.display).toEqual({ style: "number" }));
+});
+
+describe("habillage cockpit et sections hautes", () => {
+	const sec = (extra: object) => ({ id: "a", title: "A", width: "third", items: [], ...extra });
+	test("look cockpit gardé ; inconnu retiré", () => {
+		expect(parseViewInput({ name: "X", sections: [], look: "cockpit" }, "fr")?.look).toBe("cockpit");
+		expect(parseViewInput({ name: "X", sections: [], look: "neon" }, "fr")).toEqual({ name: "X", sections: [] });
+	});
+	test("section haute : tall: true gardé, autre valeur retirée", () => {
+		expect(parseViewInput({ name: "X", sections: [sec({ tall: true })] }, "fr")?.sections[0]).toEqual(sec({ tall: true }));
+		expect(parseViewInput({ name: "X", sections: [sec({ tall: "yes" })] }, "fr")?.sections[0]).toEqual(sec({}));
+		expect(readSections([sec({ tall: true })]).sections[0].tall).toBe(true);
 	});
 });
 
@@ -390,6 +475,12 @@ describe("nom affiché et taille S", () => {
 		expect(one({ id: "a", kind: "annunciators", size: 0.5 })).toHaveProperty("size", 1);
 		expect(one({ id: "h", kind: "vital", ref: "health", size: 5 })).toBeUndefined();
 	});
+	test("taille ¼ acceptée (boutons, valeurs, case vide) ; ramenée à 1 pour voyants et Mon vaisseau", () => {
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 0.25 })).toHaveProperty("size", 0.25);
+		expect(one({ id: "g", kind: "ship_function", ref: "gear", size: 0.25 })).toHaveProperty("size", 0.25);
+		expect(one({ id: "a", kind: "annunciators", size: 0.25 })).toHaveProperty("size", 1);
+		expect(one({ id: "h", kind: "vital", ref: "health", size: 0.75 })).toBeUndefined();
+	});
 	test("emplacements : 1, 2, 3, 4, 6, 8 (size 0.5 à 4) acceptés", () => {
 		for (const size of [0.5, 1, 1.5, 2, 3, 4]) expect(one({ id: "h", kind: "vital", ref: "health", size })).toHaveProperty("size", size);
 	});
@@ -413,5 +504,22 @@ describe("longueur du solde", () => {
 	test("échelles du solde : k et m gardées", () => {
 		expect(one({ id: "m", kind: "vital", ref: "balance", size: 1, display: { length: "k" } })).toHaveProperty("display", { length: "k" });
 		expect(one({ id: "m", kind: "vital", ref: "balance", size: 1, display: { length: "m" } })).toHaveProperty("display", { length: "m" });
+	});
+});
+
+describe("placement libre : colonne de départ", () => {
+	const one = (it: object) =>
+		parseViewInput({ name: "V", sections: [{ id: "s", title: "S", width: "full", items: [{ id: "a", kind: "ship_function", ref: "gear", size: 1, ...it }] }] }, "fr")?.sections[0]!.items[0];
+	test("colonne 1 à 16 gardée, juste après la taille", () => {
+		expect(one({ col: 7 })).toEqual({ id: "a", kind: "ship_function", ref: "gear", size: 1, col: 7 });
+		expect(Object.keys(one({ label: "x", col: 16 })!)).toEqual(["id", "kind", "ref", "size", "col", "label"]);
+	});
+	test("colonne invalide ignorée, case gardée", () => {
+		for (const col of [0, 17, 2.5, "3", null]) expect(one({ col })).toEqual({ id: "a", kind: "ship_function", ref: "gear", size: 1 });
+	});
+	test("case vide (version de test) : retirée à la lecture tolérante", () => {
+		const r = readSections([{ id: "s", title: "S", width: "full", items: [{ id: "v", kind: "spacer", size: 1 }] }]);
+		expect(r.sections[0]!.items).toEqual([]);
+		expect(r.skipped).toEqual([{ section: "S", kind: "spacer", reason: "unknown_kind" }]);
 	});
 });

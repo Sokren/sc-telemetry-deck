@@ -24,7 +24,7 @@ describe("GET /api/v1/ship/functions", () => {
 		expect(r.status).toBe(200);
 		validateResponse("/api/v1/ship/functions", "GET", 200, r.body);
 		expect(r.body).toHaveLength(18);
-		expect(r.body[0]).toEqual({ id: "gear", name: "Train d'atterrissage", label: "Train", state: "on", word: "SORTI" });
+		expect(r.body[0]).toEqual({ id: "gear", name: "Train d'atterrissage", label: "Train", state: "on", word: "SORTI", words: { on: "SORTI", off: "RENTRÉ" } });
 		const doors = r.body.find((f: { id: string }) => f.id === "doors_closed");
 		expect(doors).toMatchObject({ state: "unavailable", word: "—" });
 		// Croisière : lecture seule (aucune commande du jeu) ; les autres fonctions n'ont pas le marqueur.
@@ -33,6 +33,17 @@ describe("GET /api/v1/ship/functions", () => {
 		expect(r.body.filter((f: { readOnly?: boolean }) => f.readOnly).map((f: { id: string }) => f.id)).toEqual(["cruise"]);
 		// Aucun état dangereux ici (portes absentes) : pas de marqueur danger.
 		expect(r.body.some((f: { danger?: boolean }) => f.danger)).toBe(false);
+	});
+
+	test("mots des deux états (interrupteur) : SCM / NAV, RENTRÉ / SORTI, en FR et EN", async () => {
+		const s = await inShip();
+		const fr = (await s.call("GET", "/api/v1/ship/functions?lang=fr")).body;
+		const en = (await s.call("GET", "/api/v1/ship/functions?lang=en")).body;
+		const by = (list: any) => Object.fromEntries((list.functions ?? list).map((f: any) => [f.id, f]));
+		expect(by(fr).master_nav.words).toEqual({ on: "NAV", off: "SCM" });
+		expect(by(fr).gear.words).toEqual({ on: "SORTI", off: "RENTRÉ" });
+		expect(by(en).master_nav.words).toEqual({ on: "NAV", off: "SCM" });
+		validateResponse("/api/v1/ship/functions", "GET", 200, fr);
 	});
 
 	test("une fonction ; inconnue → 404 ; jeu fermé → unknown", async () => {

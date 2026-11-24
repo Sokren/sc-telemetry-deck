@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.10.0",
+		"version": "1.11.0",
 		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Sensitive actions (self destruct, eject, opening doors…) are sent like any other: check before calling them. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions sensibles (autodestruction, éjection, ouverture des portes…) sont envoyées comme les autres : vérifiez avant de les appeler.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
@@ -714,7 +714,7 @@
 					"View"
 				],
 				"summary": "Create a view — créer une vue",
-				"description": "Adds a view (empty when sections is omitted) with an id chosen by the app, saves it in view.json next to settings.json and sends the views to every connected page (views event). Name trimmed to 24 characters, empty → “View” / « Vue ». 10 views at most (409 too_many_views). — FR : ajoute une vue (vide si sections est absent) avec un identifiant choisi par l’appli, l’enregistre dans view.json à côté de settings.json et envoie les vues à toutes les pages connectées (événement views). Nom coupé à 24 caractères, vide → « Vue » / “View”. 10 vues au plus (409 too_many_views).",
+				"description": "Adds a view (empty when sections is omitted) with an id chosen by the app, saves it in view.json next to settings.json and sends the views to every connected page (views event). Name trimmed to 24 characters, empty → “View” / « Vue ». With template (see GET /api/v1/views/templates), the view is filled from that template, translated to lang; name optional; template cannot go with sections or look (400 invalid_view); unknown template → 400 unknown_template. 10 views at most (409 too_many_views). — FR : ajoute une vue (vide si sections est absent) avec un identifiant choisi par l’appli, l’enregistre dans view.json à côté de settings.json et envoie les vues à toutes les pages connectées (événement views). Nom coupé à 24 caractères, vide → « Vue » / “View”. Avec template (voir GET /api/v1/views/templates), la vue est remplie depuis ce modèle, traduit selon lang ; nom facultatif ; template ne va pas avec sections ou look (400 invalid_view) ; modèle inconnu → 400 unknown_template. 10 vues au plus (409 too_many_views).",
 				"parameters": [
 					{
 						"name": "lang",
@@ -734,7 +734,14 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/ViewInput"
+								"oneOf": [
+									{
+										"$ref": "#/components/schemas/ViewInput"
+									},
+									{
+										"$ref": "#/components/schemas/ViewFromTemplate"
+									}
+								]
 							}
 						}
 					}
@@ -751,7 +758,7 @@
 						}
 					},
 					"400": {
-						"description": "Invalid view — vue invalide",
+						"description": "Invalid view or unknown template (unknown_template) — vue invalide ou modèle inconnu (unknown_template)",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -772,6 +779,45 @@
 								}
 							}
 						}
+					}
+				}
+			}
+		},
+		"/api/v1/views/templates": {
+			"get": {
+				"operationId": "listViewTemplates",
+				"tags": [
+					"View"
+				],
+				"summary": "List view templates — lister les modèles de vues",
+				"description": "Templates offered when adding a view (Blank is not one of them): name, description and recommended screen size in the requested language, and the view that POST /api/v1/views {template} would create. A view made from a template is a normal view, editable like the others. — FR : modèles proposés à l’ajout d’une vue (Vierge n’en fait pas partie) : nom, description et taille d’écran conseillée dans la langue demandée, et la vue que créerait POST /api/v1/views {template}. Une vue créée depuis un modèle est une vue normale, modifiable comme les autres.",
+				"parameters": [
+					{
+						"name": "lang",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": [
+								"fr",
+								"en"
+							]
+						},
+						"description": "Language of names and section titles — FR : langue des noms et titres"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Templates — modèles",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ViewTemplateList"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
 					}
 				}
 			}
@@ -1961,7 +2007,8 @@
 					"name",
 					"label",
 					"state",
-					"word"
+					"word",
+					"words"
 				],
 				"properties": {
 					"id": {
@@ -1980,6 +2027,23 @@
 					"word": {
 						"type": "string",
 						"description": "State word as shown on the key (SORTI, ON, NAV, …, —) — FR : mot d'état affiché sur la touche"
+					},
+					"words": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": [
+							"on",
+							"off"
+						],
+						"description": "Words of both states, for a switch (SCM / NAV, RENTRÉ / SORTI, …) — FR : mots des deux états, pour un interrupteur (SCM / NAV, RENTRÉ / SORTI, …)",
+						"properties": {
+							"on": {
+								"type": "string"
+							},
+							"off": {
+								"type": "string"
+							}
+						}
 					},
 					"readOnly": {
 						"const": true,
@@ -2470,10 +2534,11 @@
 					},
 					"ref": {
 						"type": "string",
-						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost; ship_card: the “My ship” card (no ref); ship_info: name, master_mode, landed; character_info: position, role, seat; ship_function: a ship function id; action: a game action name; none for annunciators, morse and morse_free — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost ; ship_card : l’encart « Mon vaisseau » (sans ref) ; ship_info : name, master_mode, landed ; character_info : position, role, seat ; ship_function : une fonction vaisseau ; action : nom d’action du jeu ; rien pour annunciators, morse et morse_free"
+						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost; ship_card: the “My ship” card (no ref); ship_info: name, master_mode, landed, boost; character_info: position, role, seat; ship_function: a ship function id; action: a game action name; none for annunciators, morse and morse_free — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost ; ship_card : l’encart « Mon vaisseau » (sans ref) ; ship_info : name, master_mode, landed, boost ; character_info : position, role, seat ; ship_function : une fonction vaisseau ; action : nom d’action du jeu ; rien pour annunciators, morse et morse_free"
 					},
 					"size": {
 						"enum": [
+							0.25,
 							0.5,
 							1,
 							1.5,
@@ -2481,7 +2546,13 @@
 							3,
 							4
 						],
-						"description": "Width counted in 1× items: one slot = 0.5. A full-width section has 8 slots (4), a half section 4 (2); wider items take the whole row. annunciators and ship_card: at least 1. — FR : largeur comptée en cases 1× : un emplacement = 0.5. Une section pleine largeur fait 8 emplacements (4), une demi-section 4 (2) ; une case plus large prend toute la ligne. annunciators et ship_card : 1 minimum."
+						"description": "Width counted in 1× items: one slot = 0.25. A full-width section has 16 slots (4), a half or third section 8 (2); wider items take the whole row. annunciators and ship_card: at least 1. — FR : largeur comptée en cases 1× : un emplacement = 0.25. Une section pleine largeur fait 16 emplacements (4), une demi-section ou un tiers 8 (2) ; une case plus large prend toute la ligne. annunciators et ship_card : 1 minimum."
+					},
+					"col": {
+						"type": "integer",
+						"minimum": 1,
+						"maximum": 16,
+						"description": "Start column in slots (1–16): the item starts there, leaving the slots before it on its row empty. Absent = right after the previous item. Moved left if the item would overflow its row. — FR : colonne de départ en emplacements (1 à 16) : la case commence là, en laissant vides les emplacements d'avant sur sa ligne. Absente = juste après la case précédente. Ramenée à gauche si la case dépasserait de sa ligne."
 					},
 					"settings": {
 						"type": "object",
@@ -2525,7 +2596,7 @@
 					"display": {
 						"type": "object",
 						"additionalProperties": false,
-						"description": "Display settings: style, only for vital, instrument, character_info and ship_info (these two: number only); unknown values are dropped, absent = card — FR : réglages d’affichage : style, seulement pour vital, instrument, character_info et ship_info (ces deux-là : number seulement) ; valeur inconnue retirée, absent = carte",
+						"description": "Display settings: style — gauges for vital and instrument (plus tape on heading), number for character_info and ship_info (none on boost), switch for ship_function, slide or hold (confirm before sending) for action; unknown or unsuitable values are dropped, absent = card — FR : réglages d’affichage : style — jauges pour vital et instrument (plus tape, règle, sur le cap), number pour character_info et ship_info (aucun sur boost), switch (interrupteur) pour ship_function, slide ou hold (glisser / maintenir pour confirmer) pour action ; valeur inconnue ou inadaptée retirée, absent = carte",
 						"properties": {
 							"style": {
 								"enum": [
@@ -2535,7 +2606,12 @@
 									"vbar",
 									"segments",
 									"vsegments",
-									"number"
+									"number",
+									"line",
+									"tape",
+									"switch",
+									"slide",
+									"hold"
 								]
 							},
 							"length": {
@@ -2569,10 +2645,16 @@
 						"maxLength": 40
 					},
 					"width": {
+						"description": "full, half or third of the screen width — FR : pleine, demie ou tiers de la largeur d’écran",
 						"enum": [
 							"half",
-							"full"
+							"full",
+							"third"
 						]
+					},
+					"tall": {
+						"const": true,
+						"description": "Only present (true) for a tall section spanning two grid rows on wide screens (e.g. two thirds stacked beside it) — FR : présent (vrai) seulement pour une section haute, sur deux lignes de la grille sur grand écran (ex. deux tiers empilés à côté)"
 					},
 					"items": {
 						"type": "array",
@@ -2601,9 +2683,10 @@
 					},
 					"look": {
 						"enum": [
-							"hud"
+							"hud",
+							"cockpit"
 						],
-						"description": "View look: hud = ship HUD; absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; absent = standard ; autres valeurs ignorées"
+						"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; absent = standard ; autres valeurs ignorées"
 					}
 				}
 			},
@@ -2634,9 +2717,10 @@
 					},
 					"look": {
 						"enum": [
-							"hud"
+							"hud",
+							"cockpit"
 						],
-						"description": "View look: hud = ship HUD; absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; absent = standard ; autres valeurs ignorées"
+						"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; absent = standard ; autres valeurs ignorées"
 					}
 				}
 			},
@@ -2653,6 +2737,82 @@
 						"maxItems": 10,
 						"items": {
 							"$ref": "#/components/schemas/NamedView"
+						}
+					}
+				}
+			},
+			"ViewFromTemplate": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"template"
+				],
+				"properties": {
+					"template": {
+						"type": "string",
+						"description": "Template id, e.g. xeneon_pilot — FR : identifiant du modèle, ex. xeneon_pilot"
+					},
+					"name": {
+						"type": "string",
+						"maxLength": 24,
+						"description": "Tab name; absent = the template's name — FR : nom de l’onglet ; absent = nom du modèle"
+					}
+				}
+			},
+			"ViewTemplate": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"id",
+					"name",
+					"description",
+					"size",
+					"view"
+				],
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string",
+						"description": "Template name in lang — FR : nom du modèle dans la langue demandée"
+					},
+					"description": {
+						"type": "string"
+					},
+					"size": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": [
+							"width",
+							"height"
+						],
+						"description": "Recommended screen size (px) — FR : taille d’écran conseillée (px)",
+						"properties": {
+							"width": {
+								"type": "integer"
+							},
+							"height": {
+								"type": "integer"
+							}
+						}
+					},
+					"view": {
+						"$ref": "#/components/schemas/ViewInput"
+					}
+				}
+			},
+			"ViewTemplateList": {
+				"type": "object",
+				"additionalProperties": false,
+				"required": [
+					"templates"
+				],
+				"properties": {
+					"templates": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ViewTemplate"
 						}
 					}
 				}
@@ -3069,9 +3229,10 @@
 								},
 								"look": {
 									"enum": [
-										"hud"
+										"hud",
+										"cockpit"
 									],
-									"description": "View look: hud = ship HUD; absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; absent = standard ; autres valeurs ignorées"
+									"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; absent = standard ; autres valeurs ignorées"
 								}
 							}
 						},

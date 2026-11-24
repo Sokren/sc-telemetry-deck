@@ -470,11 +470,12 @@ function userShowTab(name) {
 }
 for (const tab of TABS) $(`tab-${tab}`).addEventListener("click", () => userShowTab(tab));
 
-async function addView() {
-	const id = await myView.addView();
-	if (!id) return renderTabs();
-	userShowTab(`view:${id}`);
-	myView.editName();
+function addView() {
+	myView.openNewView((id) => {
+		if (!id) return renderTabs();
+		userShowTab(`view:${id}`);
+		myView.editName();
+	});
 }
 $("view-add").addEventListener("click", addView);
 $("tab-select").addEventListener("change", (e) => (e.target.value === ADD ? addView() : userShowTab(e.target.value)));

@@ -10,7 +10,17 @@ import { TRIGGER_TIMEOUT_MS } from "./actions.js";
 
 /** `readOnly` (seulement s'il est vrai) : aucune commande du jeu, l'état se lit mais un appui ne fait rien. */
 /** `danger` (seulement s'il est vrai) : état dangereux, ex. portes ouvertes. */
-export type ShipFunctionState = { id: ShipFunctionId; name: string; label: string; state: ShipState; word: string; readOnly?: true; danger?: true };
+/** `words` : mots des deux états (interrupteur de « Ma vue » : SCM / NAV, RENTRÉ / SORTI…). */
+export type ShipFunctionState = {
+	id: ShipFunctionId;
+	name: string;
+	label: string;
+	state: ShipState;
+	word: string;
+	words: { on: string; off: string };
+	readOnly?: true;
+	danger?: true;
+};
 
 const isId = (x: string): x is ShipFunctionId => (SHIP_FUNCTION_IDS as readonly string[]).includes(x);
 const MODES: readonly ShipMode[] = ["toggle", "on", "off"];
@@ -18,7 +28,8 @@ const MODES: readonly ShipMode[] = ["toggle", "on", "off"];
 export function shipStateOf(id: ShipFunctionId, hub: Pick<TelemetryHub, "section">, lang: Lang): ShipFunctionState {
 	const state = readShipState(id, hub.section("vehicle"), hub.section("actor"));
 	const view = toShipView(id, state, lang);
-	const base = { id, name: shipFunctionName(id, lang), label: view.label, state, word: view.word };
+	const words = { on: toShipView(id, "on", lang).word, off: toShipView(id, "off", lang).word };
+	const base = { id, name: shipFunctionName(id, lang), label: view.label, state, word: view.word, words };
 	return {
 		...base,
 		...(isReadOnly(shipFunction(id)) ? { readOnly: true as const } : {}),

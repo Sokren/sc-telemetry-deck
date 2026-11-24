@@ -9,6 +9,21 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 > **Bêta** — l'API de télémétrie du jeu est récente, non documentée par CIG et peut changer à chaque patch.
 > 4.10.3 (LIVE) = affichage seulement, 5.0 (PTU) = affichage + actions.
 
+## [Non publié]
+
+### Ajouté
+- Appli web : **modèles de vues**. **＋** propose *Vierge* ou **Xeneon Edge – pilote** (poste de pilotage pour écran tactile large 2560×720) ; la vue créée se modifie comme les autres. Fichiers à importer dans `docs/vues/` (`npm run templates:export` les régénère).
+- Appli web : sections en **tiers** de largeur (**−** / **+** : tiers ↔ demie ↔ pleine) et **sections hautes** (↕, sur deux lignes : deux sections peuvent s'empiler à côté), pour les écrans larges.
+- Appli web : habillage **Cockpit** (boutons centrés à coins coupés, allumés en bleu ; jauges sur une ligne). L'autodestruction et l'éjection sont toujours en rouge.
+- Appli web : nouveaux styles de case — **règle de cap** (cap), **interrupteur** (fonctions du vaisseau), **glisser** ou **maintenir** pour confirmer une action — et voyant **BOOST** (`ship_info` / `boost`).
+- Appli web : **placement libre** — une case glissée se pose dans la colonne où on la lâche ; les emplacements d'avant restent vides (pour centrer un bouton, laisser un trou…). Sur téléphone, les cases se suivent.
+- Appli web : style **Ligne** pour toutes les valeurs (nom à gauche, valeur à droite, hauteur d'une barre), par ex. leurres et bruit.
+- Appli web : cases d'**1 emplacement sur 16** (toutes sauf voyants et *Mon vaisseau*). La largeur se règle avec **−** et **+**, le nombre d'emplacements pris entre les deux (1, 2, 4, 6, 8…).
+
+### Corrigé
+- Appli web : appui maintenu (éjection) — la progression ne s'animait pas (anneau de la grille, case qui se remplit dans une vue).
+- Contrat d'API **1.11.0** : `GET /api/v1/views/templates`, `POST /api/v1/views` avec `template`, largeur `third`, taille `0.25`, section `tall`, habillage `cockpit`, styles `tape` / `switch` / `slide` / `hold`, colonne `col`, style `line`, `words` (mots des deux états) sur les fonctions du vaisseau.
+
 ## [0.3.14] — 2026-11-24
 
 ### ⚠ Changement incompatible

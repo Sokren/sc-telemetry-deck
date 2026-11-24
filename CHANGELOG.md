@@ -9,6 +9,21 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 > **Beta** — the game's telemetry API is new, undocumented by CIG and may change with any patch.
 > 4.10.3 (LIVE) = display only, 5.0 (PTU) = display + actions.
 
+## [Unreleased]
+
+### Added
+- Web app: **view templates**. **＋** offers *Blank* or **Xeneon Edge – pilot** (pilot station for a wide 2560×720 touch screen); the new view can be edited like any other. Import files in `docs/vues/` (`npm run templates:export` regenerates them).
+- Web app: **one-third** width sections (**−** / **+**: third ↔ half ↔ full) and **tall sections** (↕, two rows: two sections can stack beside it), for wide screens.
+- Web app: **Cockpit** look (centered clipped-corner buttons, lit in blue; one-line gauges). Self-destruct and eject are always red.
+- Web app: new item styles — **heading tape** (heading), **switch** (ship functions), **slide** or **hold** to confirm an action — and the **BOOST** light (`ship_info` / `boost`).
+- Web app: **free placement** — a dragged item lands in the column where you drop it; the slots before it stay empty (to center a button, leave a gap…). On a phone, items simply follow each other.
+- Web app: **Line** style for every value (name on the left, value on the right, the height of a bar), e.g. decoys and noise.
+- Web app: items as narrow as **1 slot of 16** (every item except warning lights and *My ship*). Width is set with **−** and **+**, with the slots taken shown in between (1, 2, 4, 6, 8…).
+
+### Fixed
+- Web app: press-and-hold (eject) — the progress did not animate (ring on the grid, item filling up in a view).
+- API contract **1.11.0**: `GET /api/v1/views/templates`, `POST /api/v1/views` with `template`, `third` width, `0.25` size, `tall` section, `cockpit` look, `tape` / `switch` / `slide` / `hold` styles, `col` column, `line` style, `words` (both state words) on ship functions.
+
 ## [0.3.14] — 2026-11-24
 
 ### ⚠ Breaking change

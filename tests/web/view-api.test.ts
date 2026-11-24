@@ -67,6 +67,33 @@ describe("/api/v1/views", () => {
 		validateResponse("/api/v1/views", "POST", 400, bad.body);
 	});
 
+	test("modèles : liste traduite, création depuis un modèle, erreurs", async () => {
+		const s = await start();
+		const list = await s.call("GET", "/api/v1/views/templates?lang=en");
+		expect(list.status).toBe(200);
+		validateResponse("/api/v1/views/templates", "GET", 200, list.body);
+		expect(list.body.templates).toHaveLength(1);
+		expect(list.body.templates[0]).toMatchObject({ id: "xeneon_pilot", name: "Xeneon Edge – pilot", size: { width: 2560, height: 720 } });
+		const made = await s.call("POST", "/api/v1/views?lang=fr", { body: { template: "xeneon_pilot" } });
+		expect(made.status).toBe(201);
+		validateResponse("/api/v1/views", "POST", 201, made.body);
+		expect(made.body).toMatchObject({ name: "Xeneon Edge – pilote", look: "cockpit" });
+		expect(made.body.sections.map((x: any) => x.width)).toEqual(["full", "third", "third", "third", "third"]);
+		const renamed = await s.call("POST", "/api/v1/views?lang=fr", { body: { template: "xeneon_pilot", name: "Mon Xeneon" } });
+		expect(renamed.body.name).toBe("Mon Xeneon");
+		const nope = await s.call("POST", "/api/v1/views", { body: { template: "nope" } });
+		expect(nope.status).toBe(400);
+		validateResponse("/api/v1/views", "POST", 400, nope.body);
+		expect(nope.body).toEqual({ error: "unknown_template" });
+		const both = await s.call("POST", "/api/v1/views", { body: { template: "xeneon_pilot", sections: [] } });
+		expect(both.status).toBe(400);
+		expect(both.body).toEqual({ error: "invalid_view" });
+		for (let i = 0; i < 7; i++) expect((await s.call("POST", "/api/v1/views", { body: { name: `V${i}` } })).status).toBe(201);
+		const full = await s.call("POST", "/api/v1/views", { body: { template: "xeneon_pilot" } });
+		expect(full.status).toBe(409);
+		expect(full.body).toEqual({ error: "too_many_views" });
+	});
+
 	test("PUT : deux écrans modifient deux vues différentes, rien n'est perdu ; fichier écrit", async () => {
 		const s = await start();
 		const b = (await s.call("POST", "/api/v1/views", { body: { name: "B" } })).body;
