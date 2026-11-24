@@ -71,6 +71,9 @@ export function createLan(ctx) {
 		}
 		busy = false;
 		render();
+		// L'état vient de la réponse : le sondage ne verra pas de changement, le QR est donc demandé ici
+		// (accès activé ou carte réseau changée depuis cette fenêtre).
+		await refreshQr();
 	}
 
 	async function refreshQr() {
@@ -80,12 +83,16 @@ export function createLan(ctx) {
 		if (qrUrl) URL.revokeObjectURL(qrUrl);
 		qrUrl = null;
 		if (!key) return;
+		let blob = null;
 		try {
 			const r = await api(`/api/v1/lan/qr${openOn ? `?view=${encodeURIComponent(openOn)}` : ""}`);
-			if (r.ok && qrKey === key) qrUrl = URL.createObjectURL(await r.blob());
+			if (r.ok) blob = await r.blob();
 		} catch {
 			/* QR indisponible : le lien reste copiable */
 		}
+		if (qrKey !== key) return; // demande plus récente en cours : c'est elle qui affiche son QR
+		if (blob) qrUrl = URL.createObjectURL(blob);
+		else qrKey = ""; // échec : redemandé au prochain sondage au lieu de rester une image cassée
 		render();
 	}
 
@@ -262,10 +269,10 @@ export function createLan(ctx) {
 		if (!dialog.open) return;
 		// Redessiné seulement si quelque chose a changé (une liste ouverte ou le focus ne doit pas sauter).
 		const before = JSON.stringify(state);
-		if (!busy && (await load()) && JSON.stringify(state) !== before) {
-			await refreshQr();
-			render();
-		}
+		const changed = !busy && (await load()) && JSON.stringify(state) !== before;
+		// Sans effet si le QR affiché est à jour ; sinon (premier essai échoué…) redemandé.
+		if (!busy) await refreshQr();
+		if (changed) render();
 		timer = setTimeout(poll, POLL_MS);
 	}
 
