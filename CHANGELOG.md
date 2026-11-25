@@ -11,6 +11,20 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 
 ## [Unreleased]
 
+### Added
+- **New in game 5.0 PTU (build 13273298)**, shown when the game sends it. This build does not open the local API yet: nothing could be checked in game.
+  - Top bar: **game state** (main menu, loading, in game) and **menu open**.
+  - **Ship** tab: a **Quantum travel** card next to "My ship" (destination, time left, distance, spool and calibration).
+  - **Character** tab: **player name**, **mode** (flight, combat, mining, salvage…), **location** and jurisdiction, **armistice zone**, **CrimeStat**, and a **Tracked mission** section (current objective, objectives done / total, time left).
+  - **Debug** tab: a **Performance** section (FPS, CPU / render / GPU times, video memory, ping, packet loss, server, shard), frame number and **lost frames**.
+  - **My view**: Quantum travel, Who / where / mode, Tracked mission and Performance cards, and an item for each value (**Add** menu: Character, Ship and **Game** tabs).
+  - **Automatic view by the character's mode** (mining → your "Mining" view…), taking priority over position when a view is chosen.
+  - Stream Deck: **Ship Display** shows quantum travel (time left and destination), distance left and calibration; **Actor Display** shows mode, location, CrimeStat, armistice zone, mission, FPS and ping.
+- API contract **1.12.0**: `GET /api/v1/game`; `playerName`, `mode`, `location`, `place`, `jurisdiction`, `armistice`, `crimeStat`, `mission` in `/api/v1/character`; `quantum` in `/api/v1/ship/status`; `sequence` in `/api/v1/debug`; `quantum_card`, `who_card`, `mission_card`, `perf_card`, `game_info` items and new `character_info` / `ship_info` values.
+
+### Changed
+- Game schema updated: 5.0 PTU build 13273298 (5.0.202.35026).
+
 ## [0.3.15] — 2026-11-24
 
 ### Added

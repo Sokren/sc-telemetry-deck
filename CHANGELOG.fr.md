@@ -11,6 +11,20 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 
 ## [Non publié]
 
+### Ajouté
+- **Nouveautés du jeu 5.0 PTU (build 13273298)**, affichées quand le jeu les envoie. Ce build n'ouvre pas encore l'API locale : rien n'a pu être vérifié en jeu.
+  - Barre du haut : **état du jeu** (menu principal, chargement, en jeu) et **menu ouvert**.
+  - Onglet **Vaisseau** : encart **Saut quantique** à côté de « Mon vaisseau » (destination, temps restant, distance, charge et calibrage).
+  - Onglet **Personnage** : **pseudo**, **mode** (vol, combat, minage, récupération…), **lieu** et juridiction, **zone d'armistice**, **CrimeStat**, et une rubrique **Mission suivie** (objectif en cours, objectifs faits / total, temps restant).
+  - Onglet **Debug** : rubrique **Performances** (FPS, temps CPU / rendu / GPU, mémoire vidéo, ping, perte de paquets, serveur, shard), numéro de trame et **trames perdues**.
+  - **Ma vue** : encarts Saut quantique, Qui / où / mode, Mission suivie et Performances, et une case pour chaque valeur (menu **Ajouter** : onglets Personnage, Vaisseau et **Jeu**).
+  - **Vue automatique selon le mode** du perso (minage → ta vue « Minage »…), prioritaire sur la position quand une vue est choisie.
+  - Stream Deck : **Ship Display** affiche le saut quantique (temps restant et destination), la distance restante et le calibrage ; **Actor Display** affiche le mode, le lieu, le CrimeStat, la zone d'armistice, la mission, les FPS et le ping.
+- Contrat d'API **1.12.0** : `GET /api/v1/game` ; `playerName`, `mode`, `location`, `place`, `jurisdiction`, `armistice`, `crimeStat`, `mission` dans `/api/v1/character` ; `quantum` dans `/api/v1/ship/status` ; `sequence` dans `/api/v1/debug` ; cases `quantum_card`, `who_card`, `mission_card`, `perf_card`, `game_info` et nouvelles valeurs de `character_info` / `ship_info`.
+
+### Modifié
+- Schéma du jeu mis à jour : 5.0 PTU build 13273298 (5.0.202.35026).
+
 ## [0.3.15] — 2026-11-24
 
 ### Ajouté
