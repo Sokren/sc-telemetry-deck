@@ -170,32 +170,39 @@ describe("mise à jour", () => {
 });
 
 describe("rotation de la molette", () => {
-	test("+1 depuis le solde → santé (en boucle), réglage enregistré, nouveau rendu", async () => {
+	test("+1 depuis le solde → mode (build 13273298) ; +1 depuis le ping → santé (en boucle), réglage enregistré, nouveau rendu", async () => {
 		const dial = new FakeAction("d1", true);
 		await appear(dial, { value: "balance" });
 		dial.settings = { value: "balance" };
+		await advance(300);
+		await rotate(dial, 1);
+		expect(dial.settings).toEqual({ value: "mode" });
+		await rotate(dial, 6);
+		expect(dial.settings).toEqual({ value: "ping" });
 		await advance(300);
 		await rotate(dial, 1);
 		expect(dial.settings).toEqual({ value: "health" });
 		expect(dial.sent.at(-1)).toMatch(/^feedback:Santé=/);
 	});
 
-	test("−3 depuis l'oxygène → atmosphère respirable", async () => {
+	test("−3 depuis l'oxygène → FPS (en boucle, après les données du build 13273298)", async () => {
 		const dial = new FakeAction("d1", true);
 		await appear(dial, { value: "oxygen" });
 		dial.settings = { value: "oxygen" };
 		await rotate(dial, -3);
-		expect(dial.settings).toEqual({ value: "breathable" });
+		expect(dial.settings).toEqual({ value: "fps" });
 	});
 });
 
 describe("panneau de réglage", () => {
-	test("getValues → 13 données avec libellés longs en français", async () => {
+	test("getValues → 13 constantes puis 7 données du build 13273298, libellés longs en français", async () => {
 		await action.onSendToPlugin({ action: new FakeAction("k1"), payload: { event: "getValues" } } as unknown as SendToPluginEvent<JsonValue, DisplaySettings>);
 		const msg = toPI[0] as { event: string; items: { label: string; value: string }[] };
 		expect(msg.event).toBe("getValues");
-		expect(msg.items).toHaveLength(13);
+		expect(msg.items).toHaveLength(20);
 		expect(msg.items[1]).toEqual({ label: "Oxygène", value: "oxygen" });
+		expect(msg.items.slice(13).map((i) => i.value)).toEqual(["mode", "location", "crime_stat", "armistice", "mission", "fps", "ping"]);
+		expect(msg.items[15]).toEqual({ label: "CrimeStat", value: "crime_stat" });
 	});
 
 	test("autre message → ignoré", async () => {

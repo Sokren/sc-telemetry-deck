@@ -13,6 +13,7 @@ import type { Lang } from "../catalog/labels.js";
 import { toView } from "../display/format.js";
 import { renderKeySvg, toFeedback } from "../display/render.js";
 import { DISPLAY_VALUES, isDisplayValueId, readValue, type DisplayValueId } from "../display/values.js";
+import { ACTOR_SITUATION_VALUES, isActorSituationId, situationView, type ActorSituationId } from "../display/situation-values.js";
 import type { TelemetryHub } from "../telemetry/hub.js";
 import { ThrottledRenderer } from "./throttled-renderer.js";
 import { labelWithTitle, readUserTitle, type UserTitle } from "./user-title.js";
@@ -22,9 +23,12 @@ export const VALUES_EVENT = "getValues";
 /** Intervalle minimal entre deux envois vers une même touche ou molette. */
 export const MIN_INTERVAL_MS = 250;
 const DEFAULT_VALUE: DisplayValueId = "oxygen";
+/** Données proposées : les constantes, puis celles du build 13273298 (mode, lieu, CrimeStat, mission, FPS, ping). */
+export const ACTOR_DISPLAY_VALUES: readonly ActorValueId[] = [...DISPLAY_VALUES, ...ACTOR_SITUATION_VALUES];
+export type ActorValueId = DisplayValueId | ActorSituationId;
 
 /** Réglages enregistrés par touche / molette. */
-export type DisplaySettings = { value?: DisplayValueId };
+export type DisplaySettings = { value?: ActorValueId };
 
 export type DisplayActionDeps = {
 	hub: Pick<TelemetryHub, "subscribe" | "section">;
@@ -36,13 +40,13 @@ export type DisplayActionDeps = {
 
 type Entry = {
 	action: Action<DisplaySettings>;
-	value: DisplayValueId;
+	value: ActorValueId;
 	/** Titre saisi dans le Stream Deck : remplace le libellé par défaut. */
 	title?: UserTitle;
 	unsubscribe: () => void;
 };
 
-const valueOf = (s: DisplaySettings): DisplayValueId => (isDisplayValueId(s.value) ? s.value : DEFAULT_VALUE);
+const valueOf = (s: DisplaySettings): ActorValueId => (isDisplayValueId(s.value) || isActorSituationId(s.value) ? s.value : DEFAULT_VALUE);
 
 /**
  * Affiche une constante du perso, mise à jour en continu depuis le flux du jeu.
@@ -94,9 +98,9 @@ export class DisplayAction extends SingletonAction<DisplaySettings> {
 	override async onDialRotate(ev: DialRotateEvent<DisplaySettings>): Promise<void> {
 		const entry = this.#entries.get(ev.action.id);
 		if (!entry) return;
-		const n = DISPLAY_VALUES.length;
-		const i = DISPLAY_VALUES.indexOf(entry.value);
-		entry.value = DISPLAY_VALUES[(((i + ev.payload.ticks) % n) + n) % n];
+		const n = ACTOR_DISPLAY_VALUES.length;
+		const i = ACTOR_DISPLAY_VALUES.indexOf(entry.value);
+		entry.value = ACTOR_DISPLAY_VALUES[(((i + ev.payload.ticks) % n) + n) % n];
 		await ev.action.setSettings({ value: entry.value });
 		await this.#render(ev.action.id, true);
 	}
@@ -105,8 +109,15 @@ export class DisplayAction extends SingletonAction<DisplaySettings> {
 		const p = ev.payload;
 		if (typeof p !== "object" || p === null || Array.isArray(p) || p.event !== VALUES_EVENT) return;
 		const lang = this.deps.lang();
-		const items = DISPLAY_VALUES.map((id) => ({ label: toView(id, { available: false }, lang).long, value: id }));
+		const items = ACTOR_DISPLAY_VALUES.map((id) => ({ label: this.#view(id, lang, true).long, value: id }));
 		await this.deps.sendToPropertyInspector({ event: VALUES_EVENT, items });
+	}
+
+	/** Rendu d'une donnée ; `empty` : sans données (libellés de la liste). */
+	#view(id: ActorValueId, lang: Lang, empty = false) {
+		const actor = empty ? undefined : this.deps.hub.section("actor");
+		if (isActorSituationId(id)) return situationView(id, { actor, game: empty ? undefined : this.deps.hub.section("game") }, lang);
+		return toView(id, empty ? { available: false } : readValue(id, actor), lang);
 	}
 
 	/** Envoie le rendu courant s'il a changé, au plus une fois par `MIN_INTERVAL_MS` (sinon envoi différé). */
@@ -117,7 +128,7 @@ export class DisplayAction extends SingletonAction<DisplaySettings> {
 				const entry = this.#entries.get(id);
 				if (!entry) return undefined;
 				const { action } = entry;
-				const view = toView(entry.value, readValue(entry.value, this.deps.hub.section("actor")), this.deps.lang());
+				const view = this.#view(entry.value, this.deps.lang());
 				if (action.isDial()) {
 					const feedback = toFeedback(view, labelWithTitle(entry.title && { ...entry.title, shown: false }, view.long) ?? view.long);
 					return { payload: JSON.stringify(feedback), send: () => action.setFeedback(feedback) };
