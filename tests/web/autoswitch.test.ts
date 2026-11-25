@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { createAutoSwitch, parseAutoSettings } from "../../src/web/static/autoswitch.js";
+import { createAutoSwitch, MODES, parseAutoSettings, situationOf } from "../../src/web/static/autoswitch.js";
 
-type Settings = { enabled: boolean; on_foot: string; seated: string; eva: string };
+type Settings = { enabled: boolean; on_foot: string; seated: string; eva: string } & Record<string, string | boolean>;
+const noModes = Object.fromEntries(MODES.map((m) => [m, ""]));
 
 let timers: { fn: () => void; at: number; id: number }[];
 let now: number;
@@ -152,12 +153,32 @@ describe("changement de vue automatique", () => {
 
 	test("réglages lus avec tolérance", () => {
 		// Par défaut : à pied → onglet Personnage, assis → onglet Vaisseau, EVA → ne pas changer.
-		const defaults = { enabled: false, on_foot: "character", seated: "ship", eva: "" };
+		const defaults = { enabled: false, on_foot: "character", seated: "ship", eva: "", ...noModes };
 		expect(parseAutoSettings(null)).toEqual(defaults);
 		expect(parseAutoSettings("{pas du json")).toEqual(defaults);
 		// Position absente → défaut ; « » enregistré = « ne pas changer » choisi exprès ; valeur invalide → défaut.
-		expect(parseAutoSettings(JSON.stringify({ enabled: true, seated: "view:v1", on_foot: "", eva: 3 }))).toEqual({ enabled: true, on_foot: "", seated: "view:v1", eva: "" });
+		expect(parseAutoSettings(JSON.stringify({ enabled: true, seated: "view:v1", on_foot: "", eva: 3 }))).toEqual({ enabled: true, on_foot: "", seated: "view:v1", eva: "", ...noModes });
 		expect(parseAutoSettings(JSON.stringify({ enabled: true }))).toEqual({ ...defaults, enabled: true });
+	});
+
+	test("mode du perso (build 13273298) : prioritaire seulement s'il a une vue", () => {
+		const s = { ...parseAutoSettings(JSON.stringify({ enabled: true, mining: "view:mine", salvage: 4 })) };
+		expect(s.mining).toBe("view:mine");
+		expect(s.salvage).toBe("");
+		expect(situationOf("seated", "mining", s)).toBe("mining");
+		expect(situationOf("seated", "combat", s)).toBe("seated");
+		expect(situationOf("seated", "unknown", s)).toBe("seated");
+		expect(situationOf("on_foot", undefined, s)).toBe("on_foot");
+		settings = { ...settings, mining: "mine" };
+		views.push("mine");
+		const a = make();
+		a.update("seated");
+		advance(2000);
+		a.update(situationOf("seated", "mining", settings));
+		advance(2000);
+		a.update(situationOf("seated", "flight", settings));
+		advance(2000);
+		expect(applied).toEqual(["ship", "mine", "ship"]);
 	});
 
 	test("onglet changé à la main pendant les 2 s d'attente : respecté", () => {

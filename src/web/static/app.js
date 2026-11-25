@@ -1,7 +1,8 @@
 // Page de SC Telemetry Deck : grille de tuiles, onglets Personnage et Vaisseau, état en direct
 // (Server-Sent Events), appuis. Utilise uniquement l'API publique v1 (la même que n'importe quel autre logiciel).
 import { I18N } from "./i18n.js";
-import { createAutoSwitch, parseAutoSettings, POSITIONS } from "./autoswitch.js";
+import { createAutoSwitch, MODES, parseAutoSettings, POSITIONS, situationOf } from "./autoswitch.js";
+import { missionSection, perfSection, quantumCard, whoLine } from "./situation.js";
 import { createLan } from "./lan.js";
 import { holdToPress, HOLD_ACTIONS } from "./hold.js";
 import { createSetup } from "./setup.js";
@@ -264,8 +265,13 @@ setInterval(() => loadUpdate(), 30 * 60 * 1000);
 // Mode debug (par appareil) : ajoute l'onglet 🐞 Debug, tout le flux brut du jeu.
 const DEBUG_KEY = "sctd-debug";
 let debugOn = storageGet(DEBUG_KEY) === "1";
+// Rubrique Performances en tête de l'onglet Debug (tenue à jour par l'événement « state »).
+const debugPerf = document.createElement("div");
+debugPerf.className = "debug-perf";
+debugPerf.hidden = true;
 const debugTab = createDebug({
 	panel: $("panel-debug"),
+	top: debugPerf,
 	t: (k) => t(k),
 	request: (method, url) => fetch(url, { method, headers: { authorization: `Bearer ${token}` } }),
 	onUnauthorized: () => showMessage(t("badToken")),
@@ -540,6 +546,38 @@ function card(item) {
 	return el;
 }
 
+/**
+ * Données du build 13273298 : état du jeu (barre du haut), qui / où / mode et mission (Personnage), saut quantique
+ * (Vaisseau), performances (Debug). Chaque encart est caché tant que le jeu n'envoie pas ses données.
+ */
+function renderSituation(s) {
+	const g = s.game;
+	const pill = $("game-state");
+	pill.hidden = !g?.available;
+	if (g?.available) {
+		pill.textContent = `🎮 ${g.label}${g.menuOpen ? ` · 📋 ${t("menuOpen")}` : ""}`;
+		pill.dataset.state = g.state;
+		pill.title = t("gameStateTitle");
+	}
+	// Mode, armistice, CrimeStat : pastilles au bout de la ligne « Assis · Pilote » ; lieu et pseudo en dessous.
+	const who = whoLine(s, t);
+	$("char-head").append(...who.pills);
+	$("char-where").hidden = !who.where;
+	$("char-where").textContent = who.where;
+	fillSection($("char-mission"), missionSection(s, t));
+	// Saut quantique : encart à côté de « Mon vaisseau », même style.
+	const q = s.shipStatus.quantum;
+	$("ship-qt").hidden = !q;
+	if (q) $("ship-qt").replaceChildren(quantumCard(s, t));
+	fillSection(debugPerf, perfSection(s, t));
+}
+
+/** Rubrique (titre + cartes) cachée quand elle n'a rien à montrer. */
+function fillSection(box, nodes) {
+	box.hidden = nodes.length === 0;
+	box.replaceChildren(...nodes);
+}
+
 function renderCharacter(c) {
 	$("char-head").textContent = c.available ? [c.locomotionLabel, c.crewRoleLabel].filter((x) => x && x !== "—").join(" · ") : t("notSpawned");
 	$("char-vitals").replaceChildren(...c.vitals.map(card));
@@ -791,9 +829,10 @@ function connect() {
 		$("ship-card").hidden = !inShip;
 		$("ship-head").hidden = inShip;
 		if (inShip) $("ship-card").replaceChildren(shipCard(lastState, 2, t));
+		renderSituation(lastState);
 		myView?.setState(lastState);
-		// Onglet Debug : on y reste, la vue automatique ne s'applique pas.
-		if (currentTab !== "debug") autoSwitch?.update(lastState.character.locomotion);
+		// Onglet Debug : on y reste, la vue automatique ne s'applique pas. Mode du perso prioritaire s'il a sa vue.
+		if (currentTab !== "debug") autoSwitch?.update(situationOf(lastState.character.locomotion, lastState.character.mode, autoSettings));
 	});
 	source.addEventListener("views", (e) => myView?.setViews(JSON.parse(e.data).views));
 	source.addEventListener("feedback", (e) => {
@@ -992,7 +1031,24 @@ function renderAuto() {
 		row.append(select);
 		rows.append(row);
 	}
-	box.append(rows, el("p", "lan-off-note", t("autoNote")));
+	// Modes du perso (build 13273298) : aucune vue par défaut, la position décide.
+	const modeRows = el("div", "auto-rows");
+	for (const mode of MODES) {
+		const row = el("label", "auto-row");
+		row.append(el("span", "", t(`mode${mode.charAt(0).toUpperCase()}${mode.slice(1)}`)));
+		const select = el("select");
+		const targets = [["", t("autoByPosition")], ["character", t("tabCharacter")], ["ship", t("tabShip")], ...(viewTabs ?? []).map((v) => [`view:${v.id}`, v.name || t("viewNameEmpty")])];
+		for (const [value, label] of targets) {
+			const o = el("option", "", label);
+			o.value = value;
+			select.append(o);
+		}
+		select.value = targets.some(([value]) => value === autoSettings[mode]) ? autoSettings[mode] : "";
+		select.addEventListener("change", () => saveAuto({ ...autoSettings, [mode]: select.value }));
+		row.append(select);
+		modeRows.append(row);
+	}
+	box.append(rows, el("h3", "auto-sub", t("autoModes")), modeRows, el("p", "lan-off-note", t("autoNote")));
 	const foot = el("form", "lan-foot");
 	foot.method = "dialog";
 	const close = el("button", "", t("close"));

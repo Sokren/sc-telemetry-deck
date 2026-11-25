@@ -51,3 +51,5 @@ export function setNumberFormat(lang, chosen) {
 }
 /** Nombre affiché au format choisi. */
 export const num = (text) => localizeNumber(text, pageLang, format);
+/** Langue de la page (les textes de nombres sont d'abord mis en forme dans cette langue, puis passés à `num`). */
+export const pageLanguage = () => pageLang;

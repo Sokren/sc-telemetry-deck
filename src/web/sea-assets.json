@@ -5,6 +5,7 @@
 	"static/lan.js",
 	"static/autoswitch.js",
 	"static/shipcard.js",
+	"static/situation.js",
 	"static/share.js",
 	"static/setup.js",
 	"static/hold.js",

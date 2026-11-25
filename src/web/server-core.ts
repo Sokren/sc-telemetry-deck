@@ -131,7 +131,8 @@ class Listener {
  */
 export async function startServer(o: ServerOptions): Promise<RunningServer> {
 	const settings = loadSettings(o.settingsDir);
-	const game = createGameApi(path.join(o.dataDir, "sc_extrait.desc"), o.log, o.gameAddress);
+	// SCTD_GAME_ADDRESS (tests) : un faux jeu sur une autre adresse que 127.0.0.1:2942, sans toucher au plugin.
+	const game = createGameApi(path.join(o.dataDir, "sc_extrait.desc"), o.log, o.gameAddress ?? (process.env.SCTD_GAME_ADDRESS || undefined));
 	const hub = new TelemetryHub(game);
 	const snapshotFile = path.join(o.dataDir, "actions.json");
 	let schemaVersion = "?";

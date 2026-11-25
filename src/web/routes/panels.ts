@@ -1,11 +1,16 @@
 import type { CountermeasureTracker } from "../../display/countermeasures.js";
 import type { TelemetryHub } from "../../telemetry/hub.js";
 import type { Route } from "../http.js";
-import { characterOf, shipStatusOf } from "../panels.js";
+import { characterOf, gameOf, shipStatusOf } from "../panels.js";
 
 /** Données des onglets Personnage et Vaisseau de la page, en lecture pour tout logiciel. */
 export function panelRoutes(deps: { hub: Pick<TelemetryHub, "section">; countermeasures: CountermeasureTracker }): Route[] {
 	return [
+		{
+			method: "GET",
+			path: "/api/v1/game",
+			handle: async ({ lang }) => ({ status: 200, json: gameOf(deps.hub.section("game"), lang) }),
+		},
 		{
 			method: "GET",
 			path: "/api/v1/character",

@@ -139,7 +139,7 @@ const el = (tag, cls, text) => {
  * Onglet Debug dans `panel`. `t(key)` : textes ; `request(method, url)` : appel authentifié (Response) ;
  * `onUnauthorized()` : jeton refusé.
  */
-export function createDebug({ panel, t, request, onUnauthorized, lang = () => "en" }) {
+export function createDebug({ panel, t, request, onUnauthorized, lang = () => "en", top = null }) {
 	let visible = false;
 	let timer;
 	let data;
@@ -219,7 +219,8 @@ export function createDebug({ panel, t, request, onUnauthorized, lang = () => "e
 	statBox.append(statHead, stats);
 	side.append(logBox, statBox);
 	cols.append(treeBox, side);
-	panel.append(note, chips, recbar, tools, cols);
+	// `top` : encart Performances, tenu à jour par la page (événement « state »).
+	panel.append(note, ...(top ? [top] : []), chips, recbar, tools, cols);
 	let logTab = "actions";
 	let wide = false;
 	/** Lignes du journal dépliées (vue compacte) : clé = heure + action. */
@@ -431,6 +432,14 @@ export function createDebug({ panel, t, request, onUnauthorized, lang = () => "e
 		if (!data) return;
 		const pairs = [
 			[t("dbgFps"), String(data.framesPerSecond)],
+			// Numéro de trame (build 13273298) : seulement si le jeu l'envoie.
+			...(data.sequence?.last != null
+				? [
+						[t("dbgSequence"), String(data.sequence.last)],
+						[t("dbgLost"), String(data.sequence.lost)],
+						...(data.sequence.gameTime ? [[t("dbgGameTime"), new Date(data.sequence.gameTime).toLocaleTimeString()]] : []),
+					]
+				: []),
 			[t("dbgApp"), data.app],
 			[t("dbgSchema"), data.schema ? data.schemaVersion : `${data.schemaVersion} (${t("dbgNoSchema")})`],
 		];

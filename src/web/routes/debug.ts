@@ -43,6 +43,8 @@ export function debugRoutes(deps: {
 						app: deps.version,
 						schemaVersion: deps.schemaVersion,
 						framesPerSecond: deps.recorder.framesPerSecond,
+						// Numéro de trame (build 13273298) : trames perdues et heure du jeu.
+						sequence: deps.recorder.sequence,
 						sections,
 						events: deps.recorder.events.map((e) => ({ ageMs: Math.max(0, t - e.at), event: e.event })),
 						actions: actions(deps.actionLog.entries(), lang, t),

@@ -54,6 +54,22 @@ describe("DebugRecorder", () => {
 		expect(r.events.at(-1)!.event.type).not.toBe("après");
 	});
 
+	test("numéro de trame (build 13273298) : trames perdues comptées, jeu relancé sans rien compter", () => {
+		const hub = fakeHub();
+		const r = new DebugRecorder(hub, () => 0);
+		hub.push({ actor: {} }, 0);
+		expect(r.sequence).toEqual({ last: null, lost: 0, gameTime: null });
+		hub.push({ header: { sequence: "10", game_time_unix_ms: "1795629521179" } }, 0);
+		hub.push({ header: { sequence: "11" } }, 0);
+		hub.push({ header: { sequence: "15" } }, 0); // 12, 13, 14 perdues
+		expect(r.sequence).toEqual({ last: 15, lost: 3, gameTime: null });
+		hub.push({ header: { sequence: "2", game_time_unix_ms: "1795629521179" } }, 0); // relancé
+		hub.push({ header: {} }, 0); // 0 non transmis : rien à compter non plus
+		expect(r.sequence).toEqual({ last: 0, lost: 3, gameTime: null });
+		hub.push({ header: { sequence: "1", game_time_unix_ms: "1795629521179" } }, 0);
+		expect(r.sequence.gameTime).toBe(1795629521179);
+	});
+
 	test("enregistrement : start, frames avec t depuis le début, take puis oublié ; un seul à la fois", () => {
 		let now = 1000;
 		const hub = fakeHub();

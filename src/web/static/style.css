@@ -1240,6 +1240,28 @@ dialog.lan {
 	max-width: 560px;
 	margin: 4px 0 6px;
 }
+/* Encart « Mon vaisseau » et, à côté, encart « Saut quantique » (l'un sous l'autre sur un écran étroit). */
+.ship-top {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0 12px;
+	align-items: stretch;
+}
+.ship-top > #ship-card {
+	flex: 1 1 400px;
+}
+#ship-qt {
+	flex: 1 1 300px;
+	max-width: 420px;
+	margin: 4px 0 6px;
+}
+#ship-qt[hidden] {
+	display: none;
+}
+#ship-qt > .shipcard,
+#ship-card > .shipcard {
+	height: 100%;
+}
 .shipcard {
 	background: var(--card);
 	border: 1px solid var(--line);
@@ -1365,6 +1387,119 @@ dialog.lan {
 .shipcard.s1 .sc-name {
 	white-space: normal;
 	overflow-wrap: anywhere;
+}
+
+/* ---------- Build 13273298 : état du jeu, saut quantique, qui / où, mission, performances ---------- */
+.game-state {
+	font-size: 12px;
+	padding: 3px 10px;
+	border-radius: 999px;
+	border: 1px solid var(--line);
+	color: var(--muted);
+	white-space: nowrap;
+}
+.game-state[hidden] {
+	display: none;
+}
+.game-state[data-state="in_game"] {
+	border-color: var(--ok);
+	color: var(--ok-text);
+}
+.game-state[data-state="loading"] {
+	border-color: var(--warn);
+	color: var(--warn);
+}
+/* Rubriques (titre gris + cartes) : mission suivie, performances. */
+.card .value.value-small {
+	font-size: 16px;
+	line-height: 1.3;
+}
+.card .card-sub {
+	font-size: 12px;
+}
+.debug-perf[hidden] {
+	display: none;
+}
+.debug-perf > h2 {
+	margin-top: 4px;
+}
+.debug-perf {
+	margin-bottom: 10px;
+}
+/* Mode, armistice, CrimeStat au bout de la ligne « Assis · Pilote ». */
+#char-head .sc-pill {
+	font-size: 12px;
+	margin-left: 8px;
+	vertical-align: 2px;
+}
+.char-where {
+	margin: 0 0 4px;
+}
+.sc-pill.bad {
+	border-color: var(--bad);
+	color: var(--bad-text);
+}
+.sc-pill.qt {
+	border-color: var(--link);
+	color: var(--link);
+}
+.qt-head,
+.who-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.who-top .sc-pills {
+	margin-top: 0;
+}
+.qtcard[data-state="traveling"] {
+	border-color: var(--link);
+}
+.qtcard > .sc-bar {
+	margin-top: 10px;
+}
+.qt-dest {
+	font-size: 18px;
+	font-weight: 700;
+	margin-top: 6px;
+}
+.who-name {
+	font-size: 18px;
+	font-weight: 700;
+}
+.who-where {
+	font-size: 13px;
+	color: var(--muted);
+	margin-top: 8px;
+}
+.mission-title {
+	font-size: 16px;
+	font-weight: 700;
+	margin: 2px 0 6px;
+}
+.mission-obj {
+	background: var(--inset);
+	border-left: 3px solid var(--accent);
+	border-radius: 0 6px 6px 0;
+	padding: 6px 10px;
+	margin-bottom: 8px;
+}
+.mission-end {
+	margin-top: 8px;
+}
+.auto-sub {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--muted);
+	margin: 14px 0 6px;
+}
+.vcontent .qtcard,
+.vcontent .whocard,
+.vcontent .missioncard,
+.vcontent .perfcard {
+	height: 100%;
 }
 
 /* ---------- Tuto « Activer la télémétrie » ---------- */

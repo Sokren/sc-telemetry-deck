@@ -7,7 +7,7 @@ import type { CountermeasureTracker } from "../display/countermeasures.js";
 import type { TelemetryHub } from "../telemetry/hub.js";
 import type { Tile } from "./layout.js";
 import type { MorseControl } from "./morse-control.js";
-import { characterOf, shipStatusOf } from "./panels.js";
+import { characterOf, gameOf, shipStatusOf } from "./panels.js";
 import { shipStateOf } from "./routes/ship.js";
 import { vitalOf } from "./routes/vitals.js";
 import { renderTile, type TileFeedback, tileNeedsHold } from "./tiles.js";
@@ -131,6 +131,8 @@ export class EventHub {
 			vitals: DISPLAY_VALUES.map((id) => vitalOf(id, actor, c.lang)),
 			ship: SHIP_FUNCTION_IDS.map((id) => shipStateOf(id, this.deps.hub, c.lang)),
 			character: characterOf(actor, c.lang),
+			// État du jeu, menu ouvert, performances (section `game`, build 13273298).
+			game: gameOf(this.deps.hub.section("game"), c.lang),
 			// Morse en cours (cases morse des vues : allumées pendant l'envoi, lettre et signe en cours).
 			morse: {
 				playing: this.deps.morse.playing,

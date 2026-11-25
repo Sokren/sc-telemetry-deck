@@ -5,7 +5,7 @@
 import { num } from "./numbers.js";
 
 export const STYLES = ["card", "ring", "arc", "bar", "vbar", "segments", "vsegments", "number", "line"];
-const STYLED_KINDS = ["vital", "instrument", "character_info", "ship_info", "ship_function", "action"];
+const STYLED_KINDS = ["vital", "instrument", "character_info", "ship_info", "game_info", "ship_function", "action"];
 const SEGMENTS = 10;
 const SVG = "http://www.w3.org/2000/svg";
 

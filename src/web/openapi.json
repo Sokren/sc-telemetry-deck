@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.11.0",
+		"version": "1.12.0",
 		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Sensitive actions (self destruct, eject, opening doors…) are sent like any other: check before calling them. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions sensibles (autodestruction, éjection, ouverture des portes…) sont envoyées comme les autres : vérifiez avant de les appeler.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
@@ -1414,7 +1414,7 @@
 					"Character"
 				],
 				"summary": "Character overview — vue d'ensemble du perso",
-				"description": "Position (on foot, EVA, seated), crew role, seat and the 13 vitals, as shown in the Character tab of the page. available: false when the game is closed or the character has not spawned. — FR : position (à pied, EVA, assis), rôle d'équipage, siège et les 13 constantes, comme dans l'onglet Personnage de la page. available: false si le jeu est fermé ou le perso pas apparu.",
+				"description": "Position (on foot, EVA, seated), crew role, seat, the 13 vitals and, since 5.0 PTU build 13273298, player name, mode, location, CrimeStat and tracked mission, as shown in the Character tab of the page. available: false when the game is closed or the character has not spawned. — FR : position (à pied, EVA, assis), rôle d'équipage, siège, les 13 constantes et, depuis la 5.0 PTU build 13273298, pseudo, mode, lieu, CrimeStat et mission suivie, comme dans l'onglet Personnage de la page. available: false si le jeu est fermé ou le perso pas apparu.",
 				"parameters": [
 					{
 						"name": "lang",
@@ -1734,6 +1734,45 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/UpdateState"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					}
+				}
+			}
+		},
+		"/api/v1/game": {
+			"get": {
+				"operationId": "getGame",
+				"tags": [
+					"General"
+				],
+				"summary": "Game state and performance — état du jeu et performances",
+				"description": "Main menu / loading / in game, menu open, game mode and performance (FPS, frame times, video memory, ping, server, shard), sent by the game since 5.0 PTU build 13273298. available: false otherwise. — FR : menu principal / chargement / en jeu, menu ouvert, mode de jeu et performances (FPS, temps d'image, mémoire vidéo, ping, serveur, shard), envoyés par le jeu depuis la 5.0 PTU build 13273298. available: false sinon.",
+				"parameters": [
+					{
+						"name": "lang",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"enum": [
+								"fr",
+								"en"
+							]
+						},
+						"description": "Label language (default: Accept-Language) — FR : langue des libellés (par défaut : Accept-Language)"
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Game — jeu",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Game"
 								}
 							}
 						}
@@ -2263,7 +2302,16 @@
 					"crewRoleLabel",
 					"seat",
 					"seatLabel",
-					"vitals"
+					"vitals",
+					"playerName",
+					"mode",
+					"modeLabel",
+					"location",
+					"place",
+					"jurisdiction",
+					"armistice",
+					"crimeStat",
+					"mission"
 				],
 				"properties": {
 					"available": {
@@ -2309,6 +2357,76 @@
 							"null"
 						],
 						"description": "Readable seat (e.g. Co-pilot), else the crew role; null without a seat — FR : siège lisible (ex. Copilote), sinon le rôle ; null sans siège"
+					},
+					"playerName": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"mode": {
+						"enum": [
+							"inactive",
+							"flight",
+							"combat",
+							"turret",
+							"missile",
+							"scanning",
+							"mining",
+							"quantum_navigation",
+							"refuel",
+							"salvage",
+							"unknown"
+						],
+						"description": "Operator mode (5.0 PTU build 13273298) — FR : mode du perso (5.0 PTU build 13273298)"
+					},
+					"modeLabel": {
+						"type": "string"
+					},
+					"location": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "Places from the widest to the most precise (system, planet, city…) — FR : lieux du plus large au plus précis (système, planète, ville…)"
+					},
+					"place": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "Most precise place — FR : lieu le plus précis"
+					},
+					"jurisdiction": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"armistice": {
+						"type": [
+							"boolean",
+							"null"
+						],
+						"description": "Armistice zone; null when the location is not sent — FR : zone d'armistice ; null quand le lieu n'est pas envoyé"
+					},
+					"crimeStat": {
+						"type": [
+							"integer",
+							"null"
+						],
+						"minimum": 0
+					},
+					"mission": {
+						"oneOf": [
+							{
+								"$ref": "#/components/schemas/Mission"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"description": "Tracked mission; null when none — FR : mission suivie ; null sans mission"
 					}
 				}
 			},
@@ -2416,7 +2534,8 @@
 					"instruments",
 					"annunciators",
 					"model",
-					"boostEngaged"
+					"boostEngaged",
+					"quantum"
 				],
 				"properties": {
 					"available": {
@@ -2502,6 +2621,17 @@
 					"boostEngaged": {
 						"type": "boolean",
 						"description": "Boost in use — FR : boost en cours d’utilisation"
+					},
+					"quantum": {
+						"oneOf": [
+							{
+								"$ref": "#/components/schemas/Quantum"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"description": "Quantum travel (5.0 PTU build 13273298); null when not sent or not seated — FR : saut quantique (5.0 PTU build 13273298) ; null s'il n'est pas envoyé ou perso pas assis"
 					}
 				}
 			},
@@ -2529,12 +2659,17 @@
 							"action",
 							"ship_card",
 							"morse",
-							"morse_free"
+							"morse_free",
+							"quantum_card",
+							"who_card",
+							"mission_card",
+							"perf_card",
+							"game_info"
 						]
 					},
 					"ref": {
 						"type": "string",
-						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost; ship_card: the “My ship” card (no ref); ship_info: name, master_mode, landed, boost; character_info: position, role, seat; ship_function: a ship function id; action: a game action name; none for annunciators, morse and morse_free — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost ; ship_card : l’encart « Mon vaisseau » (sans ref) ; ship_info : name, master_mode, landed, boost ; character_info : position, role, seat ; ship_function : une fonction vaisseau ; action : nom d’action du jeu ; rien pour annunciators, morse et morse_free"
+						"description": "vital: a vital id; instrument: shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost; ship_card: the “My ship” card (no ref); ship_info: name, master_mode, landed, boost, qt_state, qt_destination, qt_eta, qt_distance, qt_calibration; character_info: position, role, seat, player_name, mode, location, jurisdiction, armistice, crime_stat, mission, mission_objective, mission_progress; game_info: state, fps, frame_time, gpu, vram, ping, packet_loss, server_fps, shard; quantum_card, who_card, mission_card, perf_card: cards (no ref); ship_function: a ship function id; action: a game action name; none for annunciators, morse and morse_free — FR : vital : une constante ; instrument : shields, hull, decoys, noise, weapons_ready, weapon_group, gimbals, hydrogen, quantum, speed, vertical_speed, radar_altitude, heading, g_force, boost ; ship_card : l’encart « Mon vaisseau » (sans ref) ; ship_info : name, master_mode, landed, boost, qt_state, qt_destination, qt_eta, qt_distance, qt_calibration ; character_info : position, role, seat, player_name, mode, location, jurisdiction, armistice, crime_stat, mission, mission_objective, mission_progress ; game_info : state, fps, frame_time, gpu, vram, ping, packet_loss, server_fps, shard ; quantum_card, who_card, mission_card, perf_card : encarts (sans ref) ; ship_function : une fonction vaisseau ; action : nom d’action du jeu ; rien pour annunciators, morse et morse_free"
 					},
 					"size": {
 						"enum": [
@@ -2546,7 +2681,7 @@
 							3,
 							4
 						],
-						"description": "Width counted in 1× items: one slot = 0.25. A full-width section has 16 slots (4), a half or third section 8 (2); wider items take the whole row. annunciators and ship_card: at least 1. — FR : largeur comptée en cases 1× : un emplacement = 0.25. Une section pleine largeur fait 16 emplacements (4), une demi-section ou un tiers 8 (2) ; une case plus large prend toute la ligne. annunciators et ship_card : 1 minimum."
+						"description": "Width counted in 1× items: one slot = 0.25. A full-width section has 16 slots (4), a half or third section 8 (2); wider items take the whole row. annunciators and cards (ship_card, quantum_card, who_card, mission_card, perf_card): at least 1. — FR : largeur comptée en cases 1× : un emplacement = 0.25. Une section pleine largeur fait 16 emplacements (4), une demi-section ou un tiers 8 (2) ; une case plus large prend toute la ligne. annunciators et encarts (ship_card, quantum_card, who_card, mission_card, perf_card) : 1 minimum."
 					},
 					"col": {
 						"type": "integer",
@@ -2591,12 +2726,12 @@
 						"type": "string",
 						"minLength": 1,
 						"maxLength": 24,
-						"description": "Custom name shown on the item (any language, emoji); absent = the game name; ignored on morse, morse_free and ship_card. Only changes the view. — FR : nom affiché sur la case (toute langue, emoji) ; absent = nom du jeu ; ignoré sur morse, morse_free et ship_card. Ne change que la vue."
+						"description": "Custom name shown on the item (any language, emoji); absent = the game name; ignored on morse, morse_free and cards. Only changes the view. — FR : nom affiché sur la case (toute langue, emoji) ; absent = nom du jeu ; ignoré sur morse, morse_free et les encarts. Ne change que la vue."
 					},
 					"display": {
 						"type": "object",
 						"additionalProperties": false,
-						"description": "Display settings: style — gauges for vital and instrument (plus tape on heading), number for character_info and ship_info (none on boost), switch for ship_function, slide or hold (confirm before sending) for action; unknown or unsuitable values are dropped, absent = card — FR : réglages d’affichage : style — jauges pour vital et instrument (plus tape, règle, sur le cap), number pour character_info et ship_info (aucun sur boost), switch (interrupteur) pour ship_function, slide ou hold (glisser / maintenir pour confirmer) pour action ; valeur inconnue ou inadaptée retirée, absent = carte",
+						"description": "Display settings: style — gauges for vital and instrument (plus tape on heading), number or line for character_info, ship_info and game_info (none on boost), switch for ship_function, slide or hold (confirm before sending) for action; unknown or unsuitable values are dropped, absent = card — FR : réglages d’affichage : style — jauges pour vital et instrument (plus tape, règle, sur le cap), number ou line pour character_info, ship_info et game_info (aucun sur boost), switch (interrupteur) pour ship_function, slide ou hold (glisser / maintenir pour confirmer) pour action ; valeur inconnue ou inadaptée retirée, absent = carte",
 						"properties": {
 							"style": {
 								"enum": [
@@ -2984,7 +3119,8 @@
 					"events",
 					"recording",
 					"schema",
-					"actions"
+					"actions",
+					"sequence"
 				],
 				"properties": {
 					"app": {
@@ -3065,6 +3201,33 @@
 						"description": "Last 200 actions sent by the web app and the API, newest first — 200 dernières actions envoyées, la plus récente en premier",
 						"items": {
 							"$ref": "#/components/schemas/ActionLogEntry"
+						}
+					},
+					"sequence": {
+						"type": "object",
+						"required": [
+							"last",
+							"lost",
+							"gameTime"
+						],
+						"description": "Frame numbers (header.sequence, 5.0 PTU build 13273298): last number (null when the game sends none), frames skipped since start, game time (ms since 1970) — FR : numéros de trame (header.sequence, 5.0 PTU build 13273298) : dernier numéro (null si le jeu n'en envoie pas), trames sautées depuis le début, heure du jeu (ms depuis 1970)",
+						"properties": {
+							"last": {
+								"type": [
+									"number",
+									"null"
+								]
+							},
+							"lost": {
+								"type": "integer",
+								"minimum": 0
+							},
+							"gameTime": {
+								"type": [
+									"number",
+									"null"
+								]
+							}
 						}
 					}
 				}
@@ -3347,6 +3510,270 @@
 								}
 							}
 						}
+					}
+				}
+			},
+			"Perf": {
+				"type": "object",
+				"description": "Game performance (game.debug). Maybe only sent with server.game.telemetry.debug.displayinfo. — FR : performances du jeu (game.debug). Peut-être envoyées seulement avec server.game.telemetry.debug.displayinfo.",
+				"required": [
+					"fps",
+					"frameMs",
+					"mainMs",
+					"renderMs",
+					"gpuMs",
+					"vramUsedMb",
+					"vramBudgetMb",
+					"pingMs",
+					"lossPercent",
+					"inBps",
+					"outBps",
+					"serverFps",
+					"serverMaxMs",
+					"hitches",
+					"shard",
+					"shardId"
+				],
+				"properties": {
+					"fps": {
+						"type": "number"
+					},
+					"frameMs": {
+						"type": "number"
+					},
+					"mainMs": {
+						"type": "number"
+					},
+					"renderMs": {
+						"type": "number"
+					},
+					"gpuMs": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"vramUsedMb": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"vramBudgetMb": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"pingMs": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"lossPercent": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"inBps": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"outBps": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"serverFps": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"serverMaxMs": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"hitches": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"shard": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"shardId": {
+						"type": [
+							"string",
+							"null"
+						]
+					}
+				}
+			},
+			"Game": {
+				"type": "object",
+				"required": [
+					"available",
+					"state",
+					"label",
+					"menuOpen",
+					"mode",
+					"perf"
+				],
+				"properties": {
+					"available": {
+						"type": "boolean",
+						"description": "false when the game does not send its state (builds before 5.0 PTU 13273298) — FR : false quand le jeu n'envoie pas son état (builds d'avant la 5.0 PTU 13273298)"
+					},
+					"state": {
+						"enum": [
+							"front_end",
+							"loading",
+							"in_game",
+							"unknown"
+						]
+					},
+					"label": {
+						"type": "string"
+					},
+					"menuOpen": {
+						"type": "boolean",
+						"description": "A game menu is open (actions are often ignored then) — FR : un menu du jeu est ouvert (les actions sont alors souvent ignorées)"
+					},
+					"mode": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "Game mode as sent by the game — FR : mode de jeu tel qu'envoyé par le jeu"
+					},
+					"perf": {
+						"oneOf": [
+							{
+								"$ref": "#/components/schemas/Perf"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
+				}
+			},
+			"Mission": {
+				"type": "object",
+				"required": [
+					"title",
+					"giver",
+					"objective",
+					"done",
+					"total",
+					"endsAt"
+				],
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"giver": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"objective": {
+						"type": [
+							"string",
+							"null"
+						],
+						"description": "Current objective, in the game's language — FR : objectif en cours, dans la langue du jeu"
+					},
+					"done": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"total": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"endsAt": {
+						"type": [
+							"number",
+							"null"
+						],
+						"description": "End time (ms since 1970); null without a limit — FR : fin (ms depuis 1970) ; null sans limite"
+					}
+				}
+			},
+			"Quantum": {
+				"type": "object",
+				"required": [
+					"state",
+					"label",
+					"spool",
+					"calibration",
+					"destination",
+					"etaSeconds",
+					"etaText",
+					"distanceM",
+					"distanceText"
+				],
+				"properties": {
+					"state": {
+						"enum": [
+							"off",
+							"idle",
+							"aligning",
+							"traveling",
+							"cooldown",
+							"unknown"
+						]
+					},
+					"label": {
+						"type": "string"
+					},
+					"spool": {
+						"type": "number",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"calibration": {
+						"type": "number",
+						"minimum": 0,
+						"maximum": 100
+					},
+					"destination": {
+						"type": [
+							"string",
+							"null"
+						]
+					},
+					"etaSeconds": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"etaText": {
+						"type": "string"
+					},
+					"distanceM": {
+						"type": [
+							"number",
+							"null"
+						]
+					},
+					"distanceText": {
+						"type": "string"
 					}
 				}
 			}
