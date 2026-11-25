@@ -1,5 +1,10 @@
 # SC Telemetry Deck
 
+> [!CAUTION]
+> **Ne fonctionne pas sur la 5.0 PTU actuelle (25 nov. 2026).**
+> Depuis le build PTU **5.0.202.35026** (CL 13273298, compilé le 24 nov. 2026), le client du jeu ne démarre plus son service de télémétrie locale : rien n'écoute sur `127.0.0.1:2942`, donc le plugin et l'appli web ne reçoivent aucune donnée et les actions échouent.
+> C'est un changement côté jeu, pas un bug de SC Telemetry Deck, et il n'y a rien à corriger sur ton PC. L'API est toujours présente dans les fichiers du jeu, elle devrait revenir dans un prochain build : cette page sera mise à jour dès que c'est le cas.
+
 **EN** [English](README.md) · 🇫🇷 **Français** · 📜 [Journal des modifications](CHANGELOG.fr.md)
 
 Plugin Stream Deck **et appli web autonome** pour **Star Citizen**, basés sur l'API de télémétrie locale du jeu (gRPC, `127.0.0.1:2942`).
