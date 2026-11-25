@@ -29,7 +29,10 @@ describe("arbre du schéma", () => {
 		const state = tree.find((f) => f.name === "vehicle")!.fields!.find((f) => f.name === "state")!;
 		expect(state.fields!.find((f) => f.name === "doors")).toMatchObject({ kind: "message", type: "VehicleDoorState", optional: true });
 		expect(state.fields!.find((f) => f.name === "lights_enabled")).toEqual({ name: "lights_enabled", type: "bool", kind: "scalar", default: false });
-		expect(state.fields!.find((f) => f.name === "health")).toMatchObject({ type: "float", default: 0 });
+		// Coque : `optional` depuis le build 13273298 (0 distinct de « non envoyé ») → pas de valeur par défaut.
+		expect(state.fields!.find((f) => f.name === "health")).toEqual({ name: "health", type: "float", kind: "scalar", optional: true });
+		expect(state.fields!.find((f) => f.name === "quantum_travel")).toMatchObject({ kind: "message", type: "VehicleQuantumTravel", optional: true });
+		expect(tree.map((f) => f.name)).toEqual(expect.arrayContaining(["header", "game"]));
 		expect(state.fields!.find((f) => f.name === "type")).toMatchObject({ kind: "enum", type: "VehicleType", default: "VEHICLE_TYPE_UNSPECIFIED" });
 		expect(state.fields!.find((f) => f.name === "doors")).not.toHaveProperty("default");
 	});

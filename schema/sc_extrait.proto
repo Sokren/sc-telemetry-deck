@@ -34,6 +34,33 @@ enum ActorCrewRole {
   ACTOR_CREW_ROLE_GUNNER = 2;
   ACTOR_CREW_ROLE_CREW = 3;
 }
+enum ActorOperatorMode {
+  ACTOR_OPERATOR_MODE_UNSPECIFIED = 0;
+  ACTOR_OPERATOR_MODE_INACTIVE = 1;
+  ACTOR_OPERATOR_MODE_FLIGHT = 2;
+  ACTOR_OPERATOR_MODE_COMBAT = 3;
+  ACTOR_OPERATOR_MODE_TURRET = 4;
+  ACTOR_OPERATOR_MODE_MISSILE = 5;
+  ACTOR_OPERATOR_MODE_SCANNING = 6;
+  ACTOR_OPERATOR_MODE_MINING = 7;
+  ACTOR_OPERATOR_MODE_QUANTUM_NAVIGATION = 8;
+  ACTOR_OPERATOR_MODE_REFUEL = 9;
+  ACTOR_OPERATOR_MODE_SALVAGE = 11;
+}
+enum QuantumTravelState {
+  QUANTUM_TRAVEL_STATE_UNSPECIFIED = 0;
+  QUANTUM_TRAVEL_STATE_OFF = 1;
+  QUANTUM_TRAVEL_STATE_IDLE = 2;
+  QUANTUM_TRAVEL_STATE_ALIGNING = 3;
+  QUANTUM_TRAVEL_STATE_TRAVELING = 4;
+  QUANTUM_TRAVEL_STATE_COOLDOWN = 5;
+}
+enum GameState {
+  GAME_STATE_UNSPECIFIED = 0;
+  GAME_STATE_FRONT_END = 1;
+  GAME_STATE_LOADING = 2;
+  GAME_STATE_IN_GAME = 3;
+}
 message Availability {
   bool enabled = 1;
   bool active = 2;
@@ -97,10 +124,10 @@ message VehicleFlight {
 message VehicleFlightInstruments {
   float speed = 1;
   float hydrogen_fuel = 2;
-  float quantum_fuel = 3;
+  optional float quantum_fuel = 3;
   optional sc.game.telemetry.v1.Gauge g_meter = 4;
   sc.game.telemetry.v1.VehicleThrusterBoost boost = 5;
-  float altitude = 6;
+  optional float altitude = 6;
   float radar_altitude = 7;
   float vertical_speed_indicator = 8;
   float atmospheric_density = 9;
@@ -169,8 +196,9 @@ message VehicleState {
   optional sc.game.telemetry.v1.VehicleFlight flight = 8;
   optional sc.game.telemetry.v1.VehiclePowerState power = 9;
   optional sc.game.telemetry.v1.VehicleShields shields = 10;
-  float health = 11;
+  optional float health = 11;
   optional sc.game.telemetry.v1.VehicleMasterModeState master_mode = 12;
+  optional sc.game.telemetry.v1.VehicleQuantumTravel quantum_travel = 13;
 }
 
 message VehicleFrame {
@@ -250,6 +278,26 @@ message ForceFeedbackFrame {
   reserved 1;
 }
 
+message LocationName {
+  string id = 1;
+  string display_name = 2;
+}
+
+message ActorLocation {
+  repeated sc.game.telemetry.v1.LocationName hierarchy = 1;
+  optional sc.game.telemetry.v1.LocationName jurisdiction = 2;
+  bool armistice_zone = 3;
+}
+
+message VehicleQuantumTravel {
+  sc.game.telemetry.v1.QuantumTravelState state = 1;
+  float spool_ratio = 2;
+  float calibration_ratio = 3;
+  optional sc.game.telemetry.v1.LocationName destination = 4;
+  optional float eta_seconds = 5;
+  optional double remaining_distance_m = 6;
+}
+
 message ActorVitals {
   sc.game.telemetry.v1.Gauge health = 1;
   sc.game.telemetry.v1.Gauge oxygen = 2;
@@ -269,11 +317,35 @@ message ActorEnvironment {
   bool breathable_atmosphere = 3;
 }
 
+message ContractObjective {
+  string text = 1;
+}
+
+message ContractDetails {
+  string contract_id = 1;
+  string title = 2;
+  string giver_name = 3;
+  optional sc.game.telemetry.v1.ContractObjective current_objective = 4;
+  uint32 objectives_completed = 5;
+  uint32 objectives_total = 6;
+  optional int64 ends_at_unix_ms = 7;
+}
+
+message ActorContract {
+  uint32 revision = 1;
+  optional sc.game.telemetry.v1.ContractDetails details = 2;
+}
+
 message ActorState {
   sc.game.telemetry.v1.ActorLocomotionState locomotion = 1;
   sc.game.telemetry.v1.ActorCrewRole crew_role = 2;
   string seat_name = 3;
   int64 uec_balance = 4;
+  optional sc.game.telemetry.v1.ActorOperatorMode operator_mode = 5;
+  optional sc.game.telemetry.v1.ActorLocation location = 6;
+  optional sc.game.telemetry.v1.ActorContract tracked_contract = 7;
+  uint32 crime_stat = 8;
+  string player_name = 9;
 }
 
 message ActorFrame {
@@ -284,6 +356,52 @@ message ActorFrame {
 
 message TurretFrame {
   bool light_amplification = 1;
+}
+
+message FrameHeader {
+  uint64 sequence = 1;
+  int64 game_time_unix_ms = 2;
+}
+
+message VideoMemory {
+  uint32 used_mb = 1;
+  uint32 budget_mb = 2;
+}
+
+message NetworkStats {
+  float ping_ms = 1;
+  float packet_loss_percent = 2;
+  uint32 bits_per_second_in = 3;
+  uint32 bits_per_second_out = 4;
+}
+
+message ServerPerformance {
+  float fps = 1;
+  float min_frame_time_ms = 2;
+  float max_frame_time_ms = 3;
+  uint32 hitch_count = 4;
+}
+
+message GameDebugInfo {
+  float fps = 1;
+  float frame_time_ms = 2;
+  float main_thread_ms = 3;
+  float render_thread_ms = 4;
+  optional float gpu_ms = 5;
+  optional sc.game.telemetry.v1.VideoMemory vram = 6;
+  optional sc.game.telemetry.v1.NetworkStats network = 7;
+  optional sc.game.telemetry.v1.ServerPerformance server = 8;
+  int64 universe_time_unix_ms = 9;
+  optional string shard_id = 10;
+  optional string shard_name = 11;
+}
+
+message GameFrame {
+  sc.game.telemetry.v1.GameState state = 1;
+  bool menu_open = 2;
+  string game_mode = 3;
+  optional sc.game.telemetry.v1.GameDebugInfo debug = 5;
+  reserved 4;
 }
 
 
@@ -306,13 +424,14 @@ message TelemetryStreamRequest {
 }
 
 message TelemetryStreamResponse {
+  sc.game.telemetry.v1.FrameHeader header = 1;
   sc.game.telemetry.v1.VehicleFrame vehicle = 3;
   sc.game.telemetry.v1.WeaponsFrame weapons = 4;
   sc.game.telemetry.v1.EventsFrame events = 5;
   sc.game.telemetry.v1.ActorFrame actor = 6;
   sc.game.telemetry.v1.ForceFeedbackFrame force_feedback = 7;
   sc.game.telemetry.v1.TurretFrame turret = 8;
-  reserved 1;
+  sc.game.telemetry.v1.GameFrame game = 9;
   reserved 2;
 }
 
