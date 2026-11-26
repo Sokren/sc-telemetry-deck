@@ -6,6 +6,7 @@ import { renderGauge, stylesFor } from "./gauges.js";
 import { moneyText } from "./numbers.js";
 import { openExport, openImport, openNewView } from "./share.js";
 import { shipCard } from "./shipcard.js";
+import { gameInfoText, missionCard, perfCard, quantumCard, whoCard } from "./situation.js";
 
 const MAX_SECTIONS = 20;
 const MAX_ITEMS = 40;
@@ -30,9 +31,15 @@ const morseText = (s) =>
 		.replace(/ +/g, " ")
 		.trim();
 /** Types de case qui acceptent un style (comme l'appli). */
-const STYLED_KINDS = ["vital", "instrument", "character_info", "ship_info", "ship_function", "action"];
+const STYLED_KINDS = ["vital", "instrument", "character_info", "ship_info", "game_info", "ship_function", "action"];
 /** Types de case de valeur (jauges, chiffre, règle). */
-const VALUE_KINDS = ["vital", "instrument", "character_info", "ship_info"];
+const VALUE_KINDS = ["vital", "instrument", "character_info", "ship_info", "game_info"];
+/** Cases d'information en texte (pas de jauge). */
+const INFO_KINDS = ["character_info", "ship_info", "game_info"];
+/** Encarts (comme l'appli) : sans nom modifiable, jamais plus petits que 1×, 2× à l'ajout. */
+const CARD_KINDS = ["ship_card", "quantum_card", "who_card", "mission_card", "perf_card"];
+/** Encarts du build 13273298 et leur dessin. */
+const CARDS = { quantum_card: quantumCard, who_card: whoCard, mission_card: missionCard, perf_card: perfCard };
 /** Nom libre : `base`, sinon « base 2 », « base 3 »… (coupé pour tenir en 24 caractères). */
 export function uniqueName(base, names) {
 	const taken = new Set(names);
@@ -64,8 +71,8 @@ export function confirmModeFor(ref, style, holdActions) {
 	return holdActions?.has(ref) ? "hold" : "press";
 }
 /** Cases sans nom affiché modifiable (comme l'appli) ; cases jamais plus petites que 1×. */
-const NO_LABEL = ["morse", "morse_free", "ship_card"];
-const MIN_SIZE_1 = ["annunciators", "ship_card"];
+const NO_LABEL = ["morse", "morse_free", ...CARD_KINDS];
+const MIN_SIZE_1 = ["annunciators", ...CARD_KINDS];
 const MAX_LABEL = 24;
 /**
  * Largeur d'une case en emplacements (`size` compté en cases 1× : un emplacement = 0.25). Une section pleine largeur
@@ -153,8 +160,11 @@ const button = (cls, text, title) => {
  */
 export function createView(ctx) {
 	const { t } = ctx;
-	const root = document.getElementById("myview");
-	const lockBtn = document.getElementById("view-lock");
+	// `ctx.fixed` : vue intégrée (onglet Instrument de bord) — une seule vue fournie par `setFixedView`, toujours
+	// verrouillée : pas de cadenas, pas d'édition, pas d'enregistrement.
+	const fixed = ctx.fixed === true;
+	const root = ctx.root ?? document.getElementById("myview");
+	const lockBtn = fixed ? null : document.getElementById("view-lock");
 	/** Toutes les vues (dernière liste reçue, avec la vue affichée telle qu'éditée ici). */
 	let views = null;
 	let currentId = null;
@@ -162,7 +172,7 @@ export function createView(ctx) {
 	let view = null;
 	let state = null;
 	let actionGroups = [];
-	let unlocked = ctx.storage.get(UNLOCK_KEY) === "1";
+	let unlocked = !fixed && ctx.storage.get(UNLOCK_KEY) === "1";
 	let visible = false;
 	let saveTimer;
 	let drag = null;
@@ -172,9 +182,44 @@ export function createView(ctx) {
 	// ---------- Libellés ----------
 	const fmt = (key, ...args) => args.reduce((s, a, i) => s.replace(`{${i}}`, a), t(key));
 	const INFO = {
-		character_info: { position: "infoPosition", role: "infoRole", seat: "infoSeat" },
-		ship_info: { name: "infoShipName", master_mode: "infoMasterMode", landed: "infoLanded", boost: "infoBoost" },
+		character_info: {
+			position: "infoPosition",
+			role: "infoRole",
+			seat: "infoSeat",
+			player_name: "infoPlayerName",
+			mode: "infoMode",
+			location: "infoLocation",
+			jurisdiction: "infoJurisdiction",
+			armistice: "armistice",
+			crime_stat: "crimeStat",
+			mission: "missionTitle",
+			mission_objective: "infoMissionObjective",
+			mission_progress: "infoMissionProgress",
+		},
+		ship_info: {
+			name: "infoShipName",
+			master_mode: "infoMasterMode",
+			landed: "infoLanded",
+			boost: "infoBoost",
+			qt_state: "qtTitle",
+			qt_destination: "infoQtDestination",
+			qt_eta: "qtEta",
+			qt_distance: "qtDistance",
+			qt_calibration: "qtCalibration",
+		},
+		game_info: {
+			state: "infoGameState",
+			fps: "perfFps",
+			frame_time: "infoFrameTime",
+			gpu: "infoGpu",
+			vram: "perfVram",
+			ping: "perfPing",
+			packet_loss: "infoPacketLoss",
+			server_fps: "infoServerFps",
+			shard: "perfShard",
+		},
 	};
+	const CARD_TITLES = { ship_card: "shipCard", quantum_card: "qtTitle", who_card: "whoCard", mission_card: "missionTitle", perf_card: "perfTitle" };
 	function actionLabel(name) {
 		for (const g of actionGroups) for (const a of g.actions) if (a.name === name) return a.label;
 		return name;
@@ -192,7 +237,11 @@ export function createView(ctx) {
 			case "annunciators":
 				return t("warningLights");
 			case "ship_card":
-				return t("shipCard");
+			case "quantum_card":
+			case "who_card":
+			case "mission_card":
+			case "perf_card":
+				return t(CARD_TITLES[item.kind]);
 			case "action":
 				return actionLabel(item.ref);
 			case "morse":
@@ -225,23 +274,76 @@ export function createView(ctx) {
 	// ---------- Rendu des cases ----------
 	function infoText(item) {
 		if (!state) return "—";
+		if (item.kind === "game_info") return gameInfoText(state, item.ref, t);
 		if (item.kind === "character_info") {
 			const c = state.character;
 			if (!c.available) return "—";
-			if (item.ref === "position") return c.locomotionLabel;
-			if (item.ref === "role") return c.crewRoleLabel;
-			return c.seat ?? "—";
+			const m = c.mission;
+			switch (item.ref) {
+				case "position":
+					return c.locomotionLabel;
+				case "role":
+					return c.crewRoleLabel;
+				case "seat":
+					return c.seat ?? "—";
+				case "player_name":
+					return c.playerName ?? "—";
+				case "mode":
+					return c.modeLabel;
+				case "location":
+					// Les deux niveaux les plus précis (« Hurston › Lorville ») : le chemin complet ne tient pas.
+					return c.location.slice(-2).join(" › ") || "—";
+				case "jurisdiction":
+					return c.jurisdiction ?? "—";
+				case "armistice":
+					return c.armistice === null ? "—" : c.armistice ? t("yes") : t("no");
+				case "crime_stat":
+					return c.crimeStat === null ? "—" : String(c.crimeStat);
+				case "mission":
+					return m?.title ?? "—";
+				case "mission_objective":
+					return m?.objective ?? "—";
+				case "mission_progress":
+					return m?.total ? `${m.done} / ${m.total}` : "—";
+			}
+			return "—";
 		}
 		const s = state.shipStatus;
 		if (!s.available) return "—";
-		if (item.ref === "name") return s.name ?? "—";
-		if (item.ref === "master_mode") return s.masterModeLabel;
-		return s.landed === null ? "—" : s.landed ? t("landed") : t("flying");
+		const q = s.quantum;
+		switch (item.ref) {
+			case "name":
+				return s.name ?? "—";
+			case "master_mode":
+				return s.masterModeLabel;
+			case "landed":
+				return s.landed === null ? "—" : s.landed ? t("landed") : t("flying");
+			case "qt_state":
+				return q?.label ?? "—";
+			case "qt_destination":
+				return q?.destination ?? "—";
+			case "qt_eta":
+				return q?.etaText ?? "—";
+			case "qt_distance":
+				return q?.distanceText ?? "—";
+			case "qt_calibration":
+				return q ? `${Math.floor(q.calibration + 1e-6)} %` : "—";
+		}
+		return "—";
+	}
+
+	/** Couleur d'une info : CrimeStat en rouge au-dessus de 0, zone d'armistice en vert. */
+	function infoLevel(item) {
+		const c = state?.character;
+		if (item.kind !== "character_info" || !c?.available) return "none";
+		if (item.ref === "crime_stat") return c.crimeStat > 0 ? "bad" : "none";
+		if (item.ref === "armistice") return c.armistice ? "ok" : "none";
+		return "none";
 	}
 
 	/** Donnée affichée par une case de valeur (constante, instrument, info perso / vaisseau). */
 	function itemData(item) {
-		if (item.kind === "character_info" || item.kind === "ship_info") return { label: shownLabel(item), text: infoText(item), unit: "", level: "none" };
+		if (INFO_KINDS.includes(item.kind)) return { label: shownLabel(item), text: infoText(item), unit: "", level: infoLevel(item) };
 		const list = item.kind === "vital" ? state?.vitals : state?.shipStatus.instruments;
 		const found = list?.find((x) => x.id === item.ref);
 		if (!found) return { label: shownLabel(item), text: "—", unit: "", level: "none" };
@@ -380,9 +482,17 @@ export function createView(ctx) {
 			case "vital":
 			case "instrument":
 			case "character_info":
+			case "game_info":
 				return valueContent(item, box);
 			case "ship_card": {
 				const update = () => box.replaceChildren(shipCard(state, item.size >= 2 ? 2 : 1, t));
+				return { box, update };
+			}
+			case "quantum_card":
+			case "who_card":
+			case "mission_card":
+			case "perf_card": {
+				const update = () => box.replaceChildren(CARDS[item.kind](state, t));
 				return { box, update };
 			}
 			case "annunciators": {
@@ -660,7 +770,21 @@ export function createView(ctx) {
 			});
 			ctl.append(width, tall, handle, del);
 			head.append(ctl);
-		} else head.append(el("h2", "vtitle", section.title));
+		} else {
+			const title = el("h2", "vtitle", section.title);
+			head.append(title);
+			// Section « ship » (modèles Instrument de bord) : marque et nom du vaisseau à côté du titre.
+			if (section.id === "ship") {
+				const ship = el("span", "vtitle-ship");
+				title.append(ship);
+				const update = () => {
+					const m = state?.shipStatus?.model;
+					ship.textContent = m ? ` — ${[m.manufacturerShort, m.name].filter(Boolean).join(" ")}` : "";
+				};
+				update();
+				updaters.set(`section:${section.id}`, update);
+			}
+		}
 		const grid = el("div", "vgrid");
 		grid.append(...section.items.map((i) => renderItem(section, i)));
 		sec.append(head, grid);
@@ -691,6 +815,7 @@ export function createView(ctx) {
 		// Cockpit : le HUD (cadres, chiffres) plus les boutons centrés et les jauges sur une ligne de la maquette.
 		root.classList.toggle("hud", view?.look === "hud" || view?.look === "cockpit");
 		root.classList.toggle("cockpit", view?.look === "cockpit");
+		root.classList.toggle("instrument", view?.look === "instrument");
 		if (!view) return root.replaceChildren(el("p", "hint", t("connecting")));
 		const list = el("div", "vsections");
 		list.append(...view.sections.map(renderSection));
@@ -710,7 +835,7 @@ export function createView(ctx) {
 			parts.push(add);
 		}
 		if (!view.sections.length && !unlocked) parts.push(el("p", "hint", t("viewEmpty")));
-		parts.push(el("p", "hint vhint", unlocked ? t("viewHintEdit") : t("viewHintLocked")));
+		if (!fixed) parts.push(el("p", "hint vhint", unlocked ? t("viewHintEdit") : t("viewHintLocked")));
 		root.replaceChildren(...parts);
 	}
 
@@ -766,6 +891,7 @@ export function createView(ctx) {
 			["standard", "lookStandard"],
 			["hud", "lookHud"],
 			["cockpit", "lookCockpit"],
+			["instrument", "lookInstrument"],
 		]) {
 			const b = button("vlook-opt", t(key));
 			b.setAttribute("role", "radio");
@@ -783,6 +909,7 @@ export function createView(ctx) {
 	}
 
 	function renderLock() {
+		if (!lockBtn) return;
 		lockBtn.hidden = !visible;
 		lockBtn.textContent = unlocked ? t("viewDone") : t("viewLocked");
 		lockBtn.classList.toggle("open", unlocked);
@@ -803,6 +930,7 @@ export function createView(ctx) {
 	}
 
 	function scheduleSave() {
+		if (fixed) return;
 		clearTimeout(saveTimer);
 		saveTimer = setTimeout(save, SAVE_DELAY);
 	}
@@ -815,6 +943,7 @@ export function createView(ctx) {
 
 	/** Enregistre la vue affichée (elle seule : les autres vues ne sont pas touchées). */
 	async function save() {
+		if (fixed) return;
 		clearTimeout(saveTimer);
 		saveTimer = undefined;
 		if (!view) return;
@@ -893,7 +1022,14 @@ export function createView(ctx) {
 			case "character":
 				return [
 					...state.vitals.map((v) => ({ kind: "vital", ref: v.id, label: v.label, type: kindText(GAUGES.includes(v.id) ? "kindGauge" : "kindValue") })),
+					{ kind: "who_card", label: t("whoCard"), type: kindText("kindCard") },
+					{ kind: "mission_card", label: t("missionTitle"), type: kindText("kindCard") },
 					...Object.keys(INFO.character_info).map((ref) => ({ kind: "character_info", ref, label: t(INFO.character_info[ref]), type: kindText("kindState") })),
+				];
+			case "game":
+				return [
+					{ kind: "perf_card", label: t("perfTitle"), type: kindText("kindCard") },
+					...Object.keys(INFO.game_info).map((ref) => ({ kind: "game_info", ref, label: t(INFO.game_info[ref]), type: kindText("kindState") })),
 				];
 			case "ship":
 				return [
@@ -904,6 +1040,7 @@ export function createView(ctx) {
 						type: kindText(GAUGES.includes(i.id) ? "kindGauge" : "kindValue"),
 					})),
 					{ kind: "ship_card", label: t("shipCard"), type: kindText("kindCard") },
+					{ kind: "quantum_card", label: t("qtTitle"), type: kindText("kindCard") },
 					{ kind: "annunciators", label: t("warningLights"), type: kindText("kindLights") },
 					...Object.keys(INFO.ship_info).map((ref) => ({ kind: "ship_info", ref, label: t(INFO.ship_info[ref]), type: kindText("kindState") })),
 					...state.ship.map((f) => ({ kind: "ship_function", ref: f.id, label: f.label, type: kindText("kindButton") })),
@@ -928,6 +1065,7 @@ export function createView(ctx) {
 		for (const [id, key] of [
 			["character", "tabCharacter"],
 			["ship", "tabShip"],
+			["game", "menuGame"],
 			["actions", "menuActions"],
 			["emotes", "emotes"],
 			["morse", "menuMorse"],
@@ -1019,7 +1157,7 @@ export function createView(ctx) {
 			return showStyleMenu(anchor, name);
 		}
 		const data = itemData(item);
-		const info = item.kind === "character_info" || item.kind === "ship_info";
+		const info = INFO_KINDS.includes(item.kind);
 		// D'après la constante (liste connue) plutôt que la frame : à pied, les instruments n'ont pas de pourcentage.
 		const isGauge = info ? false : GAUGES.includes(item.ref) || typeof data.percent === "number";
 		const current = item.display?.style ?? "card";
@@ -1089,7 +1227,7 @@ export function createView(ctx) {
 		const section = menuSection;
 		if (!section || section.items.length >= MAX_ITEMS) return closeMenu();
 		// Même ordre de clés que la vue renvoyée par l'appli (comparaison des copies sans re-rendu inutile).
-		const item = { id: newId(), kind: entry.kind, ...(entry.ref ? { ref: entry.ref } : {}), size: entry.kind === "annunciators" || entry.kind === "ship_card" ? 2 : 1 };
+		const item = { id: newId(), kind: entry.kind, ...(entry.ref ? { ref: entry.ref } : {}), size: entry.kind === "annunciators" || CARD_KINDS.includes(entry.kind) ? 2 : 1 };
 		if (entry.kind === "morse") item.settings = { text: "SOS", ...MORSE_DEFAULT };
 		if (entry.kind === "morse_free") item.settings = { ...MORSE_DEFAULT };
 		section.items.push(item);
@@ -1241,12 +1379,13 @@ export function createView(ctx) {
 	}
 
 	// ---------- Cadenas ----------
-	lockBtn.addEventListener("click", () => {
+	lockBtn?.addEventListener("click", () => {
 		if (unlocked && saveTimer) save();
 		setUnlocked(!unlocked);
 	});
 
 	function setUnlocked(v) {
+		if (fixed) return;
 		unlocked = v;
 		ctx.storage.set(UNLOCK_KEY, unlocked ? "1" : "0");
 		renderLock();
@@ -1335,6 +1474,12 @@ export function createView(ctx) {
 			const input = root.querySelector(".vname-input");
 			input?.focus();
 			input?.select();
+		},
+		/** Vue intégrée (mode `fixed`) : affiche cette vue telle quelle. */
+		setFixedView(v) {
+			view = v ? structuredClone(v) : null;
+			currentId = v ? "__fixed" : null;
+			render();
 		},
 		setState(s) {
 			const first = !state;

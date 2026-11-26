@@ -12,13 +12,27 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 ## [Unreleased]
 
 ### Added
-- API: **external tokens** for tools (VoiceAttack, overlay, bot…). Created from the PC (`POST /api/v1/access/tokens`) with a name and a level: **Read** (game state, events), **Pilot** (read + actions, ship functions, Morse, without the protected actions) or **Full pilot** (with eject, self destruct and unlocking the ship). Accepted only in the `Authorization` header, from the PC unless their local-network option is set, and only on the routes of their level; revocable or renewable (new token, the old one stops working at once), can be stopped for 15 min, 1 h or until resumed (refused with reason `stopped`, open connections closed), with a log of the last calls. The app token is unchanged. API contract **1.12.0**.
+- **🧭 Instrument panel tab**: a built-in view for a tablet (quantum travel as a ring, notched gauges, functions, mission, performance), on top of the 10 views; the template of the same name (＋ New view) turns it into an editable view; new **« Instrument panel » look** for every view; opens directly from the QR code / the `?view=instrument` link.
+- **⛶ Full screen button** in the web app's top bar (tablet, Android phone, PC); hidden where the browser does not allow it (iPhone).
+- **New in game 5.0 PTU (build 13273298)**, shown when the game sends it. This build does not open the local API yet: nothing could be checked in game.
+  - Top bar: **game state** (main menu, loading, in game) and **menu open**.
+  - **Ship** tab: a **Quantum travel** card next to "My ship" (destination, time left, distance, spool and calibration).
+  - **Character** tab: **player name**, **mode** (flight, combat, mining, salvage…), **location** and jurisdiction, **armistice zone**, **CrimeStat**, and a **Tracked mission** section (current objective, objectives done / total, time left).
+  - **Debug** tab: a **Performance** section (FPS, CPU / render / GPU times, video memory, ping, packet loss, server, shard), frame number and **lost frames**.
+  - **My view**: Quantum travel, Who / where / mode, Tracked mission and Performance cards, and an item for each value (**Add** menu: Character, Ship and **Game** tabs).
+  - **Automatic view by the character's mode** (mining → your "Mining" view…), taking priority over position when a view is chosen.
+  - Stream Deck: **Ship Display** shows quantum travel (time left and destination), distance left and calibration; **Actor Display** shows mode, location, CrimeStat, armistice zone, mission, FPS and ping.
+- API contract **1.12.0**: `GET /api/v1/game`; `playerName`, `mode`, `location`, `place`, `jurisdiction`, `armistice`, `crimeStat`, `mission` in `/api/v1/character`; `quantum` in `/api/v1/ship/status`; `sequence` in `/api/v1/debug`; `quantum_card`, `who_card`, `mission_card`, `perf_card`, `game_info` items and new `character_info` / `ship_info` values; `instrument` look; `instrument_panel` template; `view=instrument` for `/api/v1/lan/qr`.
+- API: **external tokens** for tools (VoiceAttack, overlay, bot…). Created from the PC (`POST /api/v1/access/tokens`) with a name and a level: **Read** (game state, events), **Pilot** (read + actions, ship functions, Morse, without the protected actions) or **Full pilot** (with eject, self destruct and unlocking the ship). Accepted only in the `Authorization` header, from the PC unless their local-network option is set, and only on the routes of their level; revocable or renewable (new token, the old one stops working at once), can be stopped for 15 min, 1 h or until resumed (refused with reason `stopped`, open connections closed), with a log of the last calls. The app token is unchanged. API contract **1.13.0**.
 - Web app: **⚙ Options → External access** screen to create, change, renew, stop and revoke these tokens and see their live log. Two tokens cannot share a name (case ignored). **🔑 N calls** indicator in the top bar when their logs have something new (orange with errors). The token is shown only once; Full pilot is flagged in red, more strongly with the local network.
 - **Plugins**: the web app starts **separate programs** put in the `plugins` folder next to the app (Node, Python or `.exe`), each with its own short-lived token (`sct_plg_…`, in memory only, PC only) at the granted level — Read, Pilot or Full pilot (always with the red warning) — and rights on views (read, change the ones picked, create its own, marked with the plugin). A new or changed plugin never starts on its own: **⚙ Options → Plugins** shows the exact command (run without a shell), the files and their fingerprint before enabling it. A Node plugin can only read its own folder. Stop, restart, disable, live log (API calls and program output), “Failed” after 3 errors in 1 minute, **🧩 N plugins** indicator in the top bar (green, orange: unseen errors, red: a plugin failed). A view created by a plugin shows its name and says when it is stopped. In the logs, only refusals and errors (400, 401, 403, 5xx) are red and count as alerts; they stay visible even when many normal calls push them out. Example in `examples/plugins/`. API `/api/v1/plugins`.
 
 ### Security
 - The app refuses requests whose `Host` header is neither `localhost` nor an IP address (403 `bad_host`): a web page can no longer reach it by pointing its domain name at this PC (DNS rebinding).
 - The event stream no longer sends views to external tokens, and only the allowed views to a plugin.
+
+### Changed
+- Game schema updated: 5.0 PTU build 13273298 (5.0.202.35026).
 
 ## [0.3.15] — 2026-11-24
 

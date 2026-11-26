@@ -13,12 +13,14 @@
 			<h1 id="title">SC Telemetry Deck</h1>
 			<span id="version" class="version"></span>
 			<span id="status" class="status"><span class="dot"></span><span id="status-text"></span></span>
+			<span id="game-state" class="game-state" hidden></span>
 			<a id="update-badge" class="update-badge" target="_blank" rel="noopener" hidden></a>
 			<button id="access-pill" class="plg-pill" type="button" hidden></button>
 			<button id="plugins-pill" class="plg-pill" type="button" hidden></button>
 			<button id="setup-open" class="setup-open" type="button" hidden></button>
 			<nav>
 				<button id="view-lock" class="lock" type="button" hidden></button>
+				<button id="fullscreen" class="fullscreen" type="button" hidden></button>
 				<button id="options-open" class="options-open" type="button"></button>
 			</nav>
 		</header>
@@ -26,6 +28,7 @@
 			<button type="button" role="tab" data-tab="grid" id="tab-grid"></button>
 			<button type="button" role="tab" data-tab="character" id="tab-character"></button>
 			<button type="button" role="tab" data-tab="ship" id="tab-ship"></button>
+			<button type="button" role="tab" data-tab="instrument" id="tab-instrument"></button>
 			<button type="button" role="tab" data-tab="debug" id="tab-debug" class="tab-debug" hidden></button>
 			<span id="view-tabs" class="view-tabs"></span>
 			<button type="button" id="view-add" class="tab-add" hidden>＋</button>
@@ -41,8 +44,10 @@
 
 			<section id="panel-character" role="tabpanel" hidden>
 				<p id="char-head" class="subhead"></p>
+				<p id="char-where" class="hint char-where" hidden></p>
 				<h2 id="h-vitals"></h2>
 				<div id="char-vitals" class="cards"></div>
+				<div id="char-mission" hidden></div>
 				<h2 id="h-player-actions"></h2>
 				<div id="char-actions" class="cards"></div>
 				<h2 id="h-emotes"></h2>
@@ -52,7 +57,10 @@
 
 			<section id="panel-ship" role="tabpanel" hidden>
 				<div id="pilot-recap" class="pilot-recap" hidden></div>
-				<div id="ship-card" hidden></div>
+				<div class="ship-top">
+					<div id="ship-card" hidden></div>
+					<div id="ship-qt" hidden></div>
+				</div>
 				<p id="ship-head" class="subhead"></p>
 				<div class="cards ship-commands">
 					<button type="button" id="flight-ready" class="card function emote flight-ready"><div class="label"></div><span class="flash"></span></button>
@@ -64,6 +72,9 @@
 				<h2 id="h-functions"></h2>
 				<p id="functions-hint" class="hint"></p>
 				<div id="ship-functions" class="cards functions"></div>
+			</section>
+			<section id="panel-instrument" role="tabpanel" hidden>
+				<div id="instrument-view"></div>
 			</section>
 			<section id="panel-debug" role="tabpanel" class="debug" hidden></section>
 			<section id="panel-myview" role="tabpanel" hidden>

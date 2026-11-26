@@ -29,7 +29,10 @@ describe("arbre du schéma", () => {
 		const state = tree.find((f) => f.name === "vehicle")!.fields!.find((f) => f.name === "state")!;
 		expect(state.fields!.find((f) => f.name === "doors")).toMatchObject({ kind: "message", type: "VehicleDoorState", optional: true });
 		expect(state.fields!.find((f) => f.name === "lights_enabled")).toEqual({ name: "lights_enabled", type: "bool", kind: "scalar", default: false });
-		expect(state.fields!.find((f) => f.name === "health")).toMatchObject({ type: "float", default: 0 });
+		// Coque : `optional` depuis le build 13273298 (0 distinct de « non envoyé ») → pas de valeur par défaut.
+		expect(state.fields!.find((f) => f.name === "health")).toEqual({ name: "health", type: "float", kind: "scalar", optional: true });
+		expect(state.fields!.find((f) => f.name === "quantum_travel")).toMatchObject({ kind: "message", type: "VehicleQuantumTravel", optional: true });
+		expect(tree.map((f) => f.name)).toEqual(expect.arrayContaining(["header", "game"]));
 		expect(state.fields!.find((f) => f.name === "type")).toMatchObject({ kind: "enum", type: "VehicleType", default: "VEHICLE_TYPE_UNSPECIFIED" });
 		expect(state.fields!.find((f) => f.name === "doors")).not.toHaveProperty("default");
 	});
@@ -49,6 +52,22 @@ describe("DebugRecorder", () => {
 		r.close();
 		hub.push({ events: { events: [{ type: "après" }] } }, now);
 		expect(r.events.at(-1)!.event.type).not.toBe("après");
+	});
+
+	test("numéro de trame (build 13273298) : trames perdues comptées, jeu relancé sans rien compter", () => {
+		const hub = fakeHub();
+		const r = new DebugRecorder(hub, () => 0);
+		hub.push({ actor: {} }, 0);
+		expect(r.sequence).toEqual({ last: null, lost: 0, gameTime: null });
+		hub.push({ header: { sequence: "10", game_time_unix_ms: "1795629521179" } }, 0);
+		hub.push({ header: { sequence: "11" } }, 0);
+		hub.push({ header: { sequence: "15" } }, 0); // 12, 13, 14 perdues
+		expect(r.sequence).toEqual({ last: 15, lost: 3, gameTime: null });
+		hub.push({ header: { sequence: "2", game_time_unix_ms: "1795629521179" } }, 0); // relancé
+		hub.push({ header: {} }, 0); // 0 non transmis : rien à compter non plus
+		expect(r.sequence).toEqual({ last: 0, lost: 3, gameTime: null });
+		hub.push({ header: { sequence: "1", game_time_unix_ms: "1795629521179" } }, 0);
+		expect(r.sequence.gameTime).toBe(1795629521179);
 	});
 
 	test("enregistrement : start, frames avec t depuis le début, take puis oublié ; un seul à la fois", () => {

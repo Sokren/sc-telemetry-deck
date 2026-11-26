@@ -1,7 +1,8 @@
 // Page de SC Telemetry Deck : grille de tuiles, onglets Personnage et Vaisseau, état en direct
 // (Server-Sent Events), appuis. Utilise uniquement l'API publique v1 (la même que n'importe quel autre logiciel).
 import { I18N } from "./i18n.js";
-import { createAutoSwitch, parseAutoSettings, POSITIONS } from "./autoswitch.js";
+import { createAutoSwitch, MODES, parseAutoSettings, POSITIONS, situationOf } from "./autoswitch.js";
+import { missionSection, perfSection, quantumCard, whoLine } from "./situation.js";
 import { createLan } from "./lan.js";
 import { createAccess } from "./access.js";
 import { createPlugins } from "./plugins.js";
@@ -74,6 +75,7 @@ function applyTexts() {
 	$("tab-grid").textContent = t("tabGrid");
 	$("tab-character").textContent = t("tabCharacter");
 	$("tab-ship").textContent = t("tabShip");
+	$("tab-instrument").textContent = t("tabInstrument");
 	$("tab-debug").textContent = `🐞 ${t("tabDebug")}`;
 	$("view-add").title = t("addView");
 	$("view-add").setAttribute("aria-label", t("addView"));
@@ -97,6 +99,8 @@ function applyTexts() {
 	debugTab?.applyTexts();
 	$("emotes-hint").textContent = t("emotesHint");
 	myView?.applyTexts();
+	instrumentView?.applyTexts();
+	loadInstrument();
 	lanPanel?.applyTexts();
 	accessPanel?.applyTexts();
 	pluginsPanel?.applyTexts();
@@ -268,8 +272,13 @@ setInterval(() => loadUpdate(), 30 * 60 * 1000);
 // Mode debug (par appareil) : ajoute l'onglet 🐞 Debug, tout le flux brut du jeu.
 const DEBUG_KEY = "sctd-debug";
 let debugOn = storageGet(DEBUG_KEY) === "1";
+// Rubrique Performances en tête de l'onglet Debug (tenue à jour par l'événement « state »).
+const debugPerf = document.createElement("div");
+debugPerf.className = "debug-perf";
+debugPerf.hidden = true;
 const debugTab = createDebug({
 	panel: $("panel-debug"),
+	top: debugPerf,
 	t: (k) => t(k),
 	request: (method, url) => fetch(url, { method, headers: { authorization: `Bearer ${token}` } }),
 	onUnauthorized: () => showMessage(t("badToken")),
@@ -291,7 +300,36 @@ function setTheme(next) {
 	renderOptions();
 }
 
+// Plein écran (tablette / téléphone Android) : bouton caché si le navigateur ne le permet pas (iPhone).
+const fsDoc = document;
+const fsEnabled = fsDoc.fullscreenEnabled === true || fsDoc.webkitFullscreenEnabled === true;
+const fsIcon = (d) =>
+	`<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+const FS_ENTER_ICON = fsIcon("M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5");
+const FS_EXIT_ICON = fsIcon("M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5");
+const fsElement = () => fsDoc.fullscreenElement ?? fsDoc.webkitFullscreenElement ?? null;
+function renderFullscreen() {
+	const b = $("fullscreen");
+	b.hidden = !fsEnabled;
+	const on = fsElement() !== null;
+	// Coins vers l'extérieur = entrer ; coins vers l'intérieur = sortir.
+	b.innerHTML = on ? FS_EXIT_ICON : FS_ENTER_ICON;
+	b.title = t(on ? "fullscreenOff" : "fullscreenOn");
+	b.setAttribute("aria-label", b.title);
+	b.setAttribute("aria-pressed", String(on));
+}
+$("fullscreen").addEventListener("click", () => {
+	const root = document.documentElement;
+	const p = fsElement()
+		? (fsDoc.exitFullscreen ?? fsDoc.webkitExitFullscreen)?.call(fsDoc)
+		: (root.requestFullscreen ?? root.webkitRequestFullscreen)?.call(root);
+	// Refus du navigateur : rien à faire, le bouton reste dans son état.
+	Promise.resolve(p).catch(() => {});
+});
+for (const ev of ["fullscreenchange", "webkitfullscreenchange"]) document.addEventListener(ev, renderFullscreen);
+
 function renderOptions() {
+	renderFullscreen();
 	$("options-open").textContent = t("optionsButton");
 	$("options-title").textContent = t("optionsTitle");
 	$("opt-h-look").textContent = t("optLook");
@@ -400,8 +438,8 @@ $("about-open").addEventListener("click", () => {
 
 // ---------- Onglets ----------
 // Onglets fixes, puis un onglet par vue (« view:<id> ») ; « ＋ » crée une vue. Téléphone : liste déroulante.
-const TABS = ["grid", "character", "ship", "debug"];
-const TAB_TEXT = { grid: "tabGrid", character: "tabCharacter", ship: "tabShip", debug: "tabDebug" };
+const TABS = ["grid", "character", "ship", "instrument", "debug"];
+const TAB_TEXT = { grid: "tabGrid", character: "tabCharacter", ship: "tabShip", instrument: "tabInstrument", debug: "tabDebug" };
 const MAX_VIEWS = 10;
 const ADD = "__add";
 /** Vues connues (nom et id), dans l'ordre des onglets ; `null` tant que l'appli ne les a pas envoyées. */
@@ -546,6 +584,38 @@ function card(item) {
 	return el;
 }
 
+/**
+ * Données du build 13273298 : état du jeu (barre du haut), qui / où / mode et mission (Personnage), saut quantique
+ * (Vaisseau), performances (Debug). Chaque encart est caché tant que le jeu n'envoie pas ses données.
+ */
+function renderSituation(s) {
+	const g = s.game;
+	const pill = $("game-state");
+	pill.hidden = !g?.available;
+	if (g?.available) {
+		pill.textContent = `🎮 ${g.label}${g.menuOpen ? ` · 📋 ${t("menuOpen")}` : ""}`;
+		pill.dataset.state = g.state;
+		pill.title = t("gameStateTitle");
+	}
+	// Mode, armistice, CrimeStat : pastilles au bout de la ligne « Assis · Pilote » ; lieu et pseudo en dessous.
+	const who = whoLine(s, t);
+	$("char-head").append(...who.pills);
+	$("char-where").hidden = !who.where;
+	$("char-where").textContent = who.where;
+	fillSection($("char-mission"), missionSection(s, t));
+	// Saut quantique : encart à côté de « Mon vaisseau », même style.
+	const q = s.shipStatus.quantum;
+	$("ship-qt").hidden = !q;
+	if (q) $("ship-qt").replaceChildren(quantumCard(s, t));
+	fillSection(debugPerf, perfSection(s, t));
+}
+
+/** Rubrique (titre + cartes) cachée quand elle n'a rien à montrer. */
+function fillSection(box, nodes) {
+	box.hidden = nodes.length === 0;
+	box.replaceChildren(...nodes);
+}
+
 function renderCharacter(c) {
 	$("char-head").textContent = c.available ? [c.locomotionLabel, c.crewRoleLabel].filter((x) => x && x !== "—").join(" · ") : t("notSpawned");
 	$("char-vitals").replaceChildren(...c.vitals.map(card));
@@ -561,6 +631,7 @@ async function loadEmotes() {
 		if (!r.ok) throw new Error(String(r.status));
 		const { groups, live } = await r.json();
 		myView?.setActions(groups);
+		instrumentView?.setActions(groups);
 		const emotes = groups.find((g) => g.category === EMOTES)?.actions ?? [];
 		renderEmotes(emotes);
 		renderPlayerActions(groups.find((g) => g.category === PLAYER)?.actions ?? []);
@@ -797,9 +868,12 @@ function connect() {
 		$("ship-card").hidden = !inShip;
 		$("ship-head").hidden = inShip;
 		if (inShip) $("ship-card").replaceChildren(shipCard(lastState, 2, t));
+		renderSituation(lastState);
 		myView?.setState(lastState);
-		// Onglet Debug : on y reste, la vue automatique ne s'applique pas.
-		if (currentTab !== "debug") autoSwitch?.update(lastState.character.locomotion);
+		instrumentView.setState(lastState);
+		if (instrumentLang !== lang) loadInstrument();
+		// Onglet Debug : on y reste, la vue automatique ne s'applique pas. Mode du perso prioritaire s'il a sa vue.
+		if (currentTab !== "debug") autoSwitch?.update(situationOf(lastState.character.locomotion, lastState.character.mode, autoSettings));
 	});
 	source.addEventListener("views", (e) => myView?.setViews(JSON.parse(e.data).views));
 	source.addEventListener("feedback", (e) => {
@@ -886,6 +960,7 @@ function renderNumbersOption() {
 				setNumberFormat(lang, id);
 				renderNumbersOption();
 				if (lastState) myView?.setState(lastState);
+				if (lastState) instrumentView?.setState(lastState);
 			});
 			return b;
 		}),
@@ -893,8 +968,22 @@ function renderNumbersOption() {
 }
 
 // ---------- Ma vue ----------
-const myView = createView({
+/** Ce que le moteur de vues reçoit de la page (Ma vue et vue intégrée « Instrument de bord »). */
+const viewCtx = {
 	t,
+	token: () => token,
+	lang: () => lang,
+	card,
+	pressFunction: (id, el) => pressFunction(id, el, "view"),
+	triggerAction: (name, el) => triggerEmote(name, el, "view"),
+	holdToPress,
+	holdActions: HOLD_ACTIONS,
+	morse: sendMorse,
+	showMessage,
+	storage: { get: storageGet, set: storageSet },
+};
+const myView = createView({
+	...viewCtx,
 	// Vue reverrouillée : un changement automatique en attente peut se faire.
 	onLockChange: (unlocked) => !unlocked && autoSwitch?.retry(),
 	token: () => token,
@@ -913,15 +1002,34 @@ const myView = createView({
 		if (viewTabs?.[0]) showTab(`view:${viewTabs[0].id}`);
 		else showTab("grid");
 	},
-	card,
-	pressFunction: (id, el) => pressFunction(id, el, "view"),
-	triggerAction: (name, el) => triggerEmote(name, el, "view"),
-	holdToPress,
-	holdActions: HOLD_ACTIONS,
-	morse: sendMorse,
-	showMessage,
-	storage: { get: storageGet, set: storageSet },
 });
+
+// ---------- Onglet « Instrument de bord » : vue intégrée (modèle instrument_panel), toujours verrouillée ----------
+const instrumentView = createView({ ...viewCtx, root: $("instrument-view"), fixed: true, onViewsChanged() {}, openView() {}, onMissing() {} });
+/** Langue du modèle affiché (relu au changement de langue) ; `null` tant qu'il n'est pas chargé. */
+let instrumentLang = null;
+let instrumentLoading = false;
+async function loadInstrument() {
+	if (instrumentLoading || instrumentLang === lang) return;
+	instrumentLoading = true;
+	const wanted = lang;
+	try {
+		const r = await fetch(`/api/v1/views/templates?lang=${wanted}`, { headers: { authorization: `Bearer ${token}` } });
+		const tpl = r.ok ? (await r.json()).templates.find((x) => x.id === "instrument_panel") : undefined;
+		if (tpl) {
+			instrumentLang = wanted;
+			instrumentView.setFixedView(tpl.view);
+			if (lastState) instrumentView.setState(lastState);
+		}
+	} catch {
+		/* appli injoignable : nouvel essai à la prochaine trame */
+	} finally {
+		instrumentLoading = false;
+	}
+	// Langue changée pendant la lecture : relire dans la nouvelle (sinon, nouvel essai à la prochaine trame).
+	if (wanted !== lang) loadInstrument();
+}
+loadInstrument();
 
 // ---------- Changement de vue automatique (réglage propre à cet appareil) ----------
 const AUTO_KEY = "sctd-autoswitch";
@@ -1000,7 +1108,24 @@ function renderAuto() {
 		row.append(select);
 		rows.append(row);
 	}
-	box.append(rows, el("p", "lan-off-note", t("autoNote")));
+	// Modes du perso (build 13273298) : aucune vue par défaut, la position décide.
+	const modeRows = el("div", "auto-rows");
+	for (const mode of MODES) {
+		const row = el("label", "auto-row");
+		row.append(el("span", "", t(`mode${mode.charAt(0).toUpperCase()}${mode.slice(1)}`)));
+		const select = el("select");
+		const targets = [["", t("autoByPosition")], ["character", t("tabCharacter")], ["ship", t("tabShip")], ...(viewTabs ?? []).map((v) => [`view:${v.id}`, v.name || t("viewNameEmpty")])];
+		for (const [value, label] of targets) {
+			const o = el("option", "", label);
+			o.value = value;
+			select.append(o);
+		}
+		select.value = targets.some(([value]) => value === autoSettings[mode]) ? autoSettings[mode] : "";
+		select.addEventListener("change", () => saveAuto({ ...autoSettings, [mode]: select.value }));
+		row.append(select);
+		modeRows.append(row);
+	}
+	box.append(rows, el("h3", "auto-sub", t("autoModes")), modeRows, el("p", "lan-off-note", t("autoNote")));
 	const foot = el("form", "lan-foot");
 	foot.method = "dialog";
 	const close = el("button", "", t("close"));
@@ -1027,7 +1152,7 @@ const lanPanel = createLan({
 		connect();
 	},
 	views: () => viewTabs ?? [],
-	currentView: () => viewId(currentTab),
+	currentView: () => (currentTab === "instrument" ? "instrument" : viewId(currentTab)),
 });
 
 // ---------- Accès externes : jetons des autres logiciels (PC seulement) ----------
@@ -1039,7 +1164,7 @@ const pluginsPanel = createPlugins({ t, token: () => token, lang: () => lang, on
 applyTexts();
 // Onglet de départ : lien `?view=`, sinon dernier choix de l'appareil (ancien « myview » → première vue).
 const savedTab = storageGet(TAB_KEY);
-showTab(viewParam ? `view:${viewParam}` : savedTab === "myview" ? "view:main" : savedTab || "grid");
+showTab(viewParam === "instrument" ? "instrument" : viewParam ? `view:${viewParam}` : savedTab === "myview" ? "view:main" : savedTab || "grid");
 if (!token) {
 	setStatus("off", "");
 	showMessage(t("needToken"));

@@ -5,7 +5,7 @@ import type { ItemDisplay, ItemKind, ItemSize, ViewInput, ViewItem, ViewSection 
  * Modèles de vues proposés au « + » d'une nouvelle vue. Un modèle n'est qu'un point de départ : la vue créée est une
  * vue « Ma vue » normale, modifiable comme les autres. Textes en français et en anglais selon la langue de la page.
  */
-export type TemplateId = "xeneon_pilot";
+export type TemplateId = "xeneon_pilot" | "instrument_panel";
 export type ViewTemplate = {
 	id: TemplateId;
 	/** Taille d'écran conseillée (px). */
@@ -119,10 +119,78 @@ function xeneonPilot(lang: Lang): ViewInput {
 	};
 }
 
-export const VIEW_TEMPLATES: readonly ViewTemplate[] = [{ id: "xeneon_pilot", size: { width: 2560, height: 720 }, build: xeneonPilot }];
+const INSTRUMENT_TEXT = {
+	name: { fr: "Instrument de bord", en: "Instrument panel" },
+	description: {
+		fr: "Vue intégrée « Instrument de bord » pour tablette : saut quantique, vaisseau, fonctions, personnage, mission et performances.",
+		en: "Built-in « Instrument panel » view for a tablet: quantum travel, ship, functions, character, mission and performance.",
+	},
+	quantum: { fr: "Saut quantique", en: "Quantum travel" },
+	ship: { fr: "Vaisseau", en: "Ship" },
+	functions: { fr: "Fonctions", en: "Functions" },
+	character: { fr: "Personnage", en: "Character" },
+	mission: { fr: "Mission suivie", en: "Tracked mission" },
+	perf: { fr: "Performances", en: "Performance" },
+} satisfies Record<string, Text>;
+
+/**
+ * Vue de l'onglet fixe « Instrument de bord » (tablette 1280×800), habillage `instrument`. Une demi-section = 8
+ * emplacements (taille 2), une pleine = 16 (taille 4). Pas de portes : le jeu n'envoie pas leur état.
+ */
+function instrumentPanel(lang: Lang): ViewInput {
+	const t = (k: keyof typeof INSTRUMENT_TEXT) => INSTRUMENT_TEXT[k][lang];
+	return {
+		name: t("name"),
+		look: "instrument",
+		sections: [
+			section("quantum", t("quantum"), "half", [item("quantum_card", "quantum_card", undefined, 2)]),
+			section("ship", t("ship"), "half", [
+				item("shields", "instrument", "shields", 1, "segments"),
+				item("hull", "instrument", "hull", 1, "segments"),
+				item("hydrogen", "instrument", "hydrogen", 1, "segments"),
+				item("quantum", "instrument", "quantum", 1, "segments"),
+				item("speed", "instrument", "speed", 0.5, "number"),
+				item("radar_altitude", "instrument", "radar_altitude", 0.5, "number"),
+				item("boost", "instrument", "boost", 1, "segments"),
+				item("master_nav", "ship_function", "master_nav", 0.5, "switch"),
+			]),
+			section("functions", t("functions"), "full", [
+				item("gear", "ship_function", "gear", 0.5),
+				item("lights", "ship_function", "lights", 0.5),
+				item("vtol", "ship_function", "vtol", 0.5),
+				item("decoupled", "ship_function", "decoupled", 0.5),
+				item("power_engines", "ship_function", "power_engines", 0.5),
+				item("power_main", "ship_function", "power_main", 0.5),
+				item("eject", "action", "v_eject", 1, "hold"),
+			]),
+			section("character", t("character"), "half", [
+				item("health", "vital", "health", 1, "segments"),
+				item("oxygen", "vital", "oxygen", 1, "segments"),
+				item("hunger", "vital", "hunger", 1, "segments"),
+				item("thirst", "vital", "thirst", 1, "segments"),
+				item("crime_stat", "character_info", "crime_stat", 0.5),
+				item("location", "character_info", "location", 1.5),
+			]),
+			section("mission", t("mission"), "half", [item("mission_card", "mission_card", undefined, 2)]),
+			section("perf", t("perf"), "full", [
+				item("fps", "game_info", "fps", 0.5, "line"),
+				item("ping", "game_info", "ping", 0.5, "line"),
+				item("gpu", "game_info", "gpu", 1, "line"),
+				item("vram", "game_info", "vram", 1, "line"),
+				item("shard", "game_info", "shard", 1, "line"),
+			]),
+		],
+	};
+}
+
+export const VIEW_TEMPLATES: readonly ViewTemplate[] = [
+	{ id: "xeneon_pilot", size: { width: 2560, height: 720 }, build: xeneonPilot },
+	{ id: "instrument_panel", size: { width: 1280, height: 800 }, build: instrumentPanel },
+];
 
 const DESCRIPTIONS: Record<TemplateId, { name: Text; description: Text }> = {
 	xeneon_pilot: { name: XENEON_TEXT.name, description: XENEON_TEXT.description },
+	instrument_panel: { name: INSTRUMENT_TEXT.name, description: INSTRUMENT_TEXT.description },
 };
 
 export function templateById(id: unknown): ViewTemplate | undefined {

@@ -3,6 +3,7 @@ import type { Lang } from "../catalog/labels.js";
 import type { CountermeasureTracker } from "../display/countermeasures.js";
 import { shipModel, validAltitude, type ShipModel } from "../display/flight.js";
 import { seatLabel } from "../display/seat.js";
+import { readGame, readQuantum, readWhereabouts, type GameInfo, type Quantum, type Whereabouts } from "../display/situation.js";
 import { gimbalsWord, groupText } from "../display/ship-values.js";
 import { DISPLAY_VALUES } from "../display/values.js";
 import { readWeapons } from "../display/weapons.js";
@@ -38,7 +39,7 @@ export type Character = {
 	/** Siège lisible (« Copilote ») ; à défaut le rôle ; `null` sans siège. */
 	seatLabel: string | null;
 	vitals: Vital[];
-};
+} & Whereabouts;
 
 /** Onglet Personnage : position, rôle, siège et les 13 constantes. `actor` absente → indisponible. */
 export function characterOf(actor: Obj | undefined, lang: Lang): Character {
@@ -55,7 +56,16 @@ export function characterOf(actor: Obj | undefined, lang: Lang): Character {
 		seat: typeof state.seat_name === "string" && state.seat_name ? state.seat_name : null,
 		seatLabel: seatLabel(typeof state.seat_name === "string" ? state.seat_name : null, crewRole, lang),
 		vitals: DISPLAY_VALUES.map((id) => vitalOf(id, actor, lang)),
+		// Pseudo, mode, lieu, CrimeStat, mission suivie (build 13273298).
+		...readWhereabouts(actor, lang),
 	};
+}
+
+/** État du jeu (section `game`, build 13273298) ; `available: false` quand le jeu ne l'envoie pas. */
+export type Game = { available: boolean } & GameInfo;
+export function gameOf(game: Obj | undefined, lang: Lang): Game {
+	const g = readGame(game, lang);
+	return g ? { available: true, ...g } : { available: false, state: "unknown", label: "—", menuOpen: false, mode: null, perf: null };
 }
 
 export type InstrumentId = "shields" | "hull" | "decoys" | "noise" | "weapons_ready" | "weapon_group" | "gimbals" | "hydrogen" | "quantum" | "speed" | "vertical_speed" | "radar_altitude" | "heading" | "g_force" | "boost";
@@ -77,6 +87,8 @@ export type ShipStatus = {
 	model: ShipModel | null;
 	/** Boost en cours d'utilisation. */
 	boostEngaged: boolean;
+	/** Saut quantique (build 13273298), `null` quand le jeu ne l'envoie pas. */
+	quantum: Quantum | null;
 	instruments: Instrument[];
 	annunciators: Annunciator[];
 };
@@ -161,6 +173,7 @@ export function shipStatusOf(vehicle: Obj | undefined, actor: Obj | undefined, l
 			masterModeLabel: "—",
 			model: null,
 			boostEngaged: false,
+			quantum: null,
 			instruments: INSTRUMENTS.map((id) => fromWeapons(id) ?? none(id)),
 			annunciators: ANNUNCIATORS.map((id) => ({ id, label: t.annunciators[id], state: "unknown", flashing: false })),
 		};
@@ -208,6 +221,7 @@ export function shipStatusOf(vehicle: Obj | undefined, actor: Obj | undefined, l
 		name: shipName(state),
 		model: shipModel(state, lang),
 		boostEngaged: boost?.engaged === true,
+		quantum: readQuantum(vehicle, actor, lang),
 		landed: flight ? obj(flight.state)?.is_landed === true : null,
 		masterMode,
 		masterModeLabel: masterMode ? t.masterMode[masterMode] : "—",

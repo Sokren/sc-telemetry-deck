@@ -1,6 +1,6 @@
 import { deflateRawSync, inflateRawSync } from "node:zlib";
 import type { Lang } from "../catalog/labels.js";
-import { normalizeViewName, readSections, type NamedView, type SavedLook, type Skipped, type ViewInput, type ViewSection } from "./view.js";
+import { lookOf, normalizeViewName, readSections, type NamedView, type SavedLook, type Skipped, type ViewInput, type ViewSection } from "./view.js";
 
 /** Export / import des vues « Ma vue » : document `.json` ou code texte `SCTD1:…` (le même document compressé). */
 export const EXPORT_FORMAT = "sc-telemetry-deck.views";
@@ -90,7 +90,7 @@ export function readImport(body: unknown, lang: Lang): ImportPreview | ImportErr
 		if (!v) return invalid;
 		const name = normalizeViewName(v.name, lang);
 		const read = readSections(v.sections);
-		views.push({ name, sections: read.sections, ...(v.look === "hud" || v.look === "cockpit" ? { look: v.look } : {}) });
+		views.push({ name, sections: read.sections, ...lookOf(v.look) });
 		skipped.push(...read.skipped.map((s) => ({ view: name, ...s })));
 	}
 	return {

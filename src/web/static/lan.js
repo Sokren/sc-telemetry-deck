@@ -191,7 +191,7 @@ export function createLan(ctx) {
 			const opts = el("div", "lan-opts");
 			const openLabel = el("label", "", `${t("lanOpenOn")} `);
 			const openSel = el("select");
-			for (const [value, label] of [["", t("lanOpenLast")], ...ctx.views().map((v) => [v.id, v.name])]) {
+			for (const [value, label] of [["", t("lanOpenLast")], ["instrument", t("tabInstrument")], ...ctx.views().map((v) => [v.id, v.name])]) {
 				const o = el("option", "", label);
 				o.value = value;
 				openSel.append(o);

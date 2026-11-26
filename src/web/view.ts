@@ -17,7 +17,15 @@ export const ITEM_KINDS = [
 	"ship_card",
 	"morse",
 	"morse_free",
+	// Build 13273298 : encarts saut quantique, qui / où, mission, performances ; infos du jeu.
+	"quantum_card",
+	"who_card",
+	"mission_card",
+	"perf_card",
+	"game_info",
 ] as const;
+/** Encarts sans `ref` ni nom modifiable, jamais plus petits que 1×. */
+export const CARD_KINDS: readonly ItemKind[] = ["ship_card", "quantum_card", "who_card", "mission_card", "perf_card"];
 export type ItemKind = (typeof ITEM_KINDS)[number];
 
 /**
@@ -30,12 +38,12 @@ export type MorseItemSettings = { text?: string; light: MorseLight; unitMs: numb
 export const ITEM_STYLES = ["card", "ring", "arc", "bar", "vbar", "segments", "vsegments", "number", "line", "tape", "switch", "slide", "hold"] as const;
 export type ItemStyle = (typeof ITEM_STYLES)[number];
 /** Habillages d'une vue (`standard` = le défaut, jamais enregistré). */
-export const VIEW_LOOKS = ["standard", "hud", "cockpit"] as const;
+export const VIEW_LOOKS = ["standard", "hud", "cockpit", "instrument"] as const;
 /** Habillage enregistré (le défaut `standard` ne l'est jamais). */
 export type SavedLook = Exclude<(typeof VIEW_LOOKS)[number], "standard">;
 export type ViewLook = (typeof VIEW_LOOKS)[number];
 /** Types de case qui acceptent un style. */
-export const STYLED_KINDS: readonly ItemKind[] = ["vital", "instrument", "character_info", "ship_info", "ship_function", "action"];
+export const STYLED_KINDS: readonly ItemKind[] = ["vital", "instrument", "character_info", "ship_info", "game_info", "ship_function", "action"];
 const GAUGE_STYLES = ["ring", "arc", "bar", "vbar", "segments", "vsegments", "number", "line"] as const;
 
 /**
@@ -50,6 +58,7 @@ export function stylesAllowed(kind: ItemKind, ref?: unknown): readonly Exclude<I
 		case "instrument":
 			return ref === "heading" ? [...GAUGE_STYLES, "tape"] : GAUGE_STYLES;
 		case "character_info":
+		case "game_info":
 			return ["number", "line"];
 		case "ship_info":
 			return ref === "boost" ? [] : ["number", "line"];
@@ -74,9 +83,9 @@ export const ITEM_SIZES = [0.25, 0.5, 1, 1.5, 2, 3, 4] as const;
 export type ItemSize = (typeof ITEM_SIZES)[number];
 export const MAX_LABEL = 24;
 /** Cases sans nom affiché modifiable (message morse, encart « Mon vaisseau »). */
-const NO_LABEL: readonly ItemKind[] = ["morse", "morse_free", "ship_card"];
+const NO_LABEL: readonly ItemKind[] = ["morse", "morse_free", ...CARD_KINDS];
 /** Cases jamais plus petites que 1× (illisibles en S). */
-const MIN_SIZE_1: readonly ItemKind[] = ["annunciators", "ship_card"];
+const MIN_SIZE_1: readonly ItemKind[] = ["annunciators", ...CARD_KINDS];
 
 export type ViewItem = {
 	id: string;
@@ -117,8 +126,9 @@ const ACTION = /^[a-z0-9_]{1,64}$/;
 const REFS: Partial<Record<ItemKind, readonly string[]>> = {
 	vital: DISPLAY_VALUES,
 	instrument: INSTRUMENTS,
-	ship_info: ["name", "master_mode", "landed", "boost"],
-	character_info: ["position", "role", "seat"],
+	ship_info: ["name", "master_mode", "landed", "boost", "qt_state", "qt_destination", "qt_eta", "qt_distance", "qt_calibration"],
+	character_info: ["position", "role", "seat", "player_name", "mode", "location", "jurisdiction", "armistice", "crime_stat", "mission", "mission_objective", "mission_progress"],
+	game_info: ["state", "fps", "frame_time", "gpu", "vram", "ping", "packet_loss", "server_fps", "shard"],
 	ship_function: SHIP_FUNCTION_IDS,
 };
 
@@ -201,8 +211,8 @@ function parseDisplay(kind: ItemKind, ref: unknown, x: unknown): ItemDisplay | u
 	return Object.keys(display).length ? display : undefined;
 }
 
-/** `look` normalisé : seul `hud` est gardé (le défaut et les valeurs inconnues sont omis). */
-const lookOf = (x: unknown): { look?: SavedLook } => (x === "hud" || x === "cockpit" ? { look: x } : {});
+/** `look` normalisé : habillages connus gardés (le défaut et les valeurs inconnues sont omis). */
+export const lookOf = (x: unknown): { look?: SavedLook } => (x === "hud" || x === "cockpit" || x === "instrument" ? { look: x } : {});
 
 /** Nom affiché : 1 à 24 caractères (un emoji compte pour un), espaces autour retirés ; sinon rien. */
 function parseLabel(kind: ItemKind, x: unknown): { label?: string } {
@@ -229,7 +239,7 @@ function parseItem(x: unknown): ViewItem | undefined {
 	const size = ((o.size as number) < 1 && MIN_SIZE_1.includes(kind) ? 1 : o.size) as ItemSize;
 	const col = colOf(o.col);
 	// Cases sans `ref` : voyants, encart « Mon vaisseau ».
-	if (kind === "annunciators" || kind === "ship_card") return { id: o.id, kind, size, ...col, ...extras(kind, o) };
+	if (kind === "annunciators" || CARD_KINDS.includes(kind)) return { id: o.id, kind, size, ...col, ...extras(kind, o) };
 	if (kind === "morse" || kind === "morse_free") {
 		const settings = parseMorseSettings(o.settings, kind === "morse");
 		return settings ? { id: o.id, kind, size, ...col, settings } : undefined;

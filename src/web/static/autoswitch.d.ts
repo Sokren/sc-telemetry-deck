@@ -1,5 +1,11 @@
 /** Changement de vue automatique (autoswitch.js). */
-export type AutoSettings = { enabled: boolean; on_foot: string; seated: string; eva: string };
+export type AutoSettings = { enabled: boolean; on_foot: string; seated: string; eva: string } & Record<string, string | boolean>;
+
+/** Modes du perso qui peuvent avoir leur vue (build 13273298). */
+export declare const MODES: readonly string[];
+
+/** Mode du perso s'il a une vue choisie, sinon la position. */
+export declare function situationOf(position: string, mode: string | undefined, settings: Record<string, unknown>): string;
 
 export declare const POSITIONS: readonly ["on_foot", "seated", "eva"];
 

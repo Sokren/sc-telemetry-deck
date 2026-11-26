@@ -18,7 +18,7 @@ const cm = (decoy?: number, noise?: number) => ({
 
 describe("shipView", () => {
 	test("liste des valeurs : contre-mesures, leurres, brouilleurs", () => {
-		expect(SHIP_DISPLAY_VALUES).toEqual(["countermeasures", "decoys", "noise", "weapons", "weapon_group", "gimbals", "ship", "shields", "hull", "speed", "vertical_speed", "radar_altitude", "g_force", "boost", "hydrogen"]);
+		expect(SHIP_DISPLAY_VALUES).toEqual(["countermeasures", "decoys", "noise", "weapons", "weapon_group", "gimbals", "ship", "shields", "hull", "speed", "vertical_speed", "radar_altitude", "g_force", "boost", "hydrogen", "quantum", "quantum_distance", "quantum_calibration"]);
 		expect(isShipDisplayValueId("decoys")).toBe(true);
 		expect(isShipDisplayValueId("oxygen")).toBe(false);
 	});

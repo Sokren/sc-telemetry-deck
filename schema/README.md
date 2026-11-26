@@ -4,7 +4,7 @@
 
 CIG does not publish the `.proto`. It is rebuilt from the protobuf descriptors embedded in `StarCitizen.exe`.
 
-**Current version: Star Citizen 5.0.202.22326 PTU (build 13260598)**, checked on 2026-11-23 (schema, 112 actions and 948 command names identical to build 13248297, itself identical to build 13238477 extracted on 2026-11-20).
+**Current version: Star Citizen 5.0.202.35026 PTU (build 13273298)**, extracted on 2026-11-25. Additions only (56 fields: `game` section, `header`, quantum travel, operator mode, location, tracked contract, CrimeStat; `quantum_fuel`, `altitude` and `health` become `optional`); 948 command names identical to build 13260598. `actions.json` is still the build 13260598 one: this build does not open the local API (port 2942 closed), so the action list and the new fields could not be checked in game.
 
 ## Files
 
@@ -50,4 +50,4 @@ python ..\tools\sc_actions_diff.py live --update --version "5.0 PTU build XXXXX"
 New actions show up in the plugin automatically (the list comes from the game); add their FR / EN labels in `src/catalog/labels.*.json`.
 
 The game version is in `Game.log` (`FileVersion:` and `Build(…)`).
-Check the differences with `git diff`, and name the commit after the game version, e.g. `schema: 5.0 PTU build 13260598`.
+Check the differences with `git diff`, and name the commit after the game version, e.g. `schema: 5.0 PTU build 13273298`.

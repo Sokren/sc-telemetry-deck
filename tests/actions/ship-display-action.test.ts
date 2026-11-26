@@ -141,7 +141,7 @@ describe("Ship Display", () => {
 		expect(key.sent.at(-1)).toBe("image:Brouill.|5");
 	});
 
-	test("molette : +1 et −1 en boucle sur les 15 valeurs, réglage enregistré", async () => {
+	test("molette : +1 et −1 en boucle sur les 18 valeurs, réglage enregistré", async () => {
 		const dial = new FakeAction("d1", true);
 		await appear(dial, { value: "noise" });
 		dial.settings = { value: "noise" };
@@ -153,10 +153,12 @@ describe("Ship Display", () => {
 		expect(dial.settings).toEqual({ value: "ship" });
 		await rotate(dial, 8);
 		expect(dial.settings).toEqual({ value: "hydrogen" });
+		await rotate(dial, 3);
+		expect(dial.settings).toEqual({ value: "quantum_calibration" });
 		await rotate(dial, 1);
 		expect(dial.settings).toEqual({ value: "countermeasures" });
 		await rotate(dial, -1);
-		expect(dial.settings).toEqual({ value: "hydrogen" });
+		expect(dial.settings).toEqual({ value: "quantum_calibration" });
 	});
 
 	test("disparition → désabonnement", async () => {
@@ -166,7 +168,7 @@ describe("Ship Display", () => {
 		expect(hub.listeners.size).toBe(0);
 	});
 
-	test("getValues → 15 valeurs, libellés longs en français", async () => {
+	test("getValues → 18 valeurs, libellés longs en français", async () => {
 		await action.onSendToPlugin({ action: new FakeAction("k1"), payload: { event: "getValues" } } as unknown as SendToPluginEvent<JsonValue, ShipDisplaySettings>);
 		expect(toPI[0]).toEqual({
 			event: "getValues",
@@ -186,6 +188,9 @@ describe("Ship Display", () => {
 				{ label: "Accélération (G)", value: "g_force" },
 				{ label: "Réserve de boost", value: "boost" },
 				{ label: "Hydrogène", value: "hydrogen" },
+				{ label: "Saut quantique (état, temps restant)", value: "quantum" },
+				{ label: "Saut quantique : distance restante", value: "quantum_distance" },
+				{ label: "Saut quantique : calibrage", value: "quantum_calibration" },
 			],
 		});
 	});

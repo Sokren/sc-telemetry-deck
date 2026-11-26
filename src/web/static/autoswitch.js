@@ -1,5 +1,5 @@
-// Changement de vue automatique : selon la position du perso (à pied, assis, EVA), ouvre la vue choisie pour cette
-// position. Réglage propre à chaque appareil. Bascule après une position stable, jamais pendant l'édition d'une vue,
+// Changement de vue automatique : selon la position du perso (à pied, assis, EVA), ou selon son mode (minage, combat…,
+// build 13273298) quand une vue est choisie pour ce mode, ouvre la vue choisie. Réglage propre à chaque appareil. Bascule après une position stable, jamais pendant l'édition d'une vue,
 // et respecte un changement d'onglet fait à la main jusqu'au prochain vrai changement de position.
 
 export const POSITIONS = ["on_foot", "seated", "eva"];
@@ -10,10 +10,23 @@ export const POSITIONS = ["on_foot", "seated", "eva"];
  */
 export const DEFAULTS = { on_foot: "character", seated: "ship", eva: "" };
 
+/** Modes du perso (`character.mode`) qui peuvent avoir leur vue ; prioritaires sur la position quand une vue est choisie. */
+export const MODES = ["flight", "combat", "turret", "missile", "scanning", "mining", "quantum_navigation", "refuel", "salvage"];
+
+/**
+ * Situation à suivre : le mode du perso s'il a une vue choisie, sinon sa position.
+ * @param {string} position
+ * @param {string | undefined} mode
+ * @param {Record<string, unknown>} settings
+ */
+export function situationOf(position, mode, settings) {
+	return mode && MODES.includes(mode) && settings[mode] ? mode : position;
+}
+
 /**
  * Réglages lus avec tolérance (stockage vide ou abîmé → désactivé).
  * @param {string | null} raw
- * @returns {{ enabled: boolean, on_foot: string, seated: string, eva: string }}
+ * @returns {{ enabled: boolean, on_foot: string, seated: string, eva: string } & Record<string, string | boolean>}
  */
 export function parseAutoSettings(raw) {
 	let o = {};
@@ -30,6 +43,8 @@ export function parseAutoSettings(raw) {
 		on_foot: pick(o.on_foot, DEFAULTS.on_foot),
 		seated: pick(o.seated, DEFAULTS.seated),
 		eva: pick(o.eva, DEFAULTS.eva),
+		// Modes : aucune vue par défaut (la position décide).
+		...Object.fromEntries(MODES.map((m) => [m, pick(o[m], "")])),
 	};
 }
 
@@ -76,9 +91,9 @@ export function createAutoSwitch(o) {
 	}
 
 	return {
-		/** Position lue dans l'événement `state` (`on_foot`, `seated`, `eva` ; le reste est ignoré). */
+		/** Situation (`situationOf`) : position (`on_foot`, `seated`, `eva`) ou mode ; le reste est ignoré. */
 		update(position) {
-			if (!POSITIONS.includes(position)) return;
+			if (!POSITIONS.includes(position) && !MODES.includes(position)) return;
 			if (first) {
 				first = false;
 				if (o.skipInitial) handled = position;

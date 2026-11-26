@@ -72,7 +72,7 @@ describe("/api/v1/views", () => {
 		const list = await s.call("GET", "/api/v1/views/templates?lang=en");
 		expect(list.status).toBe(200);
 		validateResponse("/api/v1/views/templates", "GET", 200, list.body);
-		expect(list.body.templates).toHaveLength(1);
+		expect(list.body.templates.map((t: any) => t.id)).toEqual(["xeneon_pilot", "instrument_panel"]);
 		expect(list.body.templates[0]).toMatchObject({ id: "xeneon_pilot", name: "Xeneon Edge – pilot", size: { width: 2560, height: 720 } });
 		const made = await s.call("POST", "/api/v1/views?lang=fr", { body: { template: "xeneon_pilot" } });
 		expect(made.status).toBe(201);
@@ -92,6 +92,18 @@ describe("/api/v1/views", () => {
 		const full = await s.call("POST", "/api/v1/views", { body: { template: "xeneon_pilot" } });
 		expect(full.status).toBe(409);
 		expect(full.body).toEqual({ error: "too_many_views" });
+		const fullInstrument = await s.call("POST", "/api/v1/views", { body: { template: "instrument_panel", name: "Instrument de bord" } });
+		expect(fullInstrument.status).toBe(409);
+	});
+
+	test("modèle Instrument de bord : copie avec son habillage, compte dans les 10", async () => {
+		const s = await start();
+		const made = await s.call("POST", "/api/v1/views?lang=fr", { body: { template: "instrument_panel", name: "Instrument de bord" } });
+		expect(made.status).toBe(201);
+		validateResponse("/api/v1/views", "POST", 201, made.body);
+		expect(made.body).toMatchObject({ name: "Instrument de bord", look: "instrument" });
+		const views = await s.call("GET", "/api/v1/views");
+		expect(views.body.views.some((v: any) => v.id === made.body.id)).toBe(true);
 	});
 
 	test("PUT : deux écrans modifient deux vues différentes, rien n'est perdu ; fichier écrit", async () => {

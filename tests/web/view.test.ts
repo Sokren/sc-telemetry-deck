@@ -72,6 +72,25 @@ describe("parseViewInput", () => {
 		expect(p.sections[0].items.at(-1)).toEqual({ id: "card1", kind: "ship_card", size: 1 });
 	});
 
+	test("build 13273298 : encarts sans ref ni nom (≥ 1×), nouvelles infos, styles chiffre / ligne", () => {
+		const v = input();
+		for (const kind of ["quantum_card", "who_card", "mission_card", "perf_card"]) v.sections[0].items.push({ id: kind, kind, ref: "x", size: 0.5, label: "x" });
+		v.sections[0].items.push({ id: "qt", kind: "ship_info", ref: "qt_eta", size: 1 });
+		v.sections[0].items.push({ id: "cs", kind: "character_info", ref: "crime_stat", size: 1, display: { style: "number" } });
+		v.sections[0].items.push({ id: "fps", kind: "game_info", ref: "fps", size: 0.5, display: { style: "line" } });
+		v.sections[0].items.push({ id: "bad", kind: "game_info", ref: "fps", size: 1, display: { style: "ring" } });
+		const p = parseViewInput(v, "fr")!;
+		const items = p.sections[0].items;
+		for (const kind of ["quantum_card", "who_card", "mission_card", "perf_card"]) expect(items.find((i) => i.id === kind)).toEqual({ id: kind, kind, size: 1 });
+		expect(items.find((i) => i.id === "qt")).toEqual({ id: "qt", kind: "ship_info", ref: "qt_eta", size: 1 });
+		expect(items.find((i) => i.id === "cs")?.display).toEqual({ style: "number" });
+		expect(items.find((i) => i.id === "fps")).toEqual({ id: "fps", kind: "game_info", ref: "fps", size: 0.5, display: { style: "line" } });
+		expect(items.find((i) => i.id === "bad")).not.toHaveProperty("display");
+		const w = input();
+		w.sections[0].items.push({ id: "x", kind: "game_info", ref: "cpu_temp", size: 1 });
+		expect(parseViewInput(w, "fr")).toBeUndefined();
+	});
+
 	test("morse : message enregistré (texte obligatoire, 60 max) et morse libre (sans texte) ; réglages bornés", () => {
 		const v = input();
 		const ok = { light: "ship_lights", unitMs: 400, repeat: 2 };
@@ -368,6 +387,9 @@ describe("habillage cockpit et sections hautes", () => {
 	test("look cockpit gardé ; inconnu retiré", () => {
 		expect(parseViewInput({ name: "X", sections: [], look: "cockpit" }, "fr")?.look).toBe("cockpit");
 		expect(parseViewInput({ name: "X", sections: [], look: "neon" }, "fr")).toEqual({ name: "X", sections: [] });
+	});
+	test("look instrument gardé", () => {
+		expect(parseViewInput({ name: "X", sections: [], look: "instrument" }, "fr")?.look).toBe("instrument");
 	});
 	test("section haute : tall: true gardé, autre valeur retirée", () => {
 		expect(parseViewInput({ name: "X", sections: [sec({ tall: true })] }, "fr")?.sections[0]).toEqual(sec({ tall: true }));

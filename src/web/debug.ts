@@ -20,6 +20,8 @@ export class DebugRecorder {
 	#recent: number[] = [];
 	#events: DebugEvent[] = [];
 	#recording: { startedAt: number; frames: RecordedFrame[]; active: boolean } | undefined;
+	/** Numéro de la dernière trame (`header.sequence`, build 13273298) et trames sautées depuis le début. */
+	#sequence: { last: number | null; lost: number; gameTime: number | null } = { last: null, lost: 0, gameTime: null };
 
 	constructor(hub: Pick<TelemetryHub, "onFrame">, now: () => number = Date.now) {
 		this.#now = now;
@@ -28,6 +30,7 @@ export class DebugRecorder {
 
 	#onFrame(frame: TelemetryFrame, at: number): void {
 		this.#recent.push(at);
+		this.#onHeader(frame.header);
 		while (this.#recent.length && at - this.#recent[0] > 1000) this.#recent.shift();
 		const list = (frame.events as { events?: unknown } | undefined)?.events;
 		if (Array.isArray(list)) {
@@ -39,6 +42,27 @@ export class DebugRecorder {
 			rec.frames.push({ t: at - rec.startedAt, frame });
 			if (rec.frames.length >= MAX_RECORDED_FRAMES) rec.active = false;
 		}
+	}
+
+	/**
+	 * Numéro de trame : un saut compte les trames perdues ; un numéro qui recule (jeu relancé) repart de zéro sans rien
+	 * compter. Les entiers 64 bits arrivent en texte.
+	 */
+	#onHeader(header: unknown): void {
+		const h = header && typeof header === "object" ? (header as Record<string, unknown>) : undefined;
+		if (!h) return;
+		const n = Number(h.sequence ?? 0);
+		if (!Number.isFinite(n)) return;
+		const last = this.#sequence.last;
+		if (last !== null && n > last + 1) this.#sequence.lost += n - last - 1;
+		this.#sequence.last = n;
+		const time = Number(h.game_time_unix_ms);
+		this.#sequence.gameTime = Number.isFinite(time) && time > 0 ? time : null;
+	}
+
+	/** Numéro de la dernière trame, trames perdues, heure du jeu (ms) ; `last: null` si le jeu n'envoie pas d'en-tête. */
+	get sequence(): { last: number | null; lost: number; gameTime: number | null } {
+		return { ...this.#sequence };
 	}
 
 	/** Trames reçues pendant la dernière seconde. */

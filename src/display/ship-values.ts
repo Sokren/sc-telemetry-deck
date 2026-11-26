@@ -6,6 +6,7 @@ import fr from "./labels.fr.json" with { type: "json" };
 import { readFlight, shipModel } from "./flight.js";
 import type { Level } from "./values.js";
 import { readWeapons } from "./weapons.js";
+import { isShipSituationId, situationView } from "./situation-values.js";
 
 /** Données du vaisseau affichables par « Ship Display », dans l'ordre de la liste (et de la rotation des molettes). */
 export const SHIP_DISPLAY_VALUES = [
@@ -24,6 +25,10 @@ export const SHIP_DISPLAY_VALUES = [
 	"g_force",
 	"boost",
 	"hydrogen",
+	// Build 13273298 : saut quantique.
+	"quantum",
+	"quantum_distance",
+	"quantum_calibration",
 ] as const;
 
 export type ShipDisplayValueId = (typeof SHIP_DISPLAY_VALUES)[number];
@@ -126,6 +131,7 @@ function flightView(id: FlightId, s: ShipSections, lang: Lang): DisplayView {
 
 /** Ce qu'affichent une touche ou une molette « Ship Display » (même forme que « Actor Display »). */
 export function shipView(id: ShipDisplayValueId, s: ShipSections, tracker: CountermeasureTracker, lang: Lang): DisplayView {
+	if (isShipSituationId(id)) return situationView(id, s, lang);
 	if (
 		id === "ship" ||
 		id === "shields" ||
