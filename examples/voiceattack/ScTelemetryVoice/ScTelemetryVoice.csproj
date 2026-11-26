@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <RootNamespace>ScTelemetryVoice</RootNamespace>
+    <AssemblyName>ScTelemetryVoice</AssemblyName>
+    <Version>1.0.0</Version>
+    <Product>SC Telemetry Deck – Voice (VoiceAttack 2)</Product>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- `dynamic` pour le proxy VoiceAttack (comme l'exemple officiel). -->
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ScTelemetryVoice.Tests" />
+  </ItemGroup>
+
+</Project>
