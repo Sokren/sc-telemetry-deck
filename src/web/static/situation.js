@@ -82,7 +82,10 @@ function qtRing(percent, center, caption) {
 
 const QT_PILL = { off: "", idle: "", aligning: "warn", traveling: "qt", cooldown: "" };
 
-/** Encart « Saut quantique ». */
+/**
+ * Encart « Saut quantique ». Même structure dans tous les états (en-tête, une ligne de destination ou d'état, anneau,
+ * deux cases avec barre) : la taille de l'encart ne bouge pas entre charge, saut et refroidissement.
+ */
 export function quantumCard(state, t) {
 	const q = state?.shipStatus?.quantum;
 	const box = el("div", "shipcard qtcard");
@@ -96,30 +99,33 @@ export function quantumCard(state, t) {
 	}
 	box.dataset.state = q.state;
 	head.append(el("span", `sc-pill ${QT_PILL[q.state] ?? ""}`, q.label));
-	if (q.destination) box.append(el("div", "qt-dest", `→ ${q.destination}`));
+	const traveling = q.state === "traveling";
 	const progress = travelProgress(q);
-	if (q.state === "traveling") box.append(qtRing(progress ?? 0, q.etaSeconds != null ? ringClock(q.etaSeconds) : "—", t("qtEta")));
+
+	// Une seule ligne : destination (et distance hors saut), sinon une phrase d'état.
+	const msg = q.state === "off" ? t("qtOff") : q.state === "cooldown" ? t("qtCooldown") : q.destination ? null : t("qtNoDestination");
+	const dest = msg
+		? el("div", "qt-dest qt-msg", msg)
+		: el("div", "qt-dest", `→ ${q.destination}${!traveling && q.distanceM !== null ? ` · ${num(q.distanceText)}` : ""}`);
+	dest.title = dest.textContent;
+	box.append(dest);
+
+	if (traveling) box.append(qtRing(progress ?? 0, q.etaSeconds != null ? ringClock(q.etaSeconds) : "—", t("qtEta")));
 	else if (q.state === "aligning") box.append(qtRing(q.calibration, pct(q.calibration), t("qtCalibration")));
 	else box.append(qtRing(0, "—", q.label));
-	if (q.state === "off") {
-		box.append(el("p", "hint", t("qtOff")));
-		return box;
-	}
-	// Refroidissement : le saut est fini, les jauges retombent à 0 (rien d'utile à montrer).
-	if (q.state === "cooldown") {
-		box.append(el("p", "hint", t("qtCooldown")));
-		return box;
-	}
+
 	const grid = el("div", "sc-grid");
-	if (q.state === "traveling") {
-		grid.append(mini(t("qtEta"), q.etaText), mini(t("qtDistance"), num(q.distanceText)));
+	if (traveling) {
+		// Barre vide et invisible sous « Arrivée dans » : même hauteur que les cases avec barre.
+		const spacer = bar(0);
+		spacer.style.visibility = "hidden";
+		grid.append(mini(t("qtEta"), q.etaText, spacer), mini(t("qtDistance"), num(q.distanceText), bar(progress ?? 0, "ok")));
+	} else if (q.state === "off") {
+		grid.append(mini(t("qtSpool"), "—", bar(0)), mini(t("qtCalibration"), "—", bar(0)));
 	} else {
 		grid.append(mini(t("qtSpool"), pct(q.spool), bar(q.spool)), mini(t("qtCalibration"), pct(q.calibration), bar(q.calibration, q.calibration >= 100 ? "ok" : "warn")));
-		if (q.distanceM !== null) grid.append(mini(t("qtDistance"), num(q.distanceText)));
 	}
 	box.append(grid);
-	if (progress !== null) box.append(bar(progress, "ok"));
-	if (!q.destination && q.state === "idle") box.append(el("p", "hint", t("qtNoDestination")));
 	return box;
 }
 

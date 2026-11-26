@@ -46,6 +46,10 @@ describe("modèles de vues", () => {
 		const all = fr.sections.flatMap((s) => s.items);
 		expect(all.some((i) => i.ref?.startsWith("doors"))).toBe(false);
 		expect(all.find((i) => i.ref === "v_eject")?.display?.style).toBe("hold");
+		// Mode maître : interrupteur NAV / SCM dans la section Vaisseau (plus l'info en lecture seule).
+		const ship = fr.sections.find((s) => s.id === "ship")!.items;
+		expect(ship.find((i) => i.ref === "master_nav")).toMatchObject({ kind: "ship_function", display: { style: "switch" } });
+		expect(all.some((i) => i.kind === "ship_info" && i.ref === "master_mode")).toBe(false);
 		expect(templateSummary(templateById("instrument_panel")!, "fr")).toMatchObject({ name: "Instrument de bord", size: { width: 1280, height: 800 } });
 	});
 

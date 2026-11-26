@@ -152,7 +152,7 @@ function instrumentPanel(lang: Lang): ViewInput {
 				item("speed", "instrument", "speed", 0.5, "number"),
 				item("radar_altitude", "instrument", "radar_altitude", 0.5, "number"),
 				item("boost", "instrument", "boost", 1, "segments"),
-				item("master_mode", "ship_info", "master_mode", 0.5),
+				item("master_nav", "ship_function", "master_nav", 0.5, "switch"),
 			]),
 			section("functions", t("functions"), "full", [
 				item("gear", "ship_function", "gear", 0.5),

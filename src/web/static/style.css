@@ -1460,10 +1460,21 @@ dialog.lan {
 .qtcard > .sc-bar {
 	margin-top: 10px;
 }
+/* Toujours une ligne de même hauteur (destination ou phrase d'état) : l'encart ne change pas de taille. */
 .qt-dest {
 	font-size: 18px;
 	font-weight: 700;
+	line-height: 26px;
+	height: 26px;
 	margin-top: 6px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.qt-dest.qt-msg {
+	font-size: 14px;
+	font-weight: 400;
+	color: var(--muted);
 }
 .who-name {
 	font-size: 18px;
@@ -3589,6 +3600,54 @@ dialog .opt-back {
 .qt-ring {
 	display: none;
 }
+/* Interrupteur : petit, coins nets, chiffres à chasse fixe, curseur à l'accent dans les deux états (aucun n'est
+   « anormal »), sans le nom (les deux mots suffisent) ni la coche après l'envoi (le curseur qui bouge suffit). */
+:is(#myview, #instrument-view).instrument .vswitch {
+	min-height: 30px;
+	border-radius: 0;
+	border-color: var(--line);
+	background: transparent;
+	font-family: var(--ins-mono);
+	font-size: 12px;
+	letter-spacing: 0.1em;
+}
+:is(#myview, #instrument-view).instrument .vswitch .vsw-knob {
+	top: 3px;
+	bottom: 3px;
+	left: 3px;
+	width: calc(50% - 6px);
+	border-radius: 0;
+	background: color-mix(in srgb, var(--accent) 16%, transparent);
+	border-color: var(--accent);
+}
+:is(#myview, #instrument-view).instrument .vswitch[data-state="on"] .vsw-knob {
+	left: calc(50% + 3px);
+	background: color-mix(in srgb, var(--accent) 16%, transparent);
+	border-color: var(--accent);
+}
+:is(#myview, #instrument-view).instrument .vswitch :is(.vsw-off, .vsw-on) {
+	color: var(--muted);
+}
+:is(#myview, #instrument-view).instrument .vswitch[data-state="off"] .vsw-off,
+:is(#myview, #instrument-view).instrument .vswitch[data-state="on"] .vsw-on {
+	color: var(--accent);
+}
+:is(#myview, #instrument-view).instrument .vswitch .vsw-label,
+:is(#myview, #instrument-view).instrument .vswitch .flash.ok {
+	display: none;
+}
+/* Onglet fixe : le mode NAV / SCM dans l'en-tête de la section Vaisseau, à droite du titre. */
+#instrument-view .vsec[data-id="ship"] .vitem[data-id="master_nav"] {
+	position: absolute;
+	top: 10px;
+	right: 14px;
+	width: 116px;
+	height: 30px;
+}
+/* Sections côte à côte de même hauteur (cadres alignés en bas). */
+:is(#myview, #instrument-view).instrument .vsections {
+	align-items: stretch;
+}
 :is(#myview, #instrument-view).instrument .qtcard:has(.qt-ring) {
 	display: grid;
 	grid-template-columns: auto 1fr;
@@ -3667,4 +3726,3 @@ dialog .opt-back {
 		font-size: 21px;
 	}
 }
-/* Onglet « Instrument de bord » : phrase d'aide et bouton de copie sur une ligne. */
