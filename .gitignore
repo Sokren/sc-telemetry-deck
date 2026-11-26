@@ -49,3 +49,6 @@ desktop.ini
 docs/superpowers/
 roundtable-mcp*
 docs/reddit-post.md
+
+# Plugins de test (lancés par l’appli web en développement)
+/plugins/

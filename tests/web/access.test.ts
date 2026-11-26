@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { describe, expect, test } from "vitest";
-import { AccessStore, levelAllows, mayTriggerDangerous, MAX_TOKENS, parseAccess, type AccessToken } from "../../src/web/access.js";
+import { AccessStore, isStopped, levelAllows, mayTriggerDangerous, MAX_TOKENS, parseAccess, type AccessToken } from "../../src/web/access.js";
 import type { WebSettings } from "../../src/web/config.js";
 
 const settings = (): WebSettings => ({ port: 8743, lan: false, token: "x".repeat(32) });
@@ -39,6 +39,17 @@ describe("jetons externes : création et recherche", () => {
 		expect(store.create({ name: "trop", level: "read", lan: false })).toBe("too_many");
 	});
 
+	test("nom déjà pris (sans tenir compte des majuscules ni des espaces autour) : refusé à la création et à la modification", () => {
+		const store = new AccessStore(settings(), () => {});
+		const a = store.create({ name: "Overlay", level: "read", lan: false });
+		const b = store.create({ name: "Bot", level: "read", lan: false });
+		if (typeof a !== "object" || typeof b !== "object") throw new Error("création");
+		expect(store.create({ name: "  overlay ", level: "pilot", lan: false })).toBe("name_taken");
+		expect(store.update(b.token.id, { name: "OVERLAY" })).toBe("name_taken");
+		expect(store.update(a.token.id, { name: "overlay", level: "pilot" })).toMatchObject({ name: "overlay", level: "pilot" });
+		expect(store.list()).toHaveLength(2);
+	});
+
 	test("modification et révocation", () => {
 		const s = settings();
 		const store = new AccessStore(s, () => {});
@@ -51,6 +62,55 @@ describe("jetons externes : création et recherche", () => {
 		expect(store.remove(r.token.id)).toBe(false);
 		expect(store.find(r.secret)).toBeUndefined();
 		expect(s.access).toBeUndefined();
+	});
+});
+
+describe("jetons externes : renouvellement", () => {
+	test("nouveau secret, même id, nom, niveau et réseau local ; l'ancien ne marche plus", () => {
+		let saved = 0;
+		const s = settings();
+		const store = new AccessStore(s, () => saved++);
+		const r = store.create({ name: "VA", level: "pilot", lan: true });
+		if (typeof r === "string") throw new Error(r);
+		const n = store.renew(r.token.id);
+		if (typeof n === "string") throw new Error(n);
+		expect(n.secret).not.toBe(r.secret);
+		expect(n.secret).toHaveLength(51);
+		expect(n.token).toMatchObject({ id: r.token.id, name: "VA", level: "pilot", lan: true, last4: n.secret.slice(-4), hash: sha(n.secret) });
+		expect(store.find(r.secret)).toBeUndefined();
+		expect(store.find(n.secret)?.id).toBe(r.token.id);
+		expect(s.access).toHaveLength(1);
+		expect(saved).toBe(2);
+		expect(store.renew("nope")).toBe("unknown");
+	});
+});
+
+describe("jetons externes : stop", () => {
+	test("stop sans limite, stop pour une durée, reprise ; gardé dans settings.json", () => {
+		const s = settings();
+		const store = new AccessStore(s, () => {});
+		const r = store.create({ name: "VA", level: "pilot", lan: false });
+		if (typeof r === "string") throw new Error(r);
+		expect(isStopped(r.token)).toBe(false);
+		const off = store.stop(r.token.id);
+		if (typeof off === "string") throw new Error(off);
+		expect(off.stopped).toEqual({ until: null });
+		expect(isStopped(off)).toBe(true);
+		const now = Date.parse("2026-11-25T10:00:00.000Z");
+		const tmp = store.stop(r.token.id, 15, now);
+		if (typeof tmp === "string") throw new Error(tmp);
+		expect(tmp.stopped).toEqual({ until: "2026-11-25T10:15:00.000Z" });
+		expect(isStopped(tmp, now + 14 * 60_000)).toBe(true);
+		expect(isStopped(tmp, now + 15 * 60_000)).toBe(false);
+		expect(parseAccess(JSON.parse(JSON.stringify(s.access)))[0].stopped).toEqual({ until: "2026-11-25T10:15:00.000Z" });
+		const on = store.start(r.token.id);
+		if (typeof on === "string") throw new Error(on);
+		expect(on).not.toHaveProperty("stopped");
+		expect(store.stop(r.token.id, 0)).toBe("invalid");
+		expect(store.stop(r.token.id, 1441)).toBe("invalid");
+		expect(store.stop(r.token.id, 1.5)).toBe("invalid");
+		expect(store.stop("nope")).toBe("unknown");
+		expect(store.start("nope")).toBe("unknown");
 	});
 });
 
@@ -76,13 +136,29 @@ describe("jetons externes : journal en mémoire", () => {
 		const r = store.create({ name: "a", level: "read", lan: false });
 		if (typeof r === "string") throw new Error(r);
 		expect(store.log(r.token.id)).toEqual({ entries: [], refused: 0, lastUsed: null });
-		for (let i = 0; i < 101; i++) store.record(r.token.id, { at: `t${i}`, method: "GET", path: "/p", status: i % 10 === 0 ? 403 : 200 });
+		for (let i = 0; i < 101; i++) store.record(r.token.id, { at: `t${String(i).padStart(3, "0")}`, method: "GET", path: "/p", status: i % 10 === 1 ? 403 : 200 });
 		const log = store.log(r.token.id);
 		expect(log.entries).toHaveLength(100);
 		expect(log.entries.at(-1)?.at).toBe("t100");
-		expect(log.entries[0].at).toBe("t1");
-		expect(log.refused).toBe(11);
+		expect(log.entries[0].at).toBe("t001");
+		expect(log.refused).toBe(10);
 		expect(log.lastUsed).toBe("t100");
+	});
+
+	test("un appel en alerte (403, 400, 5xx) reste visible même chassé par 100 appels normaux ; 404 ne compte pas", () => {
+		const store = new AccessStore(settings(), () => {});
+		const r = store.create({ name: "a", level: "read", lan: false });
+		if (typeof r === "string") throw new Error(r);
+		const at = (i: number) => `2026-11-25T10:00:${String(i).padStart(3, "0")}Z`;
+		store.record(r.token.id, { at: at(0), method: "GET", path: "/api/v1/access/tokens", status: 403 });
+		store.record(r.token.id, { at: at(1), method: "GET", path: "/api/v1/telemetry/{section}", status: 404 });
+		store.record(r.token.id, { at: at(2), method: "POST", path: "/api/v1/actions/{name}/trigger", status: 502 });
+		for (let i = 3; i < 203; i++) store.record(r.token.id, { at: at(i), method: "GET", path: "/api/v1/status", status: 200 });
+		const log = store.log(r.token.id);
+		expect(log.entries.map((e) => e.status).slice(0, 3)).toEqual([403, 502, 200]);
+		expect(log.entries).toHaveLength(102);
+		expect(log.entries.some((e) => e.status === 404)).toBe(false);
+		expect(log.lastUsed).toBe(at(202));
 	});
 });
 

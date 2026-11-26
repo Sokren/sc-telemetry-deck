@@ -3,6 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseAccess, type AccessToken } from "./access.js";
+import { parseSavedPlugins, type SavedPlugin } from "./plugins/manager.js";
 
 /**
  * Réglages de l'appli web, enregistrés dans `settings.json`.
@@ -19,6 +20,8 @@ export type WebSettings = {
 	token: string;
 	updateCheck?: boolean;
 	access?: AccessToken[];
+	/** Plugins activés ou désactivés par le joueur (dossier → empreinte approuvée et droits accordés). */
+	plugins?: Record<string, SavedPlugin>;
 };
 
 export const DEFAULT_PORT = 8743;
@@ -65,6 +68,8 @@ export function loadSettings(dir: string): WebSettings {
 	};
 	const access = parseAccess(raw.access);
 	if (access.length) settings.access = access;
+	const plugins = parseSavedPlugins(raw.plugins);
+	if (Object.keys(plugins).length) settings.plugins = plugins;
 	saveSettings(dir, settings);
 	return settings;
 }

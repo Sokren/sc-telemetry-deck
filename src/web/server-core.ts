@@ -1,3 +1,4 @@
+import { defaultFinder } from "./plugins/find.js";
 import { loadSchema } from "../game/schema.js";
 import { streamSchemaTree, type SchemaField } from "../game/schema-tree.js";
 import { exec } from "node:child_process";
@@ -26,6 +27,10 @@ export type ServerOptions = {
 	gameAddress?: string;
 	openBrowser: boolean;
 	log: (msg: string) => void;
+	/** Dossier des plugins (à côté de l'exe) ; absent → pas de plugins. */
+	pluginsDir?: string;
+	/** Lancé depuis l'exe (Node SEA) : `node` des plugins cherché dans le PATH. */
+	isSea?: boolean;
 };
 
 export type RunningServer = { url: string; pageUrl: string; token: string; close(): Promise<void> };
@@ -160,6 +165,7 @@ export async function startServer(o: ServerOptions): Promise<RunningServer> {
 		swaggerDir: o.swaggerDir,
 		viewFile: path.join(o.settingsDir, "view.json"),
 		saveSettings: () => saveSettings(o.settingsDir, settings),
+		...(o.pluginsDir ? { plugins: { dir: o.pluginsDir, finder: defaultFinder(!!o.isSea), apiUrl: () => `http://127.0.0.1:${listener.port}` } } : {}),
 		lanFactory: (s, save) => new LanManager({ settings: s, save, listen: (hosts) => listener.listen(hosts), port: () => listener.port }),
 		fallback: staticFiles(o.staticDir),
 	});
@@ -185,11 +191,22 @@ export async function startServer(o: ServerOptions): Promise<RunningServer> {
 	o.log(`SC Telemetry Deck ${VERSION} — page : ${pageUrl}`);
 	o.log(`API : ${url}/api/docs`);
 	if (o.openBrowser) openInBrowser(pageUrl);
+	// Plugins activés et inchangés : lancés maintenant que l'API répond. Un nouveau plugin ne se lance jamais seul.
+	// Sortie du processus, même brutale : les plugins sont tués avec lui (ils ne survivent pas à l'appli).
+	const killPlugins = () => app.plugins?.killAllSync();
+	process.on("exit", killPlugins);
+	if (app.plugins) {
+		await app.plugins.startEnabled();
+		const running = app.plugins.list().filter((p) => p.state === "running").length;
+		o.log(`Plugins : ${running} lancé(s) / started — ${app.plugins.dir}`);
+	}
 	return {
 		url,
 		pageUrl,
 		token: settings.token,
 		async close() {
+			process.off("exit", killPlugins);
+			await app.plugins?.close();
 			app.close();
 			await listener.close();
 			game.close();

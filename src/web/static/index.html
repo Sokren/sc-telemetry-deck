@@ -14,6 +14,8 @@
 			<span id="version" class="version"></span>
 			<span id="status" class="status"><span class="dot"></span><span id="status-text"></span></span>
 			<a id="update-badge" class="update-badge" target="_blank" rel="noopener" hidden></a>
+			<button id="access-pill" class="plg-pill" type="button" hidden></button>
+			<button id="plugins-pill" class="plg-pill" type="button" hidden></button>
 			<button id="setup-open" class="setup-open" type="button" hidden></button>
 			<nav>
 				<button id="view-lock" class="lock" type="button" hidden></button>
@@ -70,6 +72,8 @@
 		</main>
 		<dialog id="auto" class="lan" aria-labelledby="auto-title"></dialog>
 		<dialog id="lan" class="lan" aria-label="Tablette / téléphone"></dialog>
+		<dialog id="access" class="lan" aria-label="Accès externes"></dialog>
+		<dialog id="plugins" class="lan" aria-label="Plugins"></dialog>
 		<dialog id="about" aria-labelledby="about-title">
 			<h2 id="about-title"></h2>
 			<dl id="about-facts"></dl>
@@ -109,6 +113,14 @@
 			<section class="opt-section opt-lan">
 				<h3 id="opt-h-lan"></h3>
 				<div class="opt-row"><button id="lan-open" class="lan-open" type="button" data-leave="lan" hidden></button></div>
+			</section>
+			<section class="opt-section" id="opt-plugins" hidden>
+				<h3 id="opt-h-plugins"></h3>
+				<div class="opt-row"><button id="plugins-open" type="button" data-leave="plugins" hidden></button></div>
+			</section>
+			<section class="opt-section" id="opt-access" hidden>
+				<h3 id="opt-h-access"></h3>
+				<div class="opt-row"><button id="access-open" type="button" data-leave="access" hidden></button></div>
 			</section>
 			<section class="opt-section">
 				<h3 id="opt-h-advanced"></h3>

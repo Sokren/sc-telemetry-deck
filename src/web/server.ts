@@ -20,13 +20,25 @@ const files = prepareFiles({
 	getAsset: (key) => sea.getAsset(key),
 });
 
+// Plugins : dossier `plugins` à côté de l'exe ; appli portable ou développement : à côté du dossier de l'appli.
+const pluginsDir = process.env.SCTD_PLUGINS_DIR || path.join(isSea ? path.dirname(process.execPath) : path.dirname(path.dirname(fileURLToPath(import.meta.url))), "plugins");
+
 startServer({
 	settingsDir: defaultSettingsDir(),
 	...files,
+	pluginsDir,
+	isSea,
 	openBrowser: !noOpen,
 	log: (msg) => console.log(msg),
 }).then(
-	() => console.log("Ctrl+C pour arrêter / Ctrl+C to stop"),
+	(server) => {
+		console.log("Ctrl+C pour arrêter / Ctrl+C to stop");
+		// Ctrl+C, Ctrl+Pause ou fenêtre fermée : arrêt propre (plugins compris) ; filet dans server-core sur « exit ».
+		for (const signal of ["SIGINT", "SIGBREAK", "SIGHUP"] as const)
+			process.once(signal, () => {
+				void server.close().finally(() => process.exit(0));
+			});
+	},
 	(err: NodeJS.ErrnoException) => {
 		if (err.code === "EADDRINUSE") {
 			console.error("Le port est déjà utilisé : l'appli tourne peut-être déjà. / Port already in use: the app may already be running.");

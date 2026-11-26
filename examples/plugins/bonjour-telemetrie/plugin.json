@@ -1,0 +1,9 @@
+{
+	"name": "Bonjour télémétrie",
+	"version": "1.0.0",
+	"author": "SC Telemetry Deck",
+	"description": "Exemple minimal : écrit l'état du jeu toutes les 5 s. / Minimal example: writes the game state every 5 s.",
+	"run": { "exec": "node", "args": ["main.mjs"] },
+	"access": "read",
+	"contract": "1.12.0"
+}

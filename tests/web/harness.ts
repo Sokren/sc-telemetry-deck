@@ -1,4 +1,5 @@
 // Harnais des tests de l'appli web : vrai serveur HTTP sur un port libre, faux jeu gRPC, réglages temporaires.
+import type { AccessStore } from "../../src/web/access.js";
 import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
@@ -24,6 +25,8 @@ export type TestServer = {
 	deps: AppDeps;
 	/** Routes déclarées par l'appli (méthode + chemin au format OpenAPI). */
 	routes: { method: string; path: string; public?: boolean }[];
+	/** Jetons externes et de plugin de l'appli de test. */
+	access: AccessStore;
 	close(): Promise<void>;
 	/** Requête JSON ; `auth: false` pour ne pas envoyer le jeton, `auth: "bad"` pour un mauvais jeton. */
 	call(method: string, p: string, opts?: { body?: unknown; auth?: boolean | "bad"; headers?: Record<string, string> }): Promise<{ status: number; body: any; headers: Headers }>;
@@ -47,18 +50,25 @@ export async function startTestServer(opts: { game?: FakeHandlers | null; extra?
 		debugSchema: streamSchemaTree(loadSchema(fileURLToPath(DESC_PATH))),
 		// Jamais d'appel à GitHub pendant les tests.
 		latestRelease: async () => ({ version: "0.0.0-test", url: "https://example.invalid/release", publishedAt: null }),
+		// Dossier de plugins vide par défaut : toutes les routes du contrat existent, rien n'est lancé.
+		plugins: { dir: path.join(dir, "plugins"), finder: { node: () => process.execPath, python: () => undefined }, openFolder: () => {} },
 		...opts.extra,
 	};
+	// Les plugins de test appellent l'API de ce serveur (port connu seulement après l'écoute).
+	let url = "";
+	if (deps.plugins && !deps.plugins.apiUrl) deps.plugins = { ...deps.plugins, apiUrl: () => url };
 	const app = createApp(deps);
 	const server = http.createServer(app.handler);
 	await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
-	const url = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+	url = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
 	return {
 		url,
 		token: settings.token,
 		deps,
 		routes: app.routes,
+		access: app.access,
 		async close() {
+			await app.plugins?.close();
 			app.close?.();
 			server.closeAllConnections();
 			await new Promise<void>((r) => server.close(() => r()));

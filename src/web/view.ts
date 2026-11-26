@@ -99,7 +99,8 @@ export type SectionWidth = (typeof SECTION_WIDTHS)[number];
 export type ViewSection = { id: string; title: string; width: SectionWidth; tall?: true; items: ViewItem[] };
 export type Layout = { sections: ViewSection[] };
 export type ViewInput = { name: string; sections: ViewSection[]; look?: SavedLook };
-export type NamedView = { id: string } & ViewInput;
+/** `plugin` : dossier du plugin qui a créé la vue (il peut la modifier ou la supprimer) ; absent = vue du joueur. */
+export type NamedView = { id: string; plugin?: string } & ViewInput;
 
 export const MAX_VIEWS = 10;
 export const MAX_SECTIONS = 20;
@@ -365,7 +366,8 @@ function parseFile(x: unknown): ({ views: NamedView[] } | { legacy: ViewSection[
 		if (!vo || typeof vo.id !== "string" || !ID.test(vo.id) || typeof vo.name !== "string" || views.length >= MAX_VIEWS) continue;
 		if (views.some((w) => w.id === vo.id)) continue;
 		const name = vo.name.trim().slice(0, MAX_NAME).trim() || EMPTY_NAME.fr;
-		views.push({ id: vo.id, name, sections: looseSections(vo.sections), ...lookOf(vo.look) });
+		const plugin = typeof vo.plugin === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(vo.plugin) ? { plugin: vo.plugin } : {};
+		views.push({ id: vo.id, ...plugin, name, sections: looseSections(vo.sections), ...lookOf(vo.look) });
 	}
 	if (!views.length) return undefined;
 	return { views, lossy: JSON.stringify(views) !== JSON.stringify(o.views) };
@@ -402,10 +404,11 @@ export class ViewStore {
 		return this.#views ?? [this.#initial(lang)];
 	}
 
-	create(input: ViewInput, lang: Lang): NamedView | "too_many" {
+	/** `plugin` : la vue appartient à ce plugin. */
+	create(input: ViewInput, lang: Lang, plugin?: string): NamedView | "too_many" {
 		const views = this.#materialize(lang);
 		if (views.length >= MAX_VIEWS) return "too_many";
-		const view = { id: this.#newId(views), ...input };
+		const view: NamedView = { id: this.#newId(views), ...(plugin ? { plugin } : {}), ...input };
 		views.push(view);
 		this.#save();
 		return view;
@@ -428,8 +431,11 @@ export class ViewStore {
 	update(id: string, input: ViewInput, lang: Lang): NamedView | "unknown" {
 		if (!this.list(lang).some((v) => v.id === id)) return "unknown";
 		const views = this.#materialize(lang);
-		const view = { id, ...input };
-		views[views.findIndex((v) => v.id === id)] = view;
+		const i = views.findIndex((v) => v.id === id);
+		// Le propriétaire reste celui d'origine, quel que soit celui qui modifie.
+		const owner = views[i].plugin;
+		const view: NamedView = { id, ...(owner ? { plugin: owner } : {}), ...input };
+		views[i] = view;
 		this.#save();
 		return view;
 	}

@@ -221,6 +221,70 @@ describe("gestion des jetons externes (jeton principal, PC)", () => {
 		}
 	});
 
+	test("renouveler : nouveau secret une fois, l'ancien refusé, flux ouverts fermés, 404 si inconnu", async () => {
+		const srv = await startTestServer({ game: null });
+		try {
+			const c = await srv.call("POST", "/api/v1/access/tokens", { body: { name: "VA", level: "read", lan: false } });
+			const old = c.body.secret as string;
+			const res = await fetch(`${srv.url}/api/v1/events`, { headers: { authorization: `Bearer ${old}` } });
+			const reader = res.body!.getReader();
+			await reader.read();
+			const ended = (async () => {
+				for (;;) if ((await reader.read()).done) return true;
+			})();
+			const r = await srv.call("POST", `/api/v1/access/tokens/${c.body.token.id}/renew`);
+			expect(r.status).toBe(200);
+			validateResponse("/api/v1/access/tokens/{id}/renew", "POST", 200, r.body);
+			expect(r.body.token).toMatchObject({ id: c.body.token.id, name: "VA", level: "read", lan: false });
+			expect(r.body.secret).not.toBe(old);
+			expect(await Promise.race([ended, new Promise<boolean>((ok) => setTimeout(() => ok(false), 2000))])).toBe(true);
+			expect((await statusOf("GET", "/api/v1/status", old, srv)).status).toBe(401);
+			expect((await statusOf("GET", "/api/v1/status", r.body.secret, srv)).status).toBe(200);
+			expect((await srv.call("POST", "/api/v1/access/tokens/nope/renew")).status).toBe(404);
+		} finally {
+			await srv.close();
+		}
+	});
+
+	test("stop : 403 stopped (journal), flux fermés, durée invalide 400, reprise", async () => {
+		const srv = await startTestServer({ game: null });
+		try {
+			const c = await srv.call("POST", "/api/v1/access/tokens", { body: { name: "VA", level: "read", lan: false } });
+			const { id } = c.body.token;
+			const secret = c.body.secret as string;
+			const res = await fetch(`${srv.url}/api/v1/events`, { headers: { authorization: `Bearer ${secret}` } });
+			const reader = res.body!.getReader();
+			await reader.read();
+			const ended = (async () => {
+				for (;;) if ((await reader.read()).done) return true;
+			})();
+			const off = await srv.call("POST", `/api/v1/access/tokens/${id}/stop`, { body: { minutes: 15 } });
+			expect(off.status).toBe(200);
+			validateResponse("/api/v1/access/tokens/{id}/stop", "POST", 200, off.body);
+			expect(off.body.stopped.until).toEqual(expect.any(String));
+			expect(await Promise.race([ended, new Promise<boolean>((ok) => setTimeout(() => ok(false), 2000))])).toBe(true);
+			const refused = await statusOf("GET", "/api/v1/status", secret, srv);
+			expect(refused).toEqual({ status: 403, body: { error: "forbidden", reason: "stopped" } });
+			validateResponse("/api/v1/status", "GET", 403, refused.body);
+			const log = await srv.call("GET", `/api/v1/access/tokens/${id}/log`);
+			expect(log.body.entries.at(-1)).toMatchObject({ path: "/api/v1/status", status: 403 });
+
+			const forever = await srv.call("POST", `/api/v1/access/tokens/${id}/stop`, { body: {} });
+			expect(forever.body.stopped).toEqual({ until: null });
+			expect((await srv.call("POST", `/api/v1/access/tokens/${id}/stop`, { body: { minutes: 0 } })).status).toBe(400);
+
+			const on = await srv.call("POST", `/api/v1/access/tokens/${id}/start`);
+			expect(on.status).toBe(200);
+			validateResponse("/api/v1/access/tokens/{id}/start", "POST", 200, on.body);
+			expect(on.body).not.toHaveProperty("stopped");
+			expect((await statusOf("GET", "/api/v1/status", secret, srv)).status).toBe(200);
+			expect((await srv.call("POST", "/api/v1/access/tokens/nope/stop", { body: {} })).status).toBe(404);
+			expect((await srv.call("POST", "/api/v1/access/tokens/nope/start")).status).toBe(404);
+		} finally {
+			await srv.close();
+		}
+	});
+
 	test("erreurs : corps invalide 400, trop de jetons 409, inconnu 404", async () => {
 		const srv = await startTestServer({ game: null });
 		try {
@@ -228,6 +292,13 @@ describe("gestion des jetons externes (jeton principal, PC)", () => {
 			expect(bad.status).toBe(400);
 			expect(bad.body).toEqual({ error: "invalid_token" });
 			for (let i = 0; i < 20; i++) expect((await srv.call("POST", "/api/v1/access/tokens", { body: { name: `t${i}`, level: "read", lan: false } })).status).toBe(201);
+			const dup = await srv.call("POST", "/api/v1/access/tokens", { body: { name: "T0", level: "read", lan: false } });
+			expect(dup.status).toBe(409);
+			expect(dup.body).toEqual({ error: "name_taken" });
+			const ids = (await srv.call("GET", "/api/v1/access/tokens")).body.tokens.map((x: { id: string }) => x.id);
+			const rename = await srv.call("PUT", `/api/v1/access/tokens/${ids[1]}`, { body: { name: "t0" } });
+			expect(rename.status).toBe(409);
+			expect(rename.body).toEqual({ error: "name_taken" });
 			const many = await srv.call("POST", "/api/v1/access/tokens", { body: { name: "trop", level: "read", lan: false } });
 			expect(many.status).toBe(409);
 			expect(many.body).toEqual({ error: "too_many" });

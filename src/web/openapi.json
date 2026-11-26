@@ -815,6 +815,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external or plugin token — refusé à ce jeton externe ou de plugin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					}
 				}
 			},
@@ -879,6 +889,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external or plugin token — refusé à ce jeton externe ou de plugin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					},
 					"409": {
 						"description": "Already 10 views — déjà 10 vues",
@@ -1187,6 +1207,16 @@
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
 					},
+					"403": {
+						"description": "Forbidden for this external or plugin token — refusé à ce jeton externe ou de plugin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
+					},
 					"404": {
 						"description": "Unknown view — vue inconnue",
 						"content": {
@@ -1236,6 +1266,16 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Forbidden for this external or plugin token — refusé à ce jeton externe ou de plugin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Forbidden"
+								}
+							}
+						}
 					},
 					"404": {
 						"description": "Unknown view — vue inconnue",
@@ -2008,7 +2048,7 @@
 						}
 					},
 					"409": {
-						"description": "too_many (20)",
+						"description": "too_many (20) · name_taken (nom déjà pris par un autre jeton, majuscules ignorées)",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -2091,6 +2131,16 @@
 								}
 							}
 						}
+					},
+					"409": {
+						"description": "name_taken (nom déjà pris par un autre jeton, majuscules ignorées)",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
 					}
 				}
 			},
@@ -2104,6 +2154,213 @@
 				"responses": {
 					"204": {
 						"description": "Revoked — révoqué"
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/access/tokens/{id}/renew": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"post": {
+				"operationId": "renewAccessToken",
+				"tags": [
+					"Access"
+				],
+				"summary": "Renew an external token — renouveler un jeton externe",
+				"description": "Gives the token a new secret, returned only here; the old one stops working at once and its open event streams are closed. Name, level and lan are kept. — FR : donne un nouveau secret au jeton, renvoyé seulement ici ; l’ancien ne marche plus tout de suite et ses flux d’événements ouverts sont fermés. Nom, niveau et lan sont gardés. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Renewed — renouvelé",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"required": [
+										"token",
+										"secret"
+									],
+									"additionalProperties": false,
+									"properties": {
+										"token": {
+											"$ref": "#/components/schemas/AccessToken"
+										},
+										"secret": {
+											"type": "string",
+											"pattern": "^sct_ext_[A-Za-z0-9_-]{43}$"
+										}
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/access/tokens/{id}/stop": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"post": {
+				"operationId": "stopAccessToken",
+				"tags": [
+					"Access"
+				],
+				"summary": "Stop an external token — stopper un jeton externe",
+				"description": "The token is refused (403 forbidden, reason stopped) and its open event streams are closed, for minutes (1–1440) or, without minutes, until started again. Kept when the app restarts. 400 invalid_minutes. — FR : le jeton est refusé (403 forbidden, raison stopped) et ses flux d’événements ouverts sont fermés, pendant minutes (1 à 1440) ou, sans minutes, jusqu’à reprise. Gardé au redémarrage de l’appli. 400 invalid_minutes. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"requestBody": {
+					"required": false,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"additionalProperties": false,
+								"properties": {
+									"minutes": {
+										"type": "integer",
+										"minimum": 1,
+										"maximum": 1440
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Stopped — stoppé",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AccessToken"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "invalid_minutes",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/access/tokens/{id}/start": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"post": {
+				"operationId": "startAccessToken",
+				"tags": [
+					"Access"
+				],
+				"summary": "Start an external token again — remettre en marche un jeton externe",
+				"description": "Ends a stop: the token works again at once. — FR : lève le stop : le jeton remarche tout de suite. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Running — en marche",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AccessToken"
+								}
+							}
+						}
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
@@ -2156,6 +2413,506 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/AccessLog"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/plugins": {
+			"get": {
+				"operationId": "listPlugins",
+				"tags": [
+					"Plugins"
+				],
+				"summary": "Plugins — plugins",
+				"description": "Plugins found in the plugins folder next to the app (read again with scan). A plugin is a separate program the app starts without a shell, with its own short-lived token (sct_plg_…, header only, PC only) at the level the player gave it; a new or changed plugin never starts on its own. — FR : plugins trouvés dans le dossier plugins à côté de l’appli (relu avec scan). Un plugin est un programme séparé que l’appli lance sans shell, avec son propre jeton éphémère (sct_plg_…, en-tête seulement, PC seulement) au niveau que le joueur lui a donné ; un plugin nouveau ou modifié ne se lance jamais seul. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Plugins",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginList"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/plugins/scan": {
+			"post": {
+				"operationId": "scanPlugins",
+				"tags": [
+					"Plugins"
+				],
+				"summary": "Read the plugins folder again — relire le dossier des plugins",
+				"description": "Nothing is started; a running plugin whose files changed is stopped. — FR : rien n’est lancé ; un plugin en marche dont un fichier a changé est arrêté. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Plugins",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginList"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/plugins/open-folder": {
+			"post": {
+				"operationId": "openPluginsFolder",
+				"tags": [
+					"Plugins"
+				],
+				"summary": "Open the plugins folder — ouvrir le dossier des plugins",
+				"description": "Opens it in Windows Explorer (created if missing). — FR : l’ouvre dans l’explorateur Windows (créé s’il n’existe pas). App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"204": {
+						"description": "Opened — ouvert"
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/plugins/{id}/enable": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"post": {
+				"operationId": "enablePlugin",
+				"tags": [
+					"Plugins"
+				],
+				"summary": "Enable and start a plugin — activer et lancer un plugin",
+				"description": "Body: hash (the fingerprint the player saw), level and views granted — never above what the plugin asks. 409 hash_mismatch if a file changed meanwhile; 400 invalid_plugin_grant. — FR : corps : hash (l’empreinte vue par le joueur), level et views accordés — jamais au-dessus de ce que le plugin demande. 409 hash_mismatch si un fichier a changé entre-temps ; 400 invalid_plugin_grant. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"hash",
+									"level",
+									"views"
+								],
+								"additionalProperties": false,
+								"properties": {
+									"hash": {
+										"type": "string",
+										"pattern": "^[0-9a-f]{64}$"
+									},
+									"level": {
+										"enum": [
+											"read",
+											"pilot",
+											"pilot_full"
+										]
+									},
+									"views": {
+										"$ref": "#/components/schemas/ViewGrant"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Plugin — plugin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginInfo"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "invalid_plugin_grant",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "hash_mismatch, invalid",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/plugins/{id}/start": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"post": {
+				"operationId": "startPlugin",
+				"tags": [
+					"Plugins"
+				],
+				"summary": "Start a plugin — lancer un plugin",
+				"description": "Starts an enabled plugin (after a stop or a failure). — FR : lance un plugin activé (après un arrêt ou un échec). App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Plugin — plugin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginInfo"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "not_enabled, changed, invalid — FR : pas activé, modifié, invalide",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/plugins/{id}/stop": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"post": {
+				"operationId": "stopPlugin",
+				"tags": [
+					"Plugins"
+				],
+				"summary": "Stop a plugin — arrêter un plugin",
+				"description": "Kills the program and its children and revokes its token; it stays enabled (started again with the app). — FR : tue le programme et ses enfants et révoque son jeton ; il reste activé (relancé avec l’appli). App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Plugin — plugin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginInfo"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/plugins/{id}/restart": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"post": {
+				"operationId": "restartPlugin",
+				"tags": [
+					"Plugins"
+				],
+				"summary": "Restart a plugin — relancer un plugin",
+				"description": "Stop then start (new token). — FR : arrêt puis lancement (nouveau jeton). App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Plugin — plugin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginInfo"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "not_enabled, changed, invalid — FR : pas activé, modifié, invalide",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/plugins/{id}/disable": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"post": {
+				"operationId": "disablePlugin",
+				"tags": [
+					"Plugins"
+				],
+				"summary": "Disable a plugin — désactiver un plugin",
+				"description": "Stops it and it is no longer started. — FR : l’arrête et il n’est plus lancé. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Plugin — plugin",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginInfo"
+								}
+							}
+						}
+					},
+					"401": {
+						"$ref": "#/components/responses/Unauthorized"
+					},
+					"403": {
+						"description": "Not called from the PC itself (pc_only) — pas appelé depuis le PC lui-même",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "not_found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/plugins/{id}/log": {
+			"parameters": [
+				{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}
+			],
+			"get": {
+				"operationId": "pluginLog",
+				"tags": [
+					"Plugins"
+				],
+				"summary": "Plugin log — journal d’un plugin",
+				"description": "Its last API calls (refusals with their reason) and the last 200 lines it wrote; in memory, lost when the app restarts. — FR : ses derniers appels à l’API (refus avec leur raison) et les 200 dernières lignes qu’il a écrites ; en mémoire, perdus au redémarrage de l’appli. App token only, from the PC only (403 pc_only otherwise). — FR : jeton de l’appli seulement, depuis le PC seulement (sinon 403 pc_only).",
+				"responses": {
+					"200": {
+						"description": "Log — journal",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PluginLog"
 								}
 							}
 						}
@@ -3163,6 +3920,11 @@
 							"cockpit"
 						],
 						"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; absent = standard ; autres valeurs ignorées"
+					},
+					"plugin": {
+						"type": "string",
+						"pattern": "^[A-Za-z0-9_-]{1,64}$",
+						"description": "Folder of the plugin that created this view (it may change or delete it); absent = the player's view — FR : dossier du plugin qui a créé cette vue (il peut la modifier ou la supprimer) ; absent = vue du joueur"
 					}
 				}
 			},
@@ -3807,9 +4569,11 @@
 						"enum": [
 							"level",
 							"lan",
+							"stopped",
+							"view",
 							"dangerous_action"
 						],
-						"description": "level: route not open to this token's level; lan: token not allowed off the PC; dangerous_action: protected action (eject, self destruct, unlock) needs pilot_full — FR : level : route fermée à ce niveau ; lan : jeton interdit hors du PC ; dangerous_action : action protégée (éjection, autodestruction, déverrouillage), il faut pilot_full"
+						"description": "level: route not open to this token's level; lan: token not allowed off the PC; stopped: token stopped from the PC (for a while or until restarted); view: plugin token without this right on views (read, edit this view, create); dangerous_action: protected action (eject, self destruct, unlock) needs pilot_full — FR : level : route fermée à ce niveau ; lan : jeton interdit hors du PC ; stopped : jeton stoppé depuis le PC (pour un temps ou jusqu’à reprise) ; view : jeton de plugin sans ce droit sur les vues (lire, modifier cette vue, créer) ; dangerous_action : action protégée (éjection, autodestruction, déverrouillage), il faut pilot_full"
 					}
 				}
 			},
@@ -3851,6 +4615,23 @@
 					"created": {
 						"type": "string",
 						"format": "date-time"
+					},
+					"stopped": {
+						"type": "object",
+						"required": [
+							"until"
+						],
+						"additionalProperties": false,
+						"description": "Present when the token is stopped: until null = until started again, otherwise the end of a temporary stop (once passed, the token works again). — FR : présent quand le jeton est stoppé : until null = jusqu’à reprise, sinon la fin d’un stop temporaire (une fois passée, le jeton remarche).",
+						"properties": {
+							"until": {
+								"type": [
+									"string",
+									"null"
+								],
+								"format": "date-time"
+							}
+						}
 					}
 				}
 			},
@@ -3928,7 +4709,244 @@
 						]
 					}
 				}
+			},
+			"ViewGrant": {
+				"type": "object",
+				"required": [
+					"read",
+					"edit",
+					"create"
+				],
+				"additionalProperties": false,
+				"description": "Rights of a plugin on views — FR : droits d’un plugin sur les vues",
+				"properties": {
+					"read": {
+						"type": "boolean",
+						"description": "See every view — FR : voir toutes les vues"
+					},
+					"edit": {
+						"oneOf": [
+							{
+								"const": false
+							},
+							{
+								"const": "all"
+							},
+							{
+								"type": "array",
+								"maxItems": 10,
+								"items": {
+									"type": "string",
+									"pattern": "^[A-Za-z0-9_-]{1,32}$"
+								}
+							}
+						],
+						"description": "Change or delete views: none, all, or these ids — FR : modifier ou supprimer des vues : aucune, toutes, ou ces ids"
+					},
+					"create": {
+						"type": "boolean",
+						"description": "Create its own views (marked with the plugin, the only ones it manages without edit) — FR : créer ses propres vues (marquées du plugin, les seules qu’il gère sans edit)"
+					}
+				}
+			},
+			"PluginGrant": {
+				"type": "object",
+				"required": [
+					"level",
+					"views"
+				],
+				"additionalProperties": false,
+				"properties": {
+					"level": {
+						"enum": [
+							"read",
+							"pilot",
+							"pilot_full"
+						]
+					},
+					"views": {
+						"$ref": "#/components/schemas/ViewGrant"
+					}
+				}
+			},
+			"PluginInfo": {
+				"type": "object",
+				"required": [
+					"id",
+					"state"
+				],
+				"additionalProperties": false,
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Folder name — FR : nom du dossier"
+					},
+					"state": {
+						"enum": [
+							"new",
+							"running",
+							"stopped",
+							"disabled",
+							"failed",
+							"changed",
+							"invalid"
+						],
+						"description": "new: found, never started on its own; changed: a file changed since it was enabled (not started, enable again); failed: 3 errors in 1 minute — FR : new : trouvé, jamais lancé seul ; changed : un fichier a changé depuis l’activation (pas lancé, réactiver) ; failed : 3 erreurs en 1 minute (« En échec »)"
+					},
+					"reason": {
+						"type": "string",
+						"description": "Why it is invalid (manifest, command, files) — FR : pourquoi il est invalide (manifeste, commande, fichiers)"
+					},
+					"manifest": {
+						"type": "object",
+						"required": [
+							"name",
+							"version",
+							"access"
+						],
+						"additionalProperties": false,
+						"properties": {
+							"name": {
+								"type": "string"
+							},
+							"version": {
+								"type": "string"
+							},
+							"author": {
+								"type": "string"
+							},
+							"description": {
+								"type": "string"
+							},
+							"access": {
+								"enum": [
+									"read",
+									"pilot",
+									"pilot_full"
+								]
+							},
+							"views": {
+								"type": "array",
+								"items": {
+									"enum": [
+										"read",
+										"edit",
+										"create"
+									]
+								}
+							},
+							"contract": {
+								"type": "string"
+							}
+						}
+					},
+					"command": {
+						"type": "string",
+						"description": "Exact command, run without a shell — FR : commande exacte, lancée sans shell"
+					},
+					"protection": {
+						"enum": [
+							"node",
+							"none"
+						],
+						"description": "node: may only read its own folder; none: no file protection — FR : node : ne lit que son dossier ; none : aucune protection des fichiers"
+					},
+					"hash": {
+						"type": "string",
+						"pattern": "^[0-9a-f]{64}$",
+						"description": "SHA-256 of its files, to send back when enabling — FR : empreinte SHA-256 de ses fichiers, à renvoyer pour l’activer"
+					},
+					"files": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"grant": {
+						"$ref": "#/components/schemas/PluginGrant"
+					},
+					"pid": {
+						"type": "integer"
+					},
+					"crashes": {
+						"type": "integer",
+						"minimum": 1,
+						"description": "Errors in the last minute — FR : erreurs dans la dernière minute"
+					},
+					"startedAt": {
+						"type": "string",
+						"format": "date-time"
+					}
+				}
+			},
+			"PluginList": {
+				"type": "object",
+				"required": [
+					"dir",
+					"plugins"
+				],
+				"additionalProperties": false,
+				"properties": {
+					"dir": {
+						"type": "string",
+						"description": "Plugins folder, next to the app — FR : dossier des plugins, à côté de l’appli"
+					},
+					"plugins": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/PluginInfo"
+						}
+					}
+				}
+			},
+			"PluginLog": {
+				"type": "object",
+				"required": [
+					"calls",
+					"output"
+				],
+				"additionalProperties": false,
+				"properties": {
+					"calls": {
+						"$ref": "#/components/schemas/AccessLog"
+					},
+					"output": {
+						"type": "array",
+						"maxItems": 200,
+						"items": {
+							"type": "object",
+							"required": [
+								"at",
+								"stream",
+								"text"
+							],
+							"additionalProperties": false,
+							"properties": {
+								"at": {
+									"type": "string",
+									"format": "date-time"
+								},
+								"stream": {
+									"enum": [
+										"out",
+										"err",
+										"app"
+									],
+									"description": "out / err: what the program wrote; app: started, stopped, errors — FR : out / err : ce que le programme a écrit ; app : lancé, arrêté, erreurs"
+								},
+								"text": {
+									"type": "string",
+									"maxLength": 501
+								}
+							}
+						}
+					}
+				}
 			}
 		}
-	}
+	},
+	"tags": [
+		{
+			"name": "Plugins",
+			"description": "Programs started by the app — programmes lancés par l’appli"
+		}
+	]
 }

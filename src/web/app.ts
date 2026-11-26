@@ -10,6 +10,10 @@ import type { WebSettings } from "./config.js";
 import { createHandler, type Route } from "./http.js";
 import { AccessStore } from "./access.js";
 import { accessRoutes } from "./routes/access.js";
+import { pluginRoutes } from "./routes/plugins.js";
+import { PluginManager } from "./plugins/manager.js";
+import type { ExecFinder } from "./plugins/manifest.js";
+import { spawn } from "node:child_process";
 import { isLoopback, LanManager } from "./lan.js";
 import { MorseControl } from "./morse-control.js";
 import { CountermeasureTracker } from "../display/countermeasures.js";
@@ -30,9 +34,9 @@ import { characterOf } from "./panels.js";
 import { UpdateChecker, type LatestRelease } from "./update-check.js";
 import { updateRoutes } from "./routes/update.js";
 import type { SchemaField } from "../game/schema-tree.js";
-import { viewsRoutes } from "./routes/view.js";
+import { viewsRoutes, visibleViews } from "./routes/view.js";
 import { vitalRoutes } from "./routes/vitals.js";
-import { ViewStore } from "./view.js";
+import { ViewStore, type NamedView } from "./view.js";
 
 /** Ce dont l'appli a besoin ; complété au fil des étapes. */
 export type AppDeps = {
@@ -65,11 +69,24 @@ export type AppDeps = {
 	lanFactory?: (settings: WebSettings, save: () => void) => LanManager;
 	/** L'appel vient-il du PC ? (par défaut : adresse distante locale). */
 	isLocal?: (req: IncomingMessage) => boolean;
+	/**
+	 * Plugins lancés par l'appli (dossier `plugins` à côté de l'exe) ; absent → pas de plugins. `apiUrl` : adresse
+	 * donnée aux plugins (par défaut `http://127.0.0.1:<port des réglages>`) ; `openFolder` : explorateur Windows.
+	 */
+	plugins?: { dir: string; finder: ExecFinder; apiUrl?: () => string; openFolder?: (dir: string) => void };
 	/** Fichiers statiques de la page (étape suivante). */
 	fallback?: (req: IncomingMessage, res: ServerResponse) => boolean;
 };
 
-export type App = { routes: Route[]; handler: ReturnType<typeof createHandler>; lan: LanManager; close(): void };
+export type App = {
+	routes: Route[];
+	handler: ReturnType<typeof createHandler>;
+	lan: LanManager;
+	access: AccessStore;
+	/** Lanceur de plugins (absent sans `deps.plugins`). */
+	plugins?: PluginManager;
+	close(): void;
+};
 
 const DOC_FILES: Record<string, string> = {
 	"swagger-ui.css": "text/css; charset=utf-8",
@@ -169,6 +186,25 @@ export function createApp(deps: AppDeps): App {
 	const access = new AccessStore(deps.settings, save);
 	const isLocal = deps.isLocal ?? ((req: IncomingMessage) => isLoopback(req.socket.remoteAddress));
 	const events = new EventHub({ hub: deps.hub, game: deps.game, morse, layout, status, countermeasures, views: (lang) => ({ views: views.list(lang) }) });
+	const contract = String((openapi as { info?: { version?: unknown } }).info?.version ?? "0.0.0");
+	const plugins = deps.plugins
+		? new PluginManager({
+				dir: deps.plugins.dir,
+				settings: deps.settings,
+				save,
+				access,
+				apiUrl: deps.plugins.apiUrl ?? (() => `http://127.0.0.1:${deps.settings.port}`),
+				contract,
+				finder: deps.plugins.finder,
+				closeStreams: (id) => events.closeFor(id),
+			})
+		: undefined;
+	const openFolder =
+		deps.plugins?.openFolder ??
+		((dir: string) => {
+			fs.mkdirSync(dir, { recursive: true });
+			spawn("explorer.exe", [dir], { detached: true, stdio: "ignore", windowsHide: false }).unref();
+		});
 	// Vue enregistrée (depuis n'importe quel appareil) → renvoyée à toutes les pages connectées.
 	const stopView = views.onChange(() => events.refresh());
 	// Changement de capacité (jeu relancé dans une autre version) → état renvoyé aux pages connectées.
@@ -187,7 +223,10 @@ export function createApp(deps: AppDeps): App {
 			path: "/api/v1/events",
 			access: "read",
 			handle: async ({ req, res, lang, caller }) => {
-				events.connect(req, res, lang, caller.kind === "external" ? caller.token.id : undefined);
+				// Vues dans le flux : selon les droits de l'appelant (aucune pour un jeton externe).
+				const see = caller.kind === "external" ? (all: unknown) => ({ views: visibleViews(caller, (all as { views: NamedView[] }).views) }) : undefined;
+				const none = caller.kind === "external" && visibleViews(caller, []) === null;
+				events.connect(req, res, lang, caller.kind === "external" ? caller.token.id : undefined, none ? null : see);
 				return { stream: true };
 			},
 		},
@@ -200,6 +239,7 @@ export function createApp(deps: AppDeps): App {
 		...morseRoutes({ morse }),
 		...updateRoutes({ updates }),
 		...accessRoutes({ store: access, isLocal, closeStreams: (id) => events.closeFor(id) }),
+		...(plugins ? pluginRoutes({ plugins, access, isLocal, openFolder }) : []),
 		...viewsRoutes({ views, version: deps.version }),
 		...lanRoutes({
 			lan,
@@ -233,8 +273,12 @@ export function createApp(deps: AppDeps): App {
 	return {
 		routes: tracked,
 		lan,
+		access,
+		...(plugins ? { plugins } : {}),
 		handler: createHandler(tracked, { main: () => deps.settings.token, store: access, isLocal }, deps.fallback),
 		close: () => {
+			// Filet : le serveur attend déjà `plugins.close()` avant ; ici, au cas où.
+			void plugins?.close();
 			stopCapability();
 			stopView();
 			lan.stop();

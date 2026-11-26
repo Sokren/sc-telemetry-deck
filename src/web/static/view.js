@@ -672,6 +672,18 @@ export function createView(ctx) {
 		return sec;
 	}
 
+	/**
+	 * Vue créée par un plugin : son nom, et un avertissement quand il est arrêté (la vue reste, avec ses cases).
+	 * Sur un autre appareil que le PC, l'état des plugins n'est pas connu : seulement le nom.
+	 */
+	function pluginBanner() {
+		if (!view.plugin) return null;
+		const info = ctx.pluginState?.(view.plugin);
+		const name = info?.name ?? view.plugin;
+		if (info && info.state !== "running") return el("p", "vplugin off", `⏸ ${fmt("viewPluginStopped", name)}`);
+		return el("p", "vplugin", `🧩 ${fmt("viewPluginOwned", name)}`);
+	}
+
 	function render() {
 		closeMenu();
 		updaters = new Map();
@@ -683,6 +695,8 @@ export function createView(ctx) {
 		const list = el("div", "vsections");
 		list.append(...view.sections.map(renderSection));
 		const parts = unlocked ? [renderViewHead(), list] : [list];
+		const banner = pluginBanner();
+		if (banner) parts.unshift(banner);
 		if (unlocked && view.sections.length < MAX_SECTIONS) {
 			const add = button("vnewsec", t("addSection"));
 			add.addEventListener("click", () => {
@@ -1340,6 +1354,10 @@ export function createView(ctx) {
 		applyTexts() {
 			renderLock();
 			render();
+		},
+		/** Un plugin a démarré ou s'est arrêté : redessiner si la vue montrée est la sienne. */
+		pluginsChanged() {
+			if (view?.plugin) render();
 		},
 	};
 	return self;

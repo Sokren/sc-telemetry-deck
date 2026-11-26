@@ -27,7 +27,18 @@ export type EventHubDeps = {
 };
 
 /** `tokenId` : jeton externe qui a ouvert le flux (fermé si ce jeton est révoqué ou modifié). */
-type Client = { res: ServerResponse; remote: string; lang: Lang; status?: string; tiles: string[]; state?: string; views?: string; tokenId?: string };
+/** `seeViews` : ce que ce client voit des vues (`null` : aucune) ; absent = toutes (jeton principal). */
+type Client = {
+	res: ServerResponse;
+	remote: string;
+	lang: Lang;
+	status?: string;
+	tiles: string[];
+	state?: string;
+	views?: string;
+	tokenId?: string;
+	seeViews?: ((all: unknown) => unknown) | null;
+};
 
 const PING_MS = 15_000;
 
@@ -47,9 +58,9 @@ export class EventHub {
 		this.#interval = deps.intervalMs ?? 250;
 	}
 
-	connect(req: IncomingMessage, res: ServerResponse, lang: Lang, tokenId?: string): void {
+	connect(req: IncomingMessage, res: ServerResponse, lang: Lang, tokenId?: string, seeViews?: ((all: unknown) => unknown) | null): void {
 		res.writeHead(200, { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-store", connection: "keep-alive" });
-		const client: Client = { res, remote: req.socket?.remoteAddress ?? "", lang, tiles: [], ...(tokenId ? { tokenId } : {}) };
+		const client: Client = { res, remote: req.socket?.remoteAddress ?? "", lang, tiles: [], ...(tokenId ? { tokenId } : {}), ...(seeViews !== undefined ? { seeViews } : {}) };
 		this.#clients.add(client);
 		if (this.#clients.size === 1) this.#start();
 		req.on("close", () => this.#remove(client));
@@ -120,8 +131,9 @@ export class EventHub {
 			c.status = status;
 			this.#writeRaw(c, "status", status);
 		}
-		if (this.deps.views) {
-			const views = JSON.stringify(this.deps.views(c.lang));
+		if (this.deps.views && c.seeViews !== null) {
+			const all = this.deps.views(c.lang);
+			const views = JSON.stringify(c.seeViews ? c.seeViews(all) : all);
 			if (views !== c.views) {
 				c.views = views;
 				this.#writeRaw(c, "views", views);

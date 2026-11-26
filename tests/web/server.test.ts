@@ -96,3 +96,69 @@ describe("serveur — deux instances", () => {
 		}
 	}, 15_000);
 });
+
+describe("serveur : plugins", () => {
+	async function withPlugin() {
+		const { fingerprint } = await import("../../src/web/plugins/manifest.js");
+		const settingsDir = fs.mkdtempSync(path.join(os.tmpdir(), "sc-srv-"));
+		const pluginsDir = path.join(settingsDir, "plugins");
+		const dir = path.join(pluginsDir, "p");
+		fs.mkdirSync(dir, { recursive: true });
+		fs.writeFileSync(path.join(dir, "plugin.json"), JSON.stringify({ name: "p", version: "1.0.0", run: { exec: "node", args: ["main.mjs"] }, access: "read" }));
+		fs.writeFileSync(path.join(dir, "main.mjs"), "setInterval(() => {}, 1000);");
+		const fp = fingerprint(dir);
+		if (!("hash" in fp)) throw new Error(fp.error);
+		const grant = { level: "read", views: { read: false, edit: false, create: false } };
+		fs.writeFileSync(path.join(settingsDir, "settings.json"), JSON.stringify({ port: 8743, lan: false, token: "t".repeat(32), plugins: { p: { enabled: true, hash: fp.hash, grant } } }));
+		const before = new Set(process.listeners("exit"));
+		const s = await startServer({
+			settingsDir,
+			dataDir: path.join(root, "schema"),
+			staticDir: path.join(root, "src/web/static"),
+			openapiFile: path.join(root, "src/web/openapi.json"),
+			port: 0,
+			gameAddress: "127.0.0.1:1",
+			openBrowser: false,
+			log: () => {},
+			pluginsDir,
+		});
+		const onExit = process.listeners("exit").find((l) => !before.has(l));
+		const r = await fetch(`${s.url}/api/v1/plugins`, { headers: { authorization: `Bearer ${s.token}` } });
+		const pid = ((await r.json()) as { plugins: { pid: number }[] }).plugins[0].pid;
+		stop = async () => {
+			await s.close();
+			fs.rmSync(settingsDir, { recursive: true, force: true });
+		};
+		return { s, pid, onExit };
+	}
+	const dead = (pid: number) => {
+		try {
+			process.kill(pid, 0);
+			return false;
+		} catch {
+			return true;
+		}
+	};
+	const waitDead = async (pid: number) => {
+		const end = Date.now() + 8000;
+		while (!dead(pid)) {
+			if (Date.now() > end) throw new Error(`pid ${pid} toujours vivant`);
+			await new Promise((r) => setTimeout(r, 30));
+		}
+	};
+
+	test("plugin activé lancé au démarrage, arrêté à la fermeture", async () => {
+		const { s, pid } = await withPlugin();
+		expect(dead(pid)).toBe(false);
+		await s.close();
+		stop = undefined;
+		await waitDead(pid);
+	});
+
+	test("sortie du processus : le crochet « exit » tue les plugins", async () => {
+		const { pid, onExit } = await withPlugin();
+		expect(onExit).toBeTypeOf("function");
+		(onExit as () => void)();
+		await waitDead(pid);
+	});
+});

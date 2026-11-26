@@ -20,6 +20,7 @@ export function accessRoutes(deps: {
 	closeStreams?: (id: string) => void;
 }): Route[] {
 	const { store } = deps;
+	const nameTaken = { status: 409, json: { error: "name_taken" } } as const;
 	const body = (x: unknown) => (x && typeof x === "object" && !Array.isArray(x) ? (x as Record<string, unknown>) : {});
 	return [
 		{
@@ -36,6 +37,7 @@ export function accessRoutes(deps: {
 				const r = store.create({ name: b.name, level: b.level, lan: b.lan });
 				if (r === "invalid") return invalid;
 				if (r === "too_many") return { status: 409, json: { error: "too_many" } };
+				if (r === "name_taken") return nameTaken;
 				return { status: 201, json: { token: view(r.token), secret: r.secret } };
 			},
 		},
@@ -48,6 +50,7 @@ export function accessRoutes(deps: {
 				const r = store.update(params.id, { name: b.name, level: b.level, lan: b.lan });
 				if (r === "unknown") return notFound;
 				if (r === "invalid") return invalid;
+				if (r === "name_taken") return nameTaken;
 				deps.closeStreams?.(r.id);
 				return { status: 200, json: view(r) };
 			},
@@ -60,6 +63,38 @@ export function accessRoutes(deps: {
 				if (!store.remove(params.id)) return notFound;
 				deps.closeStreams?.(params.id);
 				return { status: 204 };
+			},
+		},
+		{
+			method: "POST",
+			path: "/api/v1/access/tokens/{id}/renew",
+			handle: async ({ req, params }) => {
+				if (!deps.isLocal(req)) return pcOnly;
+				const r = store.renew(params.id);
+				if (r === "unknown") return notFound;
+				deps.closeStreams?.(params.id);
+				return { status: 200, json: { token: view(r.token), secret: r.secret } };
+			},
+		},
+		{
+			method: "POST",
+			path: "/api/v1/access/tokens/{id}/stop",
+			handle: async ({ req, params, body: raw }) => {
+				if (!deps.isLocal(req)) return pcOnly;
+				const r = store.stop(params.id, body(raw).minutes);
+				if (r === "unknown") return notFound;
+				if (r === "invalid") return { status: 400, json: { error: "invalid_minutes" } };
+				deps.closeStreams?.(params.id);
+				return { status: 200, json: view(r) };
+			},
+		},
+		{
+			method: "POST",
+			path: "/api/v1/access/tokens/{id}/start",
+			handle: async ({ req, params }) => {
+				if (!deps.isLocal(req)) return pcOnly;
+				const r = store.start(params.id);
+				return r === "unknown" ? notFound : { status: 200, json: view(r) };
 			},
 		},
 		{

@@ -3,6 +3,8 @@
 import { I18N } from "./i18n.js";
 import { createAutoSwitch, parseAutoSettings, POSITIONS } from "./autoswitch.js";
 import { createLan } from "./lan.js";
+import { createAccess } from "./access.js";
+import { createPlugins } from "./plugins.js";
 import { holdToPress, HOLD_ACTIONS } from "./hold.js";
 import { createSetup } from "./setup.js";
 import { createDebug, failureText } from "./debug.js";
@@ -96,6 +98,8 @@ function applyTexts() {
 	$("emotes-hint").textContent = t("emotesHint");
 	myView?.applyTexts();
 	lanPanel?.applyTexts();
+	accessPanel?.applyTexts();
+	pluginsPanel?.applyTexts();
 	renderAutoButton();
 	if ($("auto").open) renderAuto();
 }
@@ -371,7 +375,9 @@ function addBackButton(dialog) {
 	foot.prepend(back);
 }
 
-for (const id of ["about", "lan", "auto", "setup"]) {
+// Toute fenêtre ouverte depuis ⚙ Options (bouton « data-leave ») a son bouton « Retour aux Options » : la liste vient
+// de la page, une nouvelle fenêtre l'a donc sans rien ajouter ici.
+for (const id of new Set([...document.querySelectorAll("#options [data-leave]")].map((b) => b.dataset.leave))) {
 	const dialog = $(id);
 	// Ouverture (parfois après un chargement, ex. QR code) et contenu refait (langue) : remettre le bouton.
 	new MutationObserver(() => {
@@ -901,6 +907,8 @@ const myView = createView({
 		renderTabs();
 	},
 	openView: (id) => userShowTab(`view:${id}`),
+	// Vue créée par un plugin : son état (fenêtre Plugins, PC seulement).
+	pluginState: (id) => pluginsPanel?.state(id),
 	onMissing() {
 		if (viewTabs?.[0]) showTab(`view:${viewTabs[0].id}`);
 		else showTab("grid");
@@ -1022,6 +1030,12 @@ const lanPanel = createLan({
 	currentView: () => viewId(currentTab),
 });
 
+// ---------- Accès externes : jetons des autres logiciels (PC seulement) ----------
+const accessPanel = createAccess({ t, token: () => token, lang: () => lang });
+
+// ---------- Plugins : programmes lancés par l'appli, indicateur de la barre du haut (PC seulement) ----------
+const pluginsPanel = createPlugins({ t, token: () => token, lang: () => lang, onChange: () => myView.pluginsChanged() });
+
 applyTexts();
 // Onglet de départ : lien `?view=`, sinon dernier choix de l'appareil (ancien « myview » → première vue).
 const savedTab = storageGet(TAB_KEY);
@@ -1032,4 +1046,6 @@ if (!token) {
 } else {
 	connect();
 	lanPanel.check();
+	accessPanel.check();
+	pluginsPanel.check();
 }

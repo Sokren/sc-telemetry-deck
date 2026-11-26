@@ -3,6 +3,8 @@
 	"static/app.js",
 	"static/view.js",
 	"static/lan.js",
+	"static/access.js",
+	"static/plugins.js",
 	"static/autoswitch.js",
 	"static/shipcard.js",
 	"static/share.js",
