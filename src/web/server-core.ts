@@ -13,7 +13,7 @@ import { loadSettings, saveSettings } from "./config.js";
 import { isLoopback, LanManager } from "./lan.js";
 import { staticFiles } from "./static-files.js";
 
-export const VERSION = "0.3.15";
+export const VERSION = "0.4.0-beta.1";
 
 export type ServerOptions = {
 	settingsDir: string;
