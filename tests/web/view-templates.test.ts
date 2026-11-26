@@ -34,6 +34,21 @@ describe("modèles de vues", () => {
 		expect(fr.sections.flatMap((s) => s.items).some((i) => (i.kind as string) === "spacer")).toBe(false);
 	});
 
+	test("Instrument de bord : habillage, sections, pas de portes, éjection maintenue", () => {
+		const fr = templateById("instrument_panel")!.build("fr");
+		const en = templateById("instrument_panel")!.build("en");
+		expect(fr.look).toBe("instrument");
+		expect(fr.name).toBe("Instrument de bord");
+		expect(en.name).toBe("Instrument panel");
+		expect(fr.sections.map((s) => s.id)).toEqual(["quantum", "ship", "functions", "character", "mission", "perf"]);
+		expect(en.sections.map((s) => s.title)).toEqual(["Quantum travel", "Ship", "Functions", "Character", "Tracked mission", "Performance"]);
+		expect(fr.sections.map((s) => s.title)).toEqual(["Saut quantique", "Vaisseau", "Fonctions", "Personnage", "Mission suivie", "Performances"]);
+		const all = fr.sections.flatMap((s) => s.items);
+		expect(all.some((i) => i.ref?.startsWith("doors"))).toBe(false);
+		expect(all.find((i) => i.ref === "v_eject")?.display?.style).toBe("hold");
+		expect(templateSummary(templateById("instrument_panel")!, "fr")).toMatchObject({ name: "Instrument de bord", size: { width: 1280, height: 800 } });
+	});
+
 	test("résumé pour l'API ; modèle inconnu", () => {
 		expect(templateSummary(templateById("xeneon_pilot")!, "en")).toMatchObject({
 			id: "xeneon_pilot",

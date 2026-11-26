@@ -96,6 +96,11 @@ describe("export / import : habillage et styles", () => {
 		const back = readImport({ code: encodeCode(doc) }, "fr") as any;
 		expect(back.views[0]).toEqual({ name: "HUD", sections: styled()[0].sections, look: "hud" });
 	});
+	test("habillage instrument gardé à l'export / import", () => {
+		const doc = buildExport([{ ...styled()[0], look: "instrument" }], "0.4.0", now);
+		const back = readImport({ code: encodeCode(doc) }, "fr") as any;
+		expect(back.views[0].look).toBe("instrument");
+	});
 	test("habillage inconnu à l'import → ignoré", () => {
 		const doc: any = buildExport(styled(), "0.3.13", now);
 		doc.views[0].look = "neon";

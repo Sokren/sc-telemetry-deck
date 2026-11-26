@@ -1309,7 +1309,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "View to open — FR : vue à ouvrir"
+						"description": "View to open: a view id, or instrument for the built-in Instrument panel tab — FR : vue à ouvrir : identifiant d’une vue, ou instrument pour l’onglet intégré Instrument de bord"
 					}
 				],
 				"responses": {
@@ -2819,9 +2819,10 @@
 					"look": {
 						"enum": [
 							"hud",
-							"cockpit"
+							"cockpit",
+							"instrument"
 						],
-						"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; absent = standard ; autres valeurs ignorées"
+						"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); instrument = instrument panel (monospace numbers, notched gauges, corner marks); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; instrument = instrument de bord (chiffres à chasse fixe, jauges à crans, repères aux coins) ; absent = standard ; autres valeurs ignorées"
 					}
 				}
 			},
@@ -2853,9 +2854,10 @@
 					"look": {
 						"enum": [
 							"hud",
-							"cockpit"
+							"cockpit",
+							"instrument"
 						],
-						"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; absent = standard ; autres valeurs ignorées"
+						"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); instrument = instrument panel (monospace numbers, notched gauges, corner marks); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; instrument = instrument de bord (chiffres à chasse fixe, jauges à crans, repères aux coins) ; absent = standard ; autres valeurs ignorées"
 					}
 				}
 			},
@@ -2885,7 +2887,7 @@
 				"properties": {
 					"template": {
 						"type": "string",
-						"description": "Template id, e.g. xeneon_pilot — FR : identifiant du modèle, ex. xeneon_pilot"
+						"description": "Template id: xeneon_pilot (Xeneon Edge pilot station) or instrument_panel (the built-in Instrument panel view, look instrument) — FR : identifiant du modèle : xeneon_pilot (poste Xeneon Edge) ou instrument_panel (vue intégrée Instrument de bord, habillage instrument)"
 					},
 					"name": {
 						"type": "string",
@@ -3393,9 +3395,10 @@
 								"look": {
 									"enum": [
 										"hud",
-										"cockpit"
+										"cockpit",
+										"instrument"
 									],
-									"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; absent = standard ; autres valeurs ignorées"
+									"description": "View look: hud = ship HUD; cockpit = pilot station (centered buttons, one-line gauges); instrument = instrument panel (monospace numbers, notched gauges, corner marks); absent = standard; other values ignored — FR : habillage de la vue : hud = HUD vaisseau ; cockpit = poste de pilotage (boutons centrés, jauges sur une ligne) ; instrument = instrument de bord (chiffres à chasse fixe, jauges à crans, repères aux coins) ; absent = standard ; autres valeurs ignorées"
 								}
 							}
 						},

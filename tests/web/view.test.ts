@@ -388,6 +388,9 @@ describe("habillage cockpit et sections hautes", () => {
 		expect(parseViewInput({ name: "X", sections: [], look: "cockpit" }, "fr")?.look).toBe("cockpit");
 		expect(parseViewInput({ name: "X", sections: [], look: "neon" }, "fr")).toEqual({ name: "X", sections: [] });
 	});
+	test("look instrument gardé", () => {
+		expect(parseViewInput({ name: "X", sections: [], look: "instrument" }, "fr")?.look).toBe("instrument");
+	});
 	test("section haute : tall: true gardé, autre valeur retirée", () => {
 		expect(parseViewInput({ name: "X", sections: [sec({ tall: true })] }, "fr")?.sections[0]).toEqual(sec({ tall: true }));
 		expect(parseViewInput({ name: "X", sections: [sec({ tall: "yes" })] }, "fr")?.sections[0]).toEqual(sec({}));

@@ -38,7 +38,7 @@ export type MorseItemSettings = { text?: string; light: MorseLight; unitMs: numb
 export const ITEM_STYLES = ["card", "ring", "arc", "bar", "vbar", "segments", "vsegments", "number", "line", "tape", "switch", "slide", "hold"] as const;
 export type ItemStyle = (typeof ITEM_STYLES)[number];
 /** Habillages d'une vue (`standard` = le défaut, jamais enregistré). */
-export const VIEW_LOOKS = ["standard", "hud", "cockpit"] as const;
+export const VIEW_LOOKS = ["standard", "hud", "cockpit", "instrument"] as const;
 /** Habillage enregistré (le défaut `standard` ne l'est jamais). */
 export type SavedLook = Exclude<(typeof VIEW_LOOKS)[number], "standard">;
 export type ViewLook = (typeof VIEW_LOOKS)[number];
@@ -210,8 +210,8 @@ function parseDisplay(kind: ItemKind, ref: unknown, x: unknown): ItemDisplay | u
 	return Object.keys(display).length ? display : undefined;
 }
 
-/** `look` normalisé : seul `hud` est gardé (le défaut et les valeurs inconnues sont omis). */
-const lookOf = (x: unknown): { look?: SavedLook } => (x === "hud" || x === "cockpit" ? { look: x } : {});
+/** `look` normalisé : habillages connus gardés (le défaut et les valeurs inconnues sont omis). */
+export const lookOf = (x: unknown): { look?: SavedLook } => (x === "hud" || x === "cockpit" || x === "instrument" ? { look: x } : {});
 
 /** Nom affiché : 1 à 24 caractères (un emoji compte pour un), espaces autour retirés ; sinon rien. */
 function parseLabel(kind: ItemKind, x: unknown): { label?: string } {

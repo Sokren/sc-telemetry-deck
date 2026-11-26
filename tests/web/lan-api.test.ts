@@ -144,6 +144,10 @@ describe("/api/v1/lan", () => {
 		const bad = await (await fetch(`${s.url}/api/v1/lan/qr?view=${encodeURIComponent("a b")}`, { headers: { authorization: `Bearer ${s.token}` } })).text();
 		expect(svg).not.toBe(plain);
 		expect(bad).toBe(plain);
+		// Onglet intégré « Instrument de bord » : valeur réservée, gardée dans le lien.
+		const instrument = await (await fetch(`${s.url}/api/v1/lan/qr?view=instrument`, { headers: { authorization: `Bearer ${s.token}` } })).text();
+		expect(instrument).not.toBe(plain);
+		expect(instrument).not.toBe(svg);
 	});
 
 	test("QR code sans réseau local : 404 no_network", async () => {
