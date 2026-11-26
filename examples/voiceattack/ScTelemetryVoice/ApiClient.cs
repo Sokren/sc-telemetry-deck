@@ -14,10 +14,12 @@ public sealed class ApiClient
 	private readonly VoiceConfig _config;
 	private readonly HttpClient _orders;
 	private readonly HttpClient _stream;
+	private readonly TimeSpan _firstDelay;
 
-	public ApiClient(VoiceConfig config, HttpMessageHandler? handler = null, TimeSpan? orderTimeout = null)
+	public ApiClient(VoiceConfig config, HttpMessageHandler? handler = null, TimeSpan? orderTimeout = null, TimeSpan? retryDelay = null)
 	{
 		_config = config;
+		_firstDelay = retryDelay ?? TimeSpan.FromSeconds(1);
 		handler ??= new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(5) };
 		_orders = new HttpClient(handler, disposeHandler: false) { Timeout = orderTimeout ?? TimeSpan.FromSeconds(3) };
 		_stream = new HttpClient(handler, disposeHandler: false) { Timeout = Timeout.InfiniteTimeSpan };
@@ -33,11 +35,13 @@ public sealed class ApiClient
 
 	/// <summary>
 	/// Lit <c>/api/v1/events</c> jusqu'à l'annulation, en se reconnectant (1 s, doublé jusqu'à 30 s, remis à
-	/// 1 s dès qu'un événement arrive). <paramref name="log"/> ne reçoit jamais le jeton.
+	/// 1 s dès qu'un événement arrive). <paramref name="log"/> ne reçoit jamais le jeton, et « injoignable »
+	/// n'y est écrit qu'une fois jusqu'à la prochaine connexion (pas une ligne toutes les 30 s appli fermée).
 	/// </summary>
 	public async Task RunEventsAsync(Action<string, string> onEvent, Action<string> log, CancellationToken ct)
 	{
-		var backoff = TimeSpan.FromSeconds(1);
+		var backoff = _firstDelay;
+		var quiet = false;
 		while (!ct.IsCancellationRequested)
 		{
 			try
@@ -52,13 +56,14 @@ public sealed class ApiClient
 					continue;
 				}
 				res.EnsureSuccessStatusCode();
+				quiet = false;
 				using var reader = new StreamReader(await res.Content.ReadAsStreamAsync(ct), Encoding.UTF8);
 				var parser = new SseParser();
 				while (!ct.IsCancellationRequested && await reader.ReadLineAsync(ct) is { } line)
 				{
 					foreach (var (ev, data) in parser.Feed(line))
 					{
-						backoff = TimeSpan.FromSeconds(1);
+						backoff = _firstDelay;
 						onEvent(ev, data);
 					}
 				}
@@ -71,7 +76,8 @@ public sealed class ApiClient
 			}
 			catch (Exception e) when (e is HttpRequestException or IOException or OperationCanceledException)
 			{
-				log($"SC Telemetry Deck injoignable / unreachable — nouvel essai dans {backoff.TotalSeconds:0} s");
+				if (!quiet) log("SC Telemetry Deck injoignable / unreachable — nouvel essai en tâche de fond / retrying in the background");
+				quiet = true;
 			}
 			try { await Task.Delay(backoff, ct); }
 			catch (OperationCanceledException) { return; }

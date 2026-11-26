@@ -82,6 +82,18 @@ public sealed class ApiClientTests
 	}
 
 	[Fact]
+	public async Task Events_log_unreachable_only_once_until_connected()
+	{
+		using var cts = new CancellationTokenSource();
+		var logs = new List<string>();
+		var attempts = 0;
+		var h = new FakeHandler((_, _) => { if (++attempts == 3) cts.Cancel(); throw new HttpRequestException("refused"); });
+		await new ApiClient(Config, h, retryDelay: TimeSpan.Zero).RunEventsAsync((_, _) => { }, logs.Add, cts.Token);
+		Assert.Equal(3, attempts);
+		Assert.Single(logs);
+	}
+
+	[Fact]
 	public async Task Events_log_never_contains_token()
 	{
 		using var cts = new CancellationTokenSource();
