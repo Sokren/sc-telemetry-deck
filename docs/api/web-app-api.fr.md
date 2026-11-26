@@ -89,7 +89,8 @@ Les erreurs renvoient un corps JSON :
 
 - `toggle` envoie la commande opposée à l'état lu.
 - `on` et `off` n'envoient rien si la fonction est déjà dans cet état (`decision: "noop"`).
-- `409` si le vaisseau n'a pas la fonction ou si le jeu n'a pas de commande pour elle (la croisière est en lecture seule).
+- `409` si le vaisseau n'a pas la fonction (`code: "unavailable"`) ou si aucune commande ne convient à l'état lu (`code: "no_command"` : état inconnu sans bascule, croisière en lecture seule).
+- Puissance générale, portes et verrous marchent dans les deux sens : couper, ouvrir et déverrouiller sont envoyés.
 
 ### Actions
 

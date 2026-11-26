@@ -404,7 +404,7 @@
 					"Ship"
 				],
 				"summary": "Press a ship function — appuyer sur une fonction vaisseau",
-				"description": "Same rules as the Ship Toggle key: toggle sends the command opposite to the state read; on / off do nothing if already in that state (noop). Main power and doors always act as on (turning off, opening and unlocking are excluded). 409 when the ship lacks the function or no safe command exists. — FR : mêmes règles que la touche Ship Toggle : toggle envoie la commande opposée à l'état lu ; on / off ne font rien si l'état est déjà atteint (noop). Puissance générale et portes agissent toujours comme on (couper, ouvrir et déverrouiller sont exclus). 409 si le vaisseau n'a pas la fonction ou si aucune commande sûre n'existe.",
+				"description": "Same rules as the Ship Toggle key: toggle sends the command opposite to the state read; on / off do nothing if already in that state (noop). Main power, doors and locks work both ways (turning off, opening and unlocking are sent: check before calling). 409 when the ship lacks the function (code unavailable) or no command fits the state read (code no_command: unknown state with no toggle, read-only cruise control). — FR : mêmes règles que la touche Ship Toggle : toggle envoie la commande opposée à l'état lu ; on / off ne font rien si l'état est déjà atteint (noop). Puissance générale, portes et verrous marchent dans les deux sens (couper, ouvrir et déverrouiller sont envoyés : vérifiez avant d'appeler). 409 si le vaisseau n'a pas la fonction (code unavailable) ou si aucune commande ne convient à l'état lu (code no_command : état inconnu sans bascule, croisière en lecture seule).",
 				"parameters": [
 					{
 						"name": "id",

@@ -89,7 +89,8 @@ Errors return a JSON body:
 
 - `toggle` sends the command opposite to the state read.
 - `on` and `off` send nothing when the function is already in that state (`decision: "noop"`).
-- `409` when the ship lacks the function or the game has no command for it (cruise control is read only).
+- `409` when the ship lacks the function (`code: "unavailable"`) or no command fits the state read (`code: "no_command"`: unknown state with no toggle, read-only cruise control).
+- Main power, doors and locks work both ways: turning off, opening and unlocking are sent.
 
 ### Actions
 
