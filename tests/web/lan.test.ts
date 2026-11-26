@@ -43,7 +43,7 @@ describe("cartes réseau", () => {
 });
 
 function manager(opts: { cards?: NetCard[]; route?: string; fail?: (hosts: string[]) => boolean } = {}) {
-	const settings: WebSettings = { port: 8743, lan: false, token: "x".repeat(32) };
+	const settings: WebSettings = { port: 8743, lan: false, token: "x".repeat(32), mobileToken: "m".repeat(32) };
 	const listened: string[][] = [];
 	let saves = 0;
 	const m = new LanManager({
@@ -133,7 +133,7 @@ describe("LanManager", () => {
 
 	test("adresse de la carte changée (DHCP) : écoute relancée à la lecture", async () => {
 		let cards = [{ id: "Wi-Fi", name: "Wi-Fi", address: "10.0.0.5" }];
-		const settings: WebSettings = { port: 8743, lan: true, token: "x".repeat(32) };
+		const settings: WebSettings = { port: 8743, lan: true, token: "x".repeat(32), mobileToken: "m".repeat(32) };
 		const listened: string[][] = [];
 		const m = new LanManager({ settings, save: () => {}, listen: async (h) => (listened.push(h), true), cards: () => cards, route: async () => undefined });
 		await m.start();
@@ -143,7 +143,7 @@ describe("LanManager", () => {
 	});
 
 	test("PC lui-même injoignable (autre instance) : erreur d'origine, réglages non touchés", async () => {
-		const settings: WebSettings = { port: 8743, lan: true, lanAll: true, token: "x".repeat(32) };
+		const settings: WebSettings = { port: 8743, lan: true, lanAll: true, token: "x".repeat(32), mobileToken: "m".repeat(32) };
 		let saves = 0;
 		const busy = Object.assign(new Error("listen EADDRINUSE"), { code: "EADDRINUSE" });
 		const m = new LanManager({
@@ -164,7 +164,7 @@ describe("LanManager", () => {
 	test("lectures et réglages simultanés : jamais deux écoutes en même temps", async () => {
 		let running = 0;
 		let overlap = false;
-		const settings: WebSettings = { port: 8743, lan: false, token: "x".repeat(32) };
+		const settings: WebSettings = { port: 8743, lan: false, token: "x".repeat(32), mobileToken: "m".repeat(32) };
 		const m = new LanManager({
 			settings,
 			save: () => {},
@@ -194,7 +194,7 @@ describe("LanManager", () => {
 	});
 
 	test("lien avec le port réellement ouvert", async () => {
-		const settings: WebSettings = { port: 8743, lan: true, token: "x".repeat(32) };
+		const settings: WebSettings = { port: 8743, lan: true, token: "x".repeat(32), mobileToken: "m".repeat(32) };
 		const m = new LanManager({ settings, save: () => {}, listen: async () => true, port: () => 9001, cards: () => [{ id: "a", name: "a", address: "10.0.0.5" }], route: async () => undefined });
 		expect((await m.state()).url).toBe(`http://10.0.0.5:9001/?t=${settings.token}`);
 	});
@@ -203,7 +203,7 @@ describe("LanManager", () => {
 		vi.useFakeTimers();
 		try {
 			let cards: NetCard[] = [];
-			const settings: WebSettings = { port: 8743, lan: true, token: "x".repeat(32) };
+			const settings: WebSettings = { port: 8743, lan: true, token: "x".repeat(32), mobileToken: "m".repeat(32) };
 			const listened: string[][] = [];
 			const m = new LanManager({ settings, save: () => {}, listen: async (h) => (listened.push(h), true), cards: () => cards, route: async () => undefined, recheckMs: 15_000 });
 			await m.start();

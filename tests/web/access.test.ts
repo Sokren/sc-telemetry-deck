@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import { AccessStore, isStopped, levelAllows, mayTriggerDangerous, MAX_TOKENS, parseAccess, type AccessToken } from "../../src/web/access.js";
 import type { WebSettings } from "../../src/web/config.js";
 
-const settings = (): WebSettings => ({ port: 8743, lan: false, token: "x".repeat(32) });
+const settings = (): WebSettings => ({ port: 8743, lan: false, token: "x".repeat(32), mobileToken: "m".repeat(32) });
 const sha = (s: string) => crypto.createHash("sha256").update(s).digest("hex");
 
 describe("jetons externes : création et recherche", () => {
@@ -124,6 +124,8 @@ describe("jetons externes : niveaux", () => {
 	test("actions protégées : jeton principal et Pilotage complet seulement", () => {
 		const tok = (level: AccessToken["level"]): AccessToken => ({ id: "i", name: "n", level, lan: false, hash: "h", last4: "abcd", created: "c" });
 		expect(mayTriggerDangerous({ kind: "main" })).toBe(true);
+		// Jeton mobile : mêmes droits que la page (actions sensibles comprises, éjection maintenue côté page).
+		expect(mayTriggerDangerous({ kind: "mobile" })).toBe(true);
 		expect(mayTriggerDangerous({ kind: "external", token: tok("pilot") })).toBe(false);
 		expect(mayTriggerDangerous({ kind: "external", token: tok("read") })).toBe(false);
 		expect(mayTriggerDangerous({ kind: "external", token: tok("pilot_full") })).toBe(true);

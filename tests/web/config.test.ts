@@ -31,7 +31,29 @@ describe("réglages de l'appli web", () => {
 	test("champ manquant complété, champs présents gardés", () => {
 		const dir = tmp();
 		fs.writeFileSync(path.join(dir, "settings.json"), JSON.stringify({ port: 9000, token: "x".repeat(40) }));
-		expect(loadSettings(dir)).toEqual({ port: 9000, lan: false, token: "x".repeat(40) });
+		expect(loadSettings(dir)).toMatchObject({ port: 9000, lan: false, token: "x".repeat(40) });
+	});
+
+	test("jeton mobile créé pour une installation existante : jeton actuel gardé comme admin", () => {
+		const dir = tmp();
+		fs.writeFileSync(path.join(dir, "settings.json"), JSON.stringify({ port: 8743, token: "a".repeat(40) }));
+		const s = loadSettings(dir);
+		expect(s.token).toBe("a".repeat(40));
+		expect(s.mobileToken.length).toBeGreaterThanOrEqual(32);
+		expect(s.mobileToken).not.toBe(s.token);
+		expect(JSON.parse(fs.readFileSync(path.join(dir, "settings.json"), "utf-8")).mobileToken).toBe(s.mobileToken);
+		expect(loadSettings(dir).mobileToken).toBe(s.mobileToken);
+	});
+
+	test("jeton mobile invalide (trop court, égal au jeton admin) régénéré", () => {
+		const dir = tmp();
+		fs.writeFileSync(path.join(dir, "settings.json"), JSON.stringify({ token: "a".repeat(40), mobileToken: "court" }));
+		const short = loadSettings(dir);
+		expect(short.mobileToken.length).toBeGreaterThanOrEqual(32);
+		fs.writeFileSync(path.join(dir, "settings.json"), JSON.stringify({ token: "a".repeat(40), mobileToken: "a".repeat(40) }));
+		const same = loadSettings(dir);
+		expect(same.mobileToken).not.toBe("a".repeat(40));
+		expect(same.mobileToken.length).toBeGreaterThanOrEqual(32);
 	});
 
 	test("valeurs invalides remplacées (port hors limites, jeton trop court)", () => {
@@ -47,7 +69,7 @@ describe("réglages de l'appli web", () => {
 		const dir = tmp();
 		fs.writeFileSync(path.join(dir, "settings.json"), JSON.stringify({ port: 9000, lan: true, lanAll: true, lanNetwork: "Wi-Fi", token: "x".repeat(40) }));
 		const s = loadSettings(dir);
-		expect(s).toEqual({ port: 9000, lan: true, lanAll: true, lanNetwork: "Wi-Fi", token: "x".repeat(40) });
+		expect(s).toMatchObject({ port: 9000, lan: true, lanAll: true, lanNetwork: "Wi-Fi", token: "x".repeat(40) });
 		s.lanAll = false;
 		saveSettings(dir, s);
 		expect(loadSettings(dir).lanAll).toBe(false);

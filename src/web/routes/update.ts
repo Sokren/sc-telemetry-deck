@@ -12,11 +12,14 @@ export function updateRoutes(deps: { updates: UpdateChecker }): Route[] {
 		{
 			method: "POST",
 			path: "/api/v1/update/check",
+			// Réglages de l'appli : jeton admin seulement (le badge des mobiles lit seulement l'état).
+			admin: true,
 			handle: async () => ({ status: 200, json: await deps.updates.check() }),
 		},
 		{
 			method: "PUT",
 			path: "/api/v1/update",
+			admin: true,
 			handle: async ({ body }) => {
 				const auto = (body as { auto?: unknown } | null)?.auto;
 				if (typeof auto !== "boolean") return { status: 400, json: { error: "bad_request" } };

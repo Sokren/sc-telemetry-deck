@@ -79,7 +79,7 @@ describe("/api/v1/lan", () => {
 		expect((await s.call("GET", "/api/v1/lan")).body).toMatchObject({ enabled: false, error: "listen_failed" });
 	});
 
-	test("réservé au PC : une tablette reçoit 403 pc_only sur toutes les routes réseau", async () => {
+	test("réservé au PC : une tablette (jeton mobile, ou admin hors PC) reçoit 403 pc_only sur toutes les routes réseau", async () => {
 		const { s } = await start({ local: false });
 		for (const [method, p] of [
 			["GET", "/api/v1/lan"],
@@ -87,11 +87,13 @@ describe("/api/v1/lan", () => {
 			["POST", "/api/v1/lan/token"],
 			["GET", "/api/v1/lan/qr"],
 		] as const) {
-			const r = await s.call(method, p, method === "PUT" ? { body: { enabled: true } } : {});
-			expect(r.status, `${method} ${p}`).toBe(403);
-			expect(r.body).toEqual({ error: "pc_only" });
+			for (const auth of [true, "mobile"] as const) {
+				const r = await s.call(method, p, { auth, ...(method === "PUT" ? { body: { enabled: true } } : {}) });
+				expect(r.status, `${method} ${p}`).toBe(403);
+				expect(r.body).toEqual({ error: "forbidden", reason: "pc_only" });
+			}
 		}
-		validateResponse("/api/v1/lan", "GET", 403, { error: "pc_only" });
+		validateResponse("/api/v1/lan", "GET", 403, { error: "forbidden", reason: "pc_only" });
 		expect(s.deps.settings.lan).toBe(false);
 	});
 

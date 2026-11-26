@@ -22,14 +22,15 @@ const SNAPSHOT = fileURLToPath(new URL("../../schema/actions.json", import.meta.
 export type TestServer = {
 	url: string;
 	token: string;
+	mobileToken: string;
 	deps: AppDeps;
 	/** Routes déclarées par l'appli (méthode + chemin au format OpenAPI). */
-	routes: { method: string; path: string; public?: boolean }[];
+	routes: { method: string; path: string; public?: boolean; admin?: true }[];
 	/** Jetons externes et de plugin de l'appli de test. */
 	access: AccessStore;
 	close(): Promise<void>;
-	/** Requête JSON ; `auth: false` pour ne pas envoyer le jeton, `auth: "bad"` pour un mauvais jeton. */
-	call(method: string, p: string, opts?: { body?: unknown; auth?: boolean | "bad"; headers?: Record<string, string> }): Promise<{ status: number; body: any; headers: Headers }>;
+	/** Requête JSON ; `auth: false` sans jeton, `"bad"` mauvais jeton, `"mobile"` jeton mobile (sinon jeton admin). */
+	call(method: string, p: string, opts?: { body?: unknown; auth?: boolean | "bad" | "mobile"; headers?: Record<string, string> }): Promise<{ status: number; body: any; headers: Headers }>;
 };
 
 /** Démarre l'appli contre un faux jeu (ou un jeu injoignable si `game` vaut `null`). */
@@ -64,6 +65,7 @@ export async function startTestServer(opts: { game?: FakeHandlers | null; extra?
 	return {
 		url,
 		token: settings.token,
+		mobileToken: settings.mobileToken,
 		deps,
 		routes: app.routes,
 		access: app.access,
@@ -78,7 +80,7 @@ export async function startTestServer(opts: { game?: FakeHandlers | null; extra?
 		},
 		async call(method, p, o = {}) {
 			const headers: Record<string, string> = { ...(o.headers ?? {}) };
-			if (o.auth !== false) headers.authorization = `Bearer ${o.auth === "bad" ? "faux-jeton" : settings.token}`;
+			if (o.auth !== false) headers.authorization = `Bearer ${o.auth === "bad" ? "faux-jeton" : o.auth === "mobile" ? settings.mobileToken : settings.token}`;
 			if (o.body !== undefined) headers["content-type"] = "application/json";
 			const res = await fetch(url + p, { method, headers, body: o.body === undefined ? undefined : JSON.stringify(o.body) });
 			const text = await res.text();

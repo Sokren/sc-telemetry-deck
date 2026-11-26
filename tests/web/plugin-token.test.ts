@@ -3,7 +3,7 @@ import { AccessStore, type PluginGrant } from "../../src/web/access.js";
 import type { WebSettings } from "../../src/web/config.js";
 import { startTestServer, validateResponse, type TestServer } from "./harness.js";
 
-const settings = (): WebSettings => ({ port: 8743, lan: false, token: "x".repeat(32) });
+const settings = (): WebSettings => ({ port: 8743, lan: false, token: "x".repeat(32), mobileToken: "m".repeat(32) });
 const grant = (over: Partial<PluginGrant> = {}): PluginGrant => ({ level: "read", views: { read: false, edit: false, create: false }, ...over });
 
 describe("jetons de plugin : modèle", () => {

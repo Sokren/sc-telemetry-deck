@@ -18,7 +18,7 @@ const grant = (over: Partial<PluginGrant> = {}): PluginGrant => ({ level: "read"
 
 beforeEach(() => {
 	root = fs.mkdtempSync(path.join(os.tmpdir(), "sc-mgr-"));
-	settings = { port: 8743, lan: false, token: "PRINCIPAL-".padEnd(40, "x") };
+	settings = { port: 8743, lan: false, token: "PRINCIPAL-".padEnd(40, "x"), mobileToken: "MOBILE-".padEnd(40, "m") };
 	access = new AccessStore(settings, () => {});
 	saves = 0;
 	closed.length = 0;

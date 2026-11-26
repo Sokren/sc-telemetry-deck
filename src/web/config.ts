@@ -17,7 +17,13 @@ export type WebSettings = {
 	lan: boolean;
 	lanAll?: boolean;
 	lanNetwork?: string;
+	/** Jeton admin : tous les droits, accepté seulement depuis le PC. */
 	token: string;
+	/**
+	 * Jeton mobile, commun aux tablettes et téléphones (QR code, lien) : droits de la page, sans les routes
+	 * d'administration. « Nouveau jeton » ne renouvelle que lui.
+	 */
+	mobileToken: string;
 	updateCheck?: boolean;
 	access?: AccessToken[];
 	/** Plugins activés ou désactivés par le joueur (dossier → empreinte approuvée et droits accordés). */
@@ -58,12 +64,16 @@ export function loadSettings(dir: string): WebSettings {
 		}
 	}
 	const port = Number.isInteger(raw.port) && (raw.port as number) >= 1 && (raw.port as number) <= 65535 ? (raw.port as number) : DEFAULT_PORT;
+	const token = typeof raw.token === "string" && raw.token.length >= MIN_TOKEN ? raw.token : newToken();
+	// Installation d'avant le jeton mobile : le jeton actuel reste le jeton admin, le jeton mobile est neuf.
+	const mobileToken = typeof raw.mobileToken === "string" && raw.mobileToken.length >= MIN_TOKEN && raw.mobileToken !== token ? raw.mobileToken : newToken();
 	const settings: WebSettings = {
 		port,
 		lan: raw.lan === true,
 		...(typeof raw.lanAll === "boolean" ? { lanAll: raw.lanAll } : {}),
 		...(typeof raw.lanNetwork === "string" && raw.lanNetwork ? { lanNetwork: raw.lanNetwork } : {}),
-		token: typeof raw.token === "string" && raw.token.length >= MIN_TOKEN ? raw.token : newToken(),
+		token,
+		mobileToken,
 		...(raw.updateCheck === false ? { updateCheck: false } : {}),
 	};
 	const access = parseAccess(raw.access);

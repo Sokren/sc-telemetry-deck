@@ -89,6 +89,7 @@ describe("API des plugins (jeton principal, PC)", () => {
 		expect(r.status).toBe(403);
 		await srv.close();
 		srv = await startTestServer({ game: null, extra: { isLocal: () => false, plugins: { dir, finder: { node: () => process.execPath, python: () => undefined } } } });
-		expect((await srv.call("GET", "/api/v1/plugins")).body).toEqual({ error: "pc_only" });
+		expect((await srv.call("GET", "/api/v1/plugins")).body).toEqual({ error: "forbidden", reason: "pc_only" });
+		expect((await srv.call("GET", "/api/v1/plugins", { auth: "mobile" })).body).toEqual({ error: "forbidden", reason: "pc_only" });
 	});
 });

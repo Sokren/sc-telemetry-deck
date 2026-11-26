@@ -28,8 +28,10 @@ export type Route = {
 	path: string;
 	/** Accessible sans jeton (documentation, page). */
 	public?: boolean;
-	/** Niveau minimal d'un jeton externe ; absent = jeton principal seulement (liste blanche). */
+	/** Niveau minimal d'un jeton externe ; absent = jetons admin et mobile seulement (liste blanche). */
 	access?: "read" | "pilot";
+	/** Route d'administration (réseau local, jetons, plugins, réglage des mises à jour) : jeton admin seulement. */
+	admin?: true;
 	/** Route des vues : ouverte aux seuls jetons de plugin qui ont ce droit (jamais aux jetons externes). */
 	views?: "read" | "create" | "edit";
 	/** Taille maximale du corps en octets (64 Ko par défaut). */
@@ -104,11 +106,14 @@ export function send(res: ServerResponse, reply: Exclude<Reply, { stream: true }
 	res.end(payload);
 }
 
-/** Jetons acceptés : le principal (en-tête ou `?t=`) et les jetons externes (en-tête seulement). */
-export type Auth = { main: () => string; store?: AccessStore; isLocal?: (req: IncomingMessage) => boolean };
+/**
+ * Jetons acceptés : l'admin (en-tête ou `?t=`, depuis le PC seulement), le mobile (en-tête ou `?t=`, partout, sans
+ * les routes d'administration) et les jetons externes (en-tête seulement).
+ */
+export type Auth = { main: () => string; mobile: () => string; store?: AccessStore; isLocal?: (req: IncomingMessage) => boolean };
 
-/** Refus d'un jeton externe (403), avec la raison. */
-const forbidden = (reason: "level" | "lan" | "stopped" | "view") => ({ status: 403, json: { error: "forbidden", reason } });
+/** Refus (403), avec la raison. `pc_only` : jeton admin hors du PC, ou jeton mobile sur une route d'administration. */
+const forbidden = (reason: "level" | "lan" | "stopped" | "view" | "pc_only") => ({ status: 403, json: { error: "forbidden", reason } });
 
 /**
  * En-tête `Host` accepté : `localhost` ou une adresse IP littérale (IPv4, `[IPv6]`), avec ou sans port. Un nom de
@@ -169,9 +174,19 @@ export function createHandler(
 				const header = req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.slice(7).trim() : undefined;
 				const external = header?.startsWith(TOKEN_PREFIX) || header?.startsWith(PLUGIN_PREFIX) ? auth.store?.find(header) : undefined;
 				if (sameToken(given, auth.main())) caller = { kind: "main" };
+				else if (sameToken(given, auth.mobile())) caller = { kind: "mobile" };
 				else if (external) caller = { kind: "external", token: external };
 				else {
 					send(res, { status: 401, json: { error: "unauthorized" } });
+					return;
+				}
+				// Jeton admin : jamais hors du PC (un lien qui fuit ne donne pas l'administration).
+				if (caller.kind === "main" && !(auth.isLocal?.(req) ?? true)) {
+					send(res, forbidden("pc_only"));
+					return;
+				}
+				if (caller.kind === "mobile" && match.route.admin) {
+					send(res, forbidden("pc_only"));
 					return;
 				}
 			}

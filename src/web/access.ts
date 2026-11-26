@@ -27,7 +27,7 @@ export type ViewGrant = { read: boolean; edit: false | "all" | string[]; create:
 /** Ce que le joueur accorde à un plugin à son activation. */
 export type PluginGrant = { level: AccessLevel; views: ViewGrant };
 /** Appelant d'une requête : jeton principal, jeton externe, ou anonyme (routes publiques : documentation). */
-export type Caller = { kind: "main" } | { kind: "external"; token: AccessToken } | { kind: "anonymous" };
+export type Caller = { kind: "main" } | { kind: "mobile" } | { kind: "external"; token: AccessToken } | { kind: "anonymous" };
 export type AccessLogEntry = { at: string; method: string; path: string; status: number; sensitive?: true };
 
 export const MAX_TOKENS = 20;
@@ -100,9 +100,9 @@ export function levelAllows(level: AccessLevel, needed: "read" | "pilot"): boole
 	return needed === "read" || level !== "read";
 }
 
-/** Actions protégées (éjection, autodestruction, déverrouillage) : jeton principal et Pilotage complet seulement. */
+/** Actions protégées (éjection, autodestruction, déverrouillage) : jetons admin et mobile, et Pilotage complet. */
 export function mayTriggerDangerous(caller: Caller): boolean {
-	return caller.kind === "main" || (caller.kind === "external" && caller.token.level === "pilot_full");
+	return caller.kind === "main" || caller.kind === "mobile" || (caller.kind === "external" && caller.token.level === "pilot_full");
 }
 
 export class AccessStore {

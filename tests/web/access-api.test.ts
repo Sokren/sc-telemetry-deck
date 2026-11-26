@@ -312,7 +312,8 @@ describe("gestion des jetons externes (jeton principal, PC)", () => {
 	test("hors PC → pc_only ; jeton externe (même Pilotage complet) → refusé", async () => {
 		const remote = await startTestServer({ game: null, extra: { isLocal: () => false } });
 		try {
-			expect((await remote.call("GET", "/api/v1/access/tokens")).body).toEqual({ error: "pc_only" });
+			expect((await remote.call("GET", "/api/v1/access/tokens")).body).toEqual({ error: "forbidden", reason: "pc_only" });
+			expect((await remote.call("GET", "/api/v1/access/tokens", { auth: "mobile" })).body).toEqual({ error: "forbidden", reason: "pc_only" });
 		} finally {
 			await remote.close();
 		}

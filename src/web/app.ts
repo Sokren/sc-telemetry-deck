@@ -135,6 +135,9 @@ function defaultOpenapi(): unknown {
 }
 
 /** Construit les routes de l'API publique v1 et le gestionnaire HTTP. */
+/** Routes d'administration : jeton admin seulement (le jeton mobile reçoit 403 `pc_only`). */
+const adminOnly = (routes: Route[]): Route[] => routes.map((r) => ({ ...r, admin: true as const }));
+
 export function createApp(deps: AppDeps): App {
 	const openapi = deps.openapi ?? defaultOpenapi();
 	const swaggerDir = deps.swaggerDir ?? defaultSwaggerDir();
@@ -238,15 +241,17 @@ export function createApp(deps: AppDeps): App {
 		...panelRoutes({ hub: deps.hub, countermeasures }),
 		...morseRoutes({ morse }),
 		...updateRoutes({ updates }),
-		...accessRoutes({ store: access, isLocal, closeStreams: (id) => events.closeFor(id) }),
-		...(plugins ? pluginRoutes({ plugins, access, isLocal, openFolder }) : []),
+		...adminOnly(accessRoutes({ store: access, isLocal, closeStreams: (id) => events.closeFor(id) })),
+		...adminOnly(plugins ? pluginRoutes({ plugins, access, isLocal, openFolder }) : []),
 		...viewsRoutes({ views, version: deps.version }),
-		...lanRoutes({
-			lan,
-			isLocal,
-			remotes: () => events.remotes(),
-			onToken: () => events.close(),
-		}),
+		...adminOnly(
+			lanRoutes({
+				lan,
+				isLocal,
+				remotes: () => events.remotes(),
+				onToken: () => events.close(),
+			}),
+		),
 		...layoutRoutes({ hub: deps.hub, game: loggedGame, morse, layout, onFeedback: (i, f) => events.feedback(i, f) }),
 		{ method: "GET", path: "/api/v1/openapi.json", public: true, handle: async () => ({ status: 200, json: openapi }) },
 		{
@@ -275,7 +280,7 @@ export function createApp(deps: AppDeps): App {
 		lan,
 		access,
 		...(plugins ? { plugins } : {}),
-		handler: createHandler(tracked, { main: () => deps.settings.token, store: access, isLocal }, deps.fallback),
+		handler: createHandler(tracked, { main: () => deps.settings.token, mobile: () => deps.settings.mobileToken, store: access, isLocal }, deps.fallback),
 		close: () => {
 			// Filet : le serveur attend déjà `plugins.close()` avant ; ici, au cas où.
 			void plugins?.close();
