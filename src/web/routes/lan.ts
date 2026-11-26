@@ -12,7 +12,7 @@ export type LanRoutesDeps = {
 	isLocal: (req: IncomingMessage) => boolean;
 	/** Adresses distantes des pages connectées (flux d'événements ouverts). */
 	remotes: () => string[];
-	/** Nouveau jeton : ferme les flux ouverts (les appareils devront rescanner le lien). */
+	/** Nouveau jeton mobile : ferme les flux des mobiles (ils devront rescanner le lien). */
 	onToken: () => void;
 };
 
@@ -61,8 +61,8 @@ export function lanRoutes(deps: LanRoutesDeps): Route[] {
 			path: "/api/v1/lan/token",
 			handle: async ({ req }) => {
 				if (!deps.isLocal(req)) return pcOnly;
-				const token = deps.lan.rotateToken();
-				// Après la réponse : la page du PC reçoit son nouveau jeton avant la fermeture des flux.
+				const token = deps.lan.rotateMobileToken();
+				// Après la réponse : seuls les flux ouverts avec le jeton mobile sont fermés (la page du PC reste connectée).
 				setImmediate(deps.onToken);
 				return { status: 200, json: { token } };
 			},

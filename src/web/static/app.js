@@ -1144,13 +1144,6 @@ $("auto-open").addEventListener("click", () => {
 const lanPanel = createLan({
 	t,
 	token: () => token,
-	setToken(next) {
-		// Nouveau jeton : gardé, puis reconnexion (les flux ouverts avec l'ancien sont fermés par l'appli).
-		token = next;
-		storageSet(TOKEN_KEY, next);
-		showMessage("");
-		connect();
-	},
 	views: () => viewTabs ?? [],
 	currentView: () => (currentTab === "instrument" ? "instrument" : viewId(currentTab)),
 });

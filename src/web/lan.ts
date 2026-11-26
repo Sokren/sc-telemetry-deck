@@ -140,7 +140,8 @@ export class LanManager {
 		const { card, cards } = await this.#sync();
 		const state: LanState = { enabled: s.lan, all: s.lanAll === true };
 		if (s.lan && card) {
-			state.url = `http://${card.address}:${this.deps.port?.() ?? s.port}/?t=${s.token}`;
+			// Jeton mobile seulement : le jeton admin ne quitte jamais le PC.
+			state.url = `http://${card.address}:${this.deps.port?.() ?? s.port}/?t=${s.mobileToken}`;
 			state.network = card.id;
 			if (cards.length > 1) state.networks = cards.map(({ id, name }) => ({ id, name }));
 		}
@@ -159,11 +160,11 @@ export class LanManager {
 		return (await this.#sync()).ok ? "ok" : "listen_failed";
 	}
 
-	/** Nouveau jeton (tous les appareils devront rescanner le lien). */
-	rotateToken(): string {
-		this.deps.settings.token = newToken();
+	/** Nouveau jeton mobile (tablettes et téléphones devront rescanner le lien) ; le jeton admin du PC ne change pas. */
+	rotateMobileToken(): string {
+		this.deps.settings.mobileToken = newToken();
 		this.deps.save();
-		return this.deps.settings.token;
+		return this.deps.settings.mobileToken;
 	}
 
 	/** Carte choisie et écoute à jour, une mise à jour à la fois. */

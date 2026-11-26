@@ -20,7 +20,6 @@ const button = (cls, text) => {
  * @param {object} ctx
  * @param {(key: string) => string} ctx.t
  * @param {() => string} ctx.token
- * @param {(token: string) => void} ctx.setToken nouveau jeton : à garder et à utiliser pour se reconnecter
  * @param {() => {id: string, name: string}[]} ctx.views vues disponibles (onglets)
  * @param {() => string | null} ctx.currentView vue affichée, sinon `null`
  */
@@ -121,7 +120,7 @@ export function createLan(ctx) {
 		try {
 			const r = await api("/api/v1/lan/token", { method: "POST" });
 			if (r.status !== 200) throw new Error(String(r.status));
-			ctx.setToken((await r.json()).token);
+			// Nouveau jeton mobile : la page du PC garde son jeton admin ; le lien et le QR code sont relus.
 			qrKey = "";
 			await load();
 			notice = t("lanNewTokenDone");

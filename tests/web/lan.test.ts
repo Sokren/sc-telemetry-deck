@@ -77,7 +77,7 @@ describe("LanManager", () => {
 		expect(s).toEqual({
 			enabled: true,
 			all: false,
-			url: `http://10.0.0.5:8743/?t=${settings.token}`,
+			url: `http://10.0.0.5:8743/?t=${settings.mobileToken}`,
 			network: "Wi-Fi",
 			networks: [
 				{ id: "Ethernet", name: "Ethernet" },
@@ -196,7 +196,7 @@ describe("LanManager", () => {
 	test("lien avec le port réellement ouvert", async () => {
 		const settings: WebSettings = { port: 8743, lan: true, token: "x".repeat(32), mobileToken: "m".repeat(32) };
 		const m = new LanManager({ settings, save: () => {}, listen: async () => true, port: () => 9001, cards: () => [{ id: "a", name: "a", address: "10.0.0.5" }], route: async () => undefined });
-		expect((await m.state()).url).toBe(`http://10.0.0.5:9001/?t=${settings.token}`);
+		expect((await m.state()).url).toBe(`http://10.0.0.5:9001/?t=${settings.mobileToken}`);
 	});
 
 	test("vérification en arrière-plan : réseau arrivé après le démarrage, écoute relancée sans ouvrir la fenêtre", async () => {
@@ -217,13 +217,16 @@ describe("LanManager", () => {
 		}
 	});
 
-	test("nouveau jeton : différent, assez long, enregistré", () => {
+	test("nouveau jeton mobile : différent, assez long, enregistré ; jeton admin inchangé", () => {
 		const { m, settings, saves } = manager();
-		const old = settings.token;
-		const token = m.rotateToken();
+		const old = settings.mobileToken;
+		const admin = settings.token;
+		const token = m.rotateMobileToken();
 		expect(token).not.toBe(old);
+		expect(token).not.toBe(admin);
 		expect(token.length).toBeGreaterThanOrEqual(32);
-		expect(settings.token).toBe(token);
+		expect(settings.mobileToken).toBe(token);
+		expect(settings.token).toBe(admin);
 		expect(saves()).toBe(1);
 	});
 });

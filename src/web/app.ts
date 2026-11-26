@@ -135,6 +135,9 @@ function defaultOpenapi(): unknown {
 }
 
 /** Construit les routes de l'API publique v1 et le gestionnaire HTTP. */
+/** Clé des flux d'événements ouverts avec le jeton mobile (jamais un id de jeton externe : ceux-ci n'ont pas de `:`). */
+const MOBILE_STREAMS = "mobile:";
+
 /** Routes d'administration : jeton admin seulement (le jeton mobile reçoit 403 `pc_only`). */
 const adminOnly = (routes: Route[]): Route[] => routes.map((r) => ({ ...r, admin: true as const }));
 
@@ -229,7 +232,9 @@ export function createApp(deps: AppDeps): App {
 				// Vues dans le flux : selon les droits de l'appelant (aucune pour un jeton externe).
 				const see = caller.kind === "external" ? (all: unknown) => ({ views: visibleViews(caller, (all as { views: NamedView[] }).views) }) : undefined;
 				const none = caller.kind === "external" && visibleViews(caller, []) === null;
-				events.connect(req, res, lang, caller.kind === "external" ? caller.token.id : undefined, none ? null : see);
+				// Flux marqué par jeton : un jeton externe (révocation) ou le jeton mobile (« Nouveau jeton »).
+				const tokenId = caller.kind === "external" ? caller.token.id : caller.kind === "mobile" ? MOBILE_STREAMS : undefined;
+				events.connect(req, res, lang, tokenId, none ? null : see);
 				return { stream: true };
 			},
 		},
@@ -249,7 +254,7 @@ export function createApp(deps: AppDeps): App {
 				lan,
 				isLocal,
 				remotes: () => events.remotes(),
-				onToken: () => events.close(),
+				onToken: () => events.closeFor(MOBILE_STREAMS),
 			}),
 		),
 		...layoutRoutes({ hub: deps.hub, game: loggedGame, morse, layout, onFeedback: (i, f) => events.feedback(i, f) }),

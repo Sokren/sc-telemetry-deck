@@ -48,7 +48,9 @@ describe("/api/v1/lan", () => {
 		const on = await s.call("PUT", "/api/v1/lan", { body: { enabled: true } });
 		expect(on.status).toBe(200);
 		validateResponse("/api/v1/lan", "PUT", 200, on.body);
-		expect(on.body).toMatchObject({ enabled: true, all: false, url: `http://10.0.0.5:8743/?t=${s.token}`, network: "Wi-Fi" });
+		// Le lien (et le QR code) porte le jeton mobile, jamais le jeton admin.
+		expect(on.body).toMatchObject({ enabled: true, all: false, url: `http://10.0.0.5:8743/?t=${s.deps.settings.mobileToken}`, network: "Wi-Fi" });
+		expect(JSON.stringify(on.body)).not.toContain(s.token);
 		expect(on.body.networks).toEqual([
 			{ id: "Ethernet", name: "Ethernet" },
 			{ id: "Wi-Fi", name: "Wi-Fi" },
@@ -108,25 +110,36 @@ describe("/api/v1/lan", () => {
 		expect(JSON.stringify(r.body)).not.toContain("127.0.0.1");
 	});
 
-	test("nouveau jeton : enregistré, ancien refusé, flux fermés", async () => {
+	test("nouveau jeton : mobiles coupés (ancien jeton refusé, leurs flux fermés), PC intact", async () => {
 		const { s } = await start();
-		const old = s.token;
-		const ctrl = new AbortController();
-		const res = await fetch(`${s.url}/api/v1/events?t=${old}`, { signal: ctrl.signal });
-		const reader = res.body!.getReader();
-		await reader.read();
+		const old = s.deps.settings.mobileToken;
+		const admin = s.token;
+		const open = async (t: string) => {
+			const res = await fetch(`${s.url}/api/v1/events?t=${t}`);
+			const reader = res.body!.getReader();
+			await reader.read();
+			return reader;
+		};
+		const mobile = await open(old);
+		const pc = await open(admin);
 		const r = await s.call("POST", "/api/v1/lan/token");
 		expect(r.status).toBe(200);
 		validateResponse("/api/v1/lan/token", "POST", 200, r.body);
 		expect(r.body.token).not.toBe(old);
-		expect(s.deps.settings.token).toBe(r.body.token);
+		expect(r.body.token).not.toBe(admin);
+		expect(s.deps.settings.mobileToken).toBe(r.body.token);
+		expect(s.deps.settings.token).toBe(admin);
 		let ended = false;
-		for (let i = 0; i < 20 && !ended; i++) ended = (await reader.read()).done;
+		for (let i = 0; i < 20 && !ended; i++) ended = (await mobile.read()).done;
 		expect(ended).toBe(true);
-		const refused = await fetch(`${s.url}/api/v1/status`, { headers: { authorization: `Bearer ${old}` } });
-		expect(refused.status).toBe(401);
-		const ok = await fetch(`${s.url}/api/v1/status`, { headers: { authorization: `Bearer ${r.body.token}` } });
-		expect(ok.status).toBe(200);
+		// Le flux du PC reste ouvert : il reçoit encore quelque chose (état renvoyé) sans se terminer.
+		const next = await Promise.race([pc.read(), new Promise<"open">((res) => setTimeout(() => res("open"), 300))]);
+		expect(next === "open" || next.done === false).toBe(true);
+		await pc.cancel();
+		const status = (t: string) => fetch(`${s.url}/api/v1/status`, { headers: { authorization: `Bearer ${t}` } }).then((x) => x.status);
+		expect(await status(old)).toBe(401);
+		expect(await status(r.body.token)).toBe(200);
+		expect(await status(admin)).toBe(200);
 	});
 
 	test("QR code : SVG du lien (avec la vue), 409 si désactivé", async () => {
