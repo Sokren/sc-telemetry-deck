@@ -269,6 +269,12 @@ $("update-check").addEventListener("click", async () => {
 	renderUpdate();
 });
 $("opt-update-auto").addEventListener("change", (e) => loadUpdate("PUT", "/api/v1/update", { auto: e.target.checked }));
+// Vérifier maintenant et la vérification automatique sont des réglages de l'appli : sur le PC seulement (jeton admin).
+// Une tablette garde l'état et le badge.
+if (!ON_PC) {
+	$("update-check").hidden = true;
+	$("opt-update-auto").closest("label").hidden = true;
+}
 // L'appli vérifie elle-même (démarrage puis chaque jour) : la page relit l'état de temps en temps.
 loadUpdate();
 setInterval(() => loadUpdate(), 30 * 60 * 1000);

@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import net from "node:net";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { toLang, type Lang } from "../catalog/labels.js";
+import { isLoopback } from "./lan.js";
 import { isStopped, levelAllows, PLUGIN_PREFIX, TOKEN_PREFIX, viewRightAllows, type AccessStore, type Caller } from "./access.js";
 
 export type Method = "GET" | "POST" | "PUT" | "DELETE";
@@ -147,6 +148,8 @@ export function createHandler(
 	fallback?: (req: IncomingMessage, res: ServerResponse) => boolean,
 ): (req: IncomingMessage, res: ServerResponse) => void {
 	const compiled = routes.map(compile);
+	// « Sur le PC » : adresse de la connexion en boucle locale ; jamais ouvert par défaut si l'appelant ne la fournit pas.
+	const isLocal = auth.isLocal ?? ((req: IncomingMessage) => isLoopback(req.socket.remoteAddress));
 	return (req, res) => {
 		void (async () => {
 			if (!hostAllowed(req.headers.host)) {
@@ -181,7 +184,7 @@ export function createHandler(
 					return;
 				}
 				// Jeton admin : jamais hors du PC (un lien qui fuit ne donne pas l'administration).
-				if (caller.kind === "main" && !(auth.isLocal?.(req) ?? true)) {
+				if (caller.kind === "main" && !isLocal(req)) {
 					send(res, forbidden("pc_only"));
 					return;
 				}
@@ -199,7 +202,7 @@ export function createHandler(
 			if (caller.kind === "external") {
 				const refusal = isStopped(caller.token)
 					? forbidden("stopped")
-					: !caller.token.lan && !(auth.isLocal?.(req) ?? true)
+					: !caller.token.lan && !isLocal(req)
 						? forbidden("lan")
 					: match.route.views
 						? !caller.token.plugin

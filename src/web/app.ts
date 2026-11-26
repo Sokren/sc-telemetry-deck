@@ -135,7 +135,7 @@ function defaultOpenapi(): unknown {
 }
 
 /** Construit les routes de l'API publique v1 et le gestionnaire HTTP. */
-/** Clé des flux d'événements ouverts avec le jeton mobile (jamais un id de jeton externe : ceux-ci n'ont pas de `:`). */
+/** Clé des flux d'événements ouverts avec le jeton mobile (les ids de jetons externes n'ont pas de `:`, ceux des plugins commencent par `plugin:`). */
 const MOBILE_STREAMS = "mobile:";
 
 /** Routes d'administration : jeton admin seulement (le jeton mobile reçoit 403 `pc_only`). */
