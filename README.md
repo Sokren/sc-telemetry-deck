@@ -85,6 +85,7 @@ The web app exposes a documented REST API for stream overlays, bots, dashboards,
 - Trigger actions, press ship functions, and manage views.
 - Receive real-time updates with Server-Sent Events (SSE) at `/api/v1/events`, without polling.
 - Every request needs the access token (`Authorization: Bearer …`). By default, the API answers on this PC only.
+- Read the [web app API reference](docs/api/web-app-api.md) for every endpoint, with examples.
 
 <p align="center"><img src="docs/images/api-swagger.png" width="800" alt="Swagger UI of the web app's API"></p>
 
@@ -188,6 +189,8 @@ On 5.0 PTU, the `user.cfg` line above should be enough, since the file is in the
 Labels follow the Stream Deck app language (French, otherwise English). On keys that draw their own image (Ship Action with a state, Actor Display, Ship Display), the **title** typed in the Stream Deck replaces the displayed name; empty title = default name.
 
 ## The API in short
+
+Full page, with the status by game build, the stream sections, useful paths and known limitations: [Star Citizen local telemetry API](docs/api/game-telemetry-api.md).
 
 Service `sc.game.telemetry.v1.GameTelemetryService`:
 

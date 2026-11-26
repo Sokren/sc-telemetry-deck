@@ -85,6 +85,7 @@ L'appli web expose une API REST documentée pour des overlays de stream, des bot
 - Déclenche des actions, appuie sur les fonctions du vaisseau et gère les vues.
 - Reçois les mises à jour en temps réel avec les Server-Sent Events (SSE) sur `/api/v1/events`, sans interroger en boucle.
 - Chaque requête demande le jeton d'accès (`Authorization: Bearer …`). Par défaut, l'API ne répond que sur ce PC.
+- Lis la [référence de l'API de l'appli web](docs/api/web-app-api.fr.md) pour tous les points d'accès, avec des exemples.
 
 <p align="center"><img src="docs/images/api-swagger.png" width="800" alt="Swagger UI de l'API de l'appli web"></p>
 
@@ -188,6 +189,8 @@ En 5.0 PTU, la ligne de `user.cfg` ci-dessus devrait suffire, puisque le fichier
 Les libellés suivent la langue du logiciel Stream Deck (français, sinon anglais). Sur les touches qui dessinent leur image (Ship Action avec état, Actor Display, Ship Display), le **titre** saisi dans le Stream Deck remplace le nom affiché ; titre vide = nom par défaut.
 
 ## L'API en bref
+
+Page complète, avec l'état selon la version du jeu, les sections du flux, les chemins utiles et les limites connues : [API de télémétrie locale de Star Citizen](docs/api/game-telemetry-api.fr.md).
 
 Service `sc.game.telemetry.v1.GameTelemetryService` :
 
