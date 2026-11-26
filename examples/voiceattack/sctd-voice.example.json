@@ -1,0 +1,12 @@
+{
+	"url": "http://127.0.0.1:8743",
+	"token": "sct_ext_COLLE_TON_JETON_ICI_PASTE_YOUR_TOKEN_HERE",
+	"lang": "fr",
+	"alerts": {
+		"shields": 25,
+		"hull": 50,
+		"hydrogen": 20,
+		"oxygen": 25,
+		"health": 30
+	}
+}

@@ -34,7 +34,7 @@ public sealed class ApiClient
 	public Task<ApiResponse> GetAsync(string path) => SendAsync(HttpMethod.Get, path, null);
 
 	/// <summary>
-	/// Lit <c>/api/v1/events</c> jusqu'à l'annulation, en se reconnectant (1 s, doublé jusqu'à 30 s, remis à
+	/// Lit <c>/api/v1/events</c> jusqu'à l'annulation, en se reconnectant (1 s, doublé jusqu'à 30 s, ramené à
 	/// 1 s dès qu'un événement arrive). <paramref name="log"/> ne reçoit jamais le jeton, et « injoignable »
 	/// n'y est écrit qu'une fois jusqu'à la prochaine connexion (pas une ligne toutes les 30 s appli fermée).
 	/// </summary>
