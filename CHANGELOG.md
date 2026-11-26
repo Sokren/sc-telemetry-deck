@@ -25,6 +25,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 - API contract **1.12.0**: `GET /api/v1/game`; `playerName`, `mode`, `location`, `place`, `jurisdiction`, `armistice`, `crimeStat`, `mission` in `/api/v1/character`; `quantum` in `/api/v1/ship/status`; `sequence` in `/api/v1/debug`; `quantum_card`, `who_card`, `mission_card`, `perf_card`, `game_info` items and new `character_info` / `ship_info` values; `instrument` look; `instrument_panel` template; `view=instrument` for `/api/v1/lan/qr`.
 
 ### Changed
+- Update check: only **main versions** are offered (`x.y.z`). Pre-releases, betas and release candidates are ignored, even when they are not flagged as pre-release on GitHub, and a beta is never counted as newer than the version of the same number.
 - Game schema updated: 5.0 PTU build 13273298 (5.0.202.35026).
 
 ## [0.3.15] — 2026-11-24

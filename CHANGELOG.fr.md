@@ -25,6 +25,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 - Contrat d'API **1.12.0** : `GET /api/v1/game` ; `playerName`, `mode`, `location`, `place`, `jurisdiction`, `armistice`, `crimeStat`, `mission` dans `/api/v1/character` ; `quantum` dans `/api/v1/ship/status` ; `sequence` dans `/api/v1/debug` ; cases `quantum_card`, `who_card`, `mission_card`, `perf_card`, `game_info` et nouvelles valeurs de `character_info` / `ship_info` ; habillage `instrument` ; modèle `instrument_panel` ; `view=instrument` pour `/api/v1/lan/qr`.
 
 ### Modifié
+- Vérification de version : seules les **versions principales** sont proposées (`x.y.z`). Préversions, bêtas et versions candidates sont ignorées, même si elles ne sont pas marquées « pre-release » sur GitHub, et une bêta n'est jamais comptée comme plus récente que la version du même numéro.
 - Schéma du jeu mis à jour : 5.0 PTU build 13273298 (5.0.202.35026).
 
 ## [0.3.15] — 2026-11-24
