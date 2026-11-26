@@ -928,7 +928,7 @@ dialog button {
 		grid-column: auto / span 8;
 	}
 }
-#myview:not(.editing) .vgrid:empty {
+:is(#myview, #instrument-view):not(.editing) .vgrid:empty {
 	display: none;
 }
 
@@ -1578,6 +1578,17 @@ dialog.setup {
 .setup-live p {
 	margin: 0 0 4px;
 	color: var(--muted);
+}
+
+/* ---------- Plein écran ---------- */
+nav button.fullscreen {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 6px 8px;
+}
+nav button.fullscreen[hidden] {
+	display: none;
 }
 
 /* ---------- Options ---------- */
@@ -2646,18 +2657,18 @@ dialog .opt-back {
 }
 
 /* ---------- Ma vue : habillage « HUD vaisseau » ---------- */
-#myview.hud {
+:is(#myview, #instrument-view).hud {
 	--hud-font: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
 }
-#myview.hud .vsec {
+:is(#myview, #instrument-view).hud .vsec {
 	position: relative;
 	background: color-mix(in srgb, var(--panel) 55%, var(--bg));
 	border: 1px solid var(--line-strong);
 	border-radius: 4px;
 }
 /* Coins d'écran de bord, à la couleur d'accent du thème. */
-#myview.hud .vsec::before,
-#myview.hud .vsec::after {
+:is(#myview, #instrument-view).hud .vsec::before,
+:is(#myview, #instrument-view).hud .vsec::after {
 	content: "";
 	position: absolute;
 	width: 14px;
@@ -2666,43 +2677,43 @@ dialog .opt-back {
 	border-color: var(--accent);
 	border-style: solid;
 }
-#myview.hud .vsec::before {
+:is(#myview, #instrument-view).hud .vsec::before {
 	top: -1px;
 	left: -1px;
 	border-width: 2px 0 0 2px;
 }
-#myview.hud .vsec::after {
+:is(#myview, #instrument-view).hud .vsec::after {
 	right: -1px;
 	bottom: -1px;
 	border-width: 0 2px 2px 0;
 }
-#myview.hud .vtitle {
+:is(#myview, #instrument-view).hud .vtitle {
 	font-family: var(--hud-font);
 	font-size: 12px;
 	letter-spacing: 0.12em;
 	color: var(--accent);
 }
-#myview.hud .vcontent > .card,
-#myview.hud .gauge {
+:is(#myview, #instrument-view).hud .vcontent > .card,
+:is(#myview, #instrument-view).hud .gauge {
 	background: color-mix(in srgb, var(--card) 60%, var(--bg));
 	border-color: var(--line);
 	border-radius: 3px;
 }
-#myview.hud .card .value,
-#myview.hud .gvalue,
-#myview.hud .gtext,
-#myview.hud .lights {
+:is(#myview, #instrument-view).hud .card .value,
+:is(#myview, #instrument-view).hud .gvalue,
+:is(#myview, #instrument-view).hud .gtext,
+:is(#myview, #instrument-view).hud .lights {
 	font-family: var(--hud-font);
 }
-#myview.hud .card .label,
-#myview.hud .glabel {
+:is(#myview, #instrument-view).hud .card .label,
+:is(#myview, #instrument-view).hud .glabel {
 	font-family: var(--hud-font);
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	font-size: 11px;
 }
-#myview.hud .card .bar,
-#myview.hud .card .bar i {
+:is(#myview, #instrument-view).hud .card .bar,
+:is(#myview, #instrument-view).hud .card .bar i {
 	border-radius: 0;
 }
 
@@ -3063,21 +3074,21 @@ dialog .opt-back {
 /* ---------- Habillage « Cockpit » (poste de pilotage, maquette Xeneon Edge) ---------- */
 /* Sur la base du HUD : boutons à coins coupés, nom centré en gras, état dessous, allumé = fond bleu ;
    jauges en barre sur une seule ligne (NOM ━━━ 78 %) ; actions dangereuses à confirmer en rouge. */
-#myview.cockpit {
+:is(#myview, #instrument-view).cockpit {
 	--ck-on: var(--link);
 	--ck-cut: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
-#myview.cockpit .vsec {
+:is(#myview, #instrument-view).cockpit .vsec {
 	clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
 }
-#myview.cockpit .vsec::after {
+:is(#myview, #instrument-view).cockpit .vsec::after {
 	display: none;
 }
-#myview.cockpit .vgrid {
+:is(#myview, #instrument-view).cockpit .vgrid {
 	gap: 8px;
 }
-#myview.cockpit .vcontent > .card.function,
-#myview.cockpit .vcontent > .card.emote {
+:is(#myview, #instrument-view).cockpit .vcontent > .card.function,
+:is(#myview, #instrument-view).cockpit .vcontent > .card.emote {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -3091,8 +3102,8 @@ dialog .opt-back {
 	border-radius: 0;
 	clip-path: var(--ck-cut);
 }
-#myview.cockpit .card.function .label,
-#myview.cockpit .card.emote .label {
+:is(#myview, #instrument-view).cockpit .card.function .label,
+:is(#myview, #instrument-view).cockpit .card.emote .label {
 	color: var(--text);
 	font-size: 15px;
 	font-weight: 700;
@@ -3102,40 +3113,40 @@ dialog .opt-back {
 	text-overflow: ellipsis;
 	max-width: 100%;
 }
-#myview.cockpit .card.function .value {
+:is(#myview, #instrument-view).cockpit .card.function .value {
 	margin: 0;
 	font-size: 12px;
 	font-weight: 400;
 	letter-spacing: 0.04em;
 }
-#myview.cockpit .card.function[data-state="on"] {
+:is(#myview, #instrument-view).cockpit .card.function[data-state="on"] {
 	border-color: var(--ck-on);
 	background: color-mix(in srgb, var(--ck-on) 14%, var(--bg));
 	box-shadow: inset 0 0 18px color-mix(in srgb, var(--ck-on) 22%, transparent);
 }
-#myview.cockpit .card.function[data-state="on"] .label,
-#myview.cockpit .card.function[data-state="on"] .value {
+:is(#myview, #instrument-view).cockpit .card.function[data-state="on"] .label,
+:is(#myview, #instrument-view).cockpit .card.function[data-state="on"] .value {
 	color: var(--ck-on);
 }
-#myview.cockpit .vitem.w8 .card.emote .label,
-#myview.cockpit .vitem.w16 .card.emote .label {
+:is(#myview, #instrument-view).cockpit .vitem.w8 .card.emote .label,
+:is(#myview, #instrument-view).cockpit .vitem.w16 .card.emote .label {
 	font-size: 20px;
 	letter-spacing: 0.2em;
 }
-#myview.cockpit .vitem.w8 .vcontent > .card.emote {
+:is(#myview, #instrument-view).cockpit .vitem.w8 .vcontent > .card.emote {
 	min-height: 72px;
 }
 /* Jauges en barre : une ligne. */
-#myview.cockpit .gauge.g-bar,
-#myview.cockpit .gauge.g-line {
+:is(#myview, #instrument-view).cockpit .gauge.g-bar,
+:is(#myview, #instrument-view).cockpit .gauge.g-line {
 	flex-direction: row;
 	min-height: 36px;
 	gap: 10px;
 	padding: 4px 10px;
 	border-radius: 0;
 }
-#myview.cockpit .g-bar .glabel,
-#myview.cockpit .g-line .glabel {
+:is(#myview, #instrument-view).cockpit .g-bar .glabel,
+:is(#myview, #instrument-view).cockpit .g-line .glabel {
 	order: -1;
 	flex: 0 0 auto;
 	width: 40%;
@@ -3145,59 +3156,59 @@ dialog .opt-back {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-#myview.cockpit .g-bar .gbar {
+:is(#myview, #instrument-view).cockpit .g-bar .gbar {
 	flex: 1;
 	height: 12px;
 	border-radius: 0;
 }
-#myview.cockpit .g-bar .gbar i {
+:is(#myview, #instrument-view).cockpit .g-bar .gbar i {
 	border-radius: 0;
 }
-#myview.cockpit .g-bar .gvalue,
-#myview.cockpit .g-line .gvalue {
+:is(#myview, #instrument-view).cockpit .g-bar .gvalue,
+:is(#myview, #instrument-view).cockpit .g-line .gvalue {
 	flex: 0 0 auto;
 	min-width: 56px;
 	text-align: right;
 	font-size: 17px;
 }
 /* Chiffres en tuiles : nom en petit en haut, valeur en gros. */
-#myview.cockpit .gauge.g-number {
+:is(#myview, #instrument-view).cockpit .gauge.g-number {
 	align-items: flex-start;
 	min-height: 56px;
 	border-radius: 0;
 }
-#myview.cockpit .g-number .glabel {
+:is(#myview, #instrument-view).cockpit .g-number .glabel {
 	order: -1;
 	font-size: 11px;
 }
-#myview.cockpit .g-number .gvalue {
+:is(#myview, #instrument-view).cockpit .g-number .gvalue {
 	font-size: 26px;
 }
-#myview.cockpit .vswitch,
-#myview.cockpit .vslide {
+:is(#myview, #instrument-view).cockpit .vswitch,
+:is(#myview, #instrument-view).cockpit .vslide {
 	border-radius: 0;
 	clip-path: var(--ck-cut);
 }
-#myview.cockpit .vswitch .vsw-knob,
-#myview.cockpit .vslide .vslide-knob {
+:is(#myview, #instrument-view).cockpit .vswitch .vsw-knob,
+:is(#myview, #instrument-view).cockpit .vslide .vslide-knob {
 	border-radius: 0;
 }
-#myview.cockpit .vswitch {
+:is(#myview, #instrument-view).cockpit .vswitch {
 	min-height: 64px;
 	font-size: 20px;
 }
-#myview.cockpit .vswitch[data-state="off"] .vsw-knob {
+:is(#myview, #instrument-view).cockpit .vswitch[data-state="off"] .vsw-knob {
 	background: color-mix(in srgb, var(--ck-on) 14%, var(--bg));
 	border-color: var(--ck-on);
 }
-#myview.cockpit .vswitch[data-state="off"] .vsw-off {
+:is(#myview, #instrument-view).cockpit .vswitch[data-state="off"] .vsw-off {
 	color: var(--ck-on);
 }
-#myview.cockpit .vswitch[data-state="on"] .vsw-knob {
+:is(#myview, #instrument-view).cockpit .vswitch[data-state="on"] .vsw-knob {
 	background: color-mix(in srgb, var(--warn) 16%, var(--bg));
 	border-color: var(--warn);
 }
-#myview.cockpit .vswitch[data-state="on"] .vsw-on {
+:is(#myview, #instrument-view).cockpit .vswitch[data-state="on"] .vsw-on {
 	color: var(--warn);
 }
 
@@ -3248,47 +3259,47 @@ dialog .opt-back {
 	color: var(--bad-text);
 }
 /* Cockpit : sections et cases plus compactes (tout tient sur un écran 2560×720). */
-#myview.cockpit .vsec {
+:is(#myview, #instrument-view).cockpit .vsec {
 	padding: 8px 12px 10px;
 }
-#myview.cockpit .vhead {
+:is(#myview, #instrument-view).cockpit .vhead {
 	min-height: 28px;
 }
-#myview.cockpit .vcontent > .card.function,
-#myview.cockpit .vcontent > .card.emote,
-#myview.cockpit .gauge.g-number,
-#myview.cockpit .vslide {
+:is(#myview, #instrument-view).cockpit .vcontent > .card.function,
+:is(#myview, #instrument-view).cockpit .vcontent > .card.emote,
+:is(#myview, #instrument-view).cockpit .gauge.g-number,
+:is(#myview, #instrument-view).cockpit .vslide {
 	min-height: 48px;
 }
-#myview.cockpit .vsections {
+:is(#myview, #instrument-view).cockpit .vsections {
 	gap: 10px;
 }
-#myview.cockpit .vhead {
+:is(#myview, #instrument-view).cockpit .vhead {
 	margin-bottom: 4px;
 }
-#myview.cockpit .vcontent > .card {
+:is(#myview, #instrument-view).cockpit .vcontent > .card {
 	min-height: 48px;
 	padding: 6px 10px;
 }
-#myview.cockpit .gauge.g-bar {
+:is(#myview, #instrument-view).cockpit .gauge.g-bar {
 	min-height: 32px;
 }
 /* Cockpit : voyants sur une seule ligne (comme la barre du haut de la maquette), aide « vue verrouillée » masquée. */
-#myview.cockpit .vcontent > .card:has(> .lights) {
+:is(#myview, #instrument-view).cockpit .vcontent > .card:has(> .lights) {
 	display: flex;
 	align-items: center;
 }
-#myview.cockpit .card > .lights + .label,
-#myview.cockpit .card > .label:has(+ .lights) {
+:is(#myview, #instrument-view).cockpit .card > .lights + .label,
+:is(#myview, #instrument-view).cockpit .card > .label:has(+ .lights) {
 	display: none;
 }
-#myview.cockpit .lights {
+:is(#myview, #instrument-view).cockpit .lights {
 	flex-wrap: nowrap;
 	gap: 4px;
 	width: 100%;
 	max-width: none;
 }
-#myview.cockpit .light {
+:is(#myview, #instrument-view).cockpit .light {
 	flex: 1;
 	min-width: 0;
 	padding: 4px 0;
@@ -3299,54 +3310,54 @@ dialog .opt-back {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-#myview.cockpit .vhint {
+:is(#myview, #instrument-view).cockpit .vhint {
 	display: none;
 }
-#myview.cockpit .vcontent > .card.red {
+:is(#myview, #instrument-view).cockpit .vcontent > .card.red {
 	border-color: var(--bad);
 	background: color-mix(in srgb, var(--bad) 14%, var(--bg));
 }
-#myview.cockpit .card.red .label {
+:is(#myview, #instrument-view).cockpit .card.red .label {
 	color: var(--bad-text);
 }
 /* Cockpit : les cases remplissent toute la hauteur de leur section (une section haute n'a plus de vide en bas)
    et le texte est plus gros, pour rester lisible de loin sur un écran large. */
-#myview.cockpit .vsec {
+:is(#myview, #instrument-view).cockpit .vsec {
 	display: flex;
 	flex-direction: column;
 }
-#myview.cockpit .vgrid {
+:is(#myview, #instrument-view).cockpit .vgrid {
 	flex: 1;
 	align-content: stretch;
 }
-#myview.cockpit .vtitle {
+:is(#myview, #instrument-view).cockpit .vtitle {
 	font-size: 14px;
 }
-#myview.cockpit .card.function .label,
-#myview.cockpit .card.emote .label {
+:is(#myview, #instrument-view).cockpit .card.function .label,
+:is(#myview, #instrument-view).cockpit .card.emote .label {
 	font-size: 18px;
 }
-#myview.cockpit .card.function .value,
-#myview.cockpit .vhold-hint {
+:is(#myview, #instrument-view).cockpit .card.function .value,
+:is(#myview, #instrument-view).cockpit .vhold-hint {
 	font-size: 14px;
 }
-#myview.cockpit .vitem.w8 .card.emote .label,
-#myview.cockpit .vitem.w16 .card.emote .label {
+:is(#myview, #instrument-view).cockpit .vitem.w8 .card.emote .label,
+:is(#myview, #instrument-view).cockpit .vitem.w16 .card.emote .label {
 	font-size: 24px;
 }
-#myview.cockpit .g-bar .glabel,
-#myview.cockpit .g-line .glabel,
-#myview.cockpit .g-number .glabel {
+:is(#myview, #instrument-view).cockpit .g-bar .glabel,
+:is(#myview, #instrument-view).cockpit .g-line .glabel,
+:is(#myview, #instrument-view).cockpit .g-number .glabel {
 	font-size: 14px;
 }
-#myview.cockpit .g-bar .gvalue,
-#myview.cockpit .g-line .gvalue {
+:is(#myview, #instrument-view).cockpit .g-bar .gvalue,
+:is(#myview, #instrument-view).cockpit .g-line .gvalue {
 	font-size: 20px;
 }
-#myview.cockpit .g-number .gvalue {
+:is(#myview, #instrument-view).cockpit .g-number .gvalue {
 	font-size: 30px;
 }
-#myview.cockpit .light {
+:is(#myview, #instrument-view).cockpit .light {
 	font-size: 13px;
 }
 /* Style « ligne » : nom à gauche, valeur à droite, sur une ligne (comme une barre, sans la barre). */
@@ -3364,12 +3375,12 @@ dialog .opt-back {
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
-#myview.cockpit .gauge.g-line {
+:is(#myview, #instrument-view).cockpit .gauge.g-line {
 	min-height: 32px;
 	padding: 4px 10px;
 	border-radius: 0;
 }
-#myview.cockpit .g-line .glabel {
+:is(#myview, #instrument-view).cockpit .g-line .glabel {
 	width: auto;
 	max-width: none;
 	flex: 1;
@@ -3400,3 +3411,260 @@ dialog .opt-back {
 .vsize-w {
 	min-width: 3.6em;
 }
+
+/* ---------- Habillage « Instrument de bord » (look: instrument) : chiffres à chasse fixe, libellés en petites
+   capitales, une seule couleur d'accent (celle du thème), sections à repères en L, jauges à crans. Formes maison. ---------- */
+:is(#myview, #instrument-view).instrument {
+	--ins-mono: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+	background-image: radial-gradient(120% 50% at 50% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%);
+	border-radius: 12px;
+}
+:root[data-theme="light"] :is(#myview, #instrument-view).instrument {
+	background-image: none;
+}
+:is(#myview, #instrument-view).instrument .vsec {
+	position: relative;
+	background: color-mix(in srgb, var(--panel) 80%, transparent);
+	border: 1px solid var(--line);
+	border-radius: 0;
+}
+:is(#myview, #instrument-view).instrument .vsec::before,
+:is(#myview, #instrument-view).instrument .vsec::after {
+	content: "";
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	border: 0 solid var(--accent);
+	opacity: 0.85;
+	pointer-events: none;
+}
+:is(#myview, #instrument-view).instrument .vsec::before {
+	left: -1px;
+	top: -1px;
+	border-width: 2px 0 0 2px;
+}
+:is(#myview, #instrument-view).instrument .vsec::after {
+	right: -1px;
+	bottom: -1px;
+	border-width: 0 2px 2px 0;
+}
+:is(#myview, #instrument-view).instrument .vtitle {
+	color: var(--accent);
+	font-size: 12px;
+	letter-spacing: 0.14em;
+}
+/* Libellés et chiffres */
+:is(#myview, #instrument-view).instrument :is(.glabel, .card .label, .sc-l) {
+	font-size: 11px;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+:is(#myview, #instrument-view).instrument :is(.gvalue, .gtext, .card .value, .sc-v, .qt-dest) {
+	font-family: var(--ins-mono);
+	font-variant-numeric: tabular-nums;
+	font-weight: 500;
+}
+/* Cases : cadre fin, coins nets, sans fond plein */
+:is(#myview, #instrument-view).instrument :is(.gauge, .card, .shipcard, .sc-mini) {
+	background: transparent;
+	border-radius: 0;
+}
+:is(#myview, #instrument-view).instrument .gauge {
+	--gc: var(--accent);
+	border-color: transparent;
+	min-height: 0;
+}
+:is(#myview, #instrument-view).instrument .gauge.level-warn {
+	--gc: var(--warn);
+}
+:is(#myview, #instrument-view).instrument .gauge.level-bad {
+	--gc: var(--bad);
+}
+/* Couleur jamais seule : ⚠ devant le libellé d'une valeur à surveiller ou dangereuse. */
+:is(#myview, #instrument-view).instrument .gauge:is(.level-warn, .level-bad) .glabel::before {
+	content: "⚠ ";
+}
+:is(#myview, #instrument-view).instrument .gauge:is(.level-warn, .level-bad) :is(.gvalue, .glabel) {
+	color: var(--gc);
+}
+/* Jauges à crans : libellé à gauche, valeur à droite, crans dessous */
+:is(#myview, #instrument-view).instrument .g-segments:not(:has(.gsegsv)) {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	grid-template-areas: "label value" "segs segs";
+	align-items: baseline;
+	gap: 2px 8px;
+	padding: 6px 2px;
+}
+:is(#myview, #instrument-view).instrument .g-segments:not(:has(.gsegsv)) .glabel {
+	grid-area: label;
+	text-align: left;
+}
+:is(#myview, #instrument-view).instrument .g-segments:not(:has(.gsegsv)) .gvalue {
+	grid-area: value;
+	font-size: 22px;
+}
+:is(#myview, #instrument-view).instrument .g-segments:not(:has(.gsegsv)) .gsegs {
+	grid-area: segs;
+	margin-top: 4px;
+}
+:is(#myview, #instrument-view).instrument .gsegs span {
+	height: 8px;
+	border-radius: 0;
+	background: color-mix(in srgb, var(--line) 70%, transparent);
+}
+:is(#myview, #instrument-view).instrument .gsegs span.on {
+	background: var(--gc);
+}
+:is(#myview, #instrument-view).instrument .g-number .gvalue {
+	font-size: 24px;
+}
+:is(#myview, #instrument-view).instrument .card {
+	border: 1px solid transparent;
+}
+/* Fonctions : neutre ; allumée = cadre et liseré à l'accent ; dangereuse = rouge ; à maintenir = pointillé rouge */
+:is(#myview, #instrument-view).instrument .card.function {
+	border: 1px solid var(--line);
+	text-align: left;
+}
+:is(#myview, #instrument-view).instrument .card.function .value {
+	font-size: 15px;
+	color: var(--muted);
+}
+:is(#myview, #instrument-view).instrument .card.function[data-state="on"] {
+	border-color: var(--accent);
+	box-shadow: inset 3px 0 0 var(--accent);
+}
+:is(#myview, #instrument-view).instrument .card.function[data-state="on"] .value {
+	color: var(--accent);
+}
+:is(#myview, #instrument-view).instrument .card.function.danger {
+	border-color: var(--bad);
+	box-shadow: inset 3px 0 0 var(--bad);
+}
+:is(#myview, #instrument-view).instrument .card.function.danger .value {
+	color: var(--bad);
+}
+:is(#myview, #instrument-view).instrument .card.function.hold-action {
+	border: 1px dashed var(--bad);
+	background: transparent;
+	color: var(--bad);
+}
+/* Encarts (saut, mission, perf, qui / où, vaisseau) */
+:is(#myview, #instrument-view).instrument .shipcard {
+	border: 0;
+	padding: 4px 2px;
+}
+:is(#myview, #instrument-view).instrument .qtcard[data-state="traveling"] {
+	border: 0;
+}
+:is(#myview, #instrument-view).instrument .sc-mini {
+	border: 0;
+	padding: 2px 0;
+}
+:is(#myview, #instrument-view).instrument :is(.sc-bar, .qtcard > .sc-bar) {
+	border-radius: 0;
+	height: 6px;
+}
+:is(#myview, #instrument-view).instrument .sc-bar i {
+	border-radius: 0;
+	background: var(--accent);
+}
+:is(#myview, #instrument-view).instrument .sc-bar.level-warn i {
+	background: var(--warn);
+}
+:is(#myview, #instrument-view).instrument .sc-pill {
+	border-radius: 0;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	font-size: 11px;
+}
+:is(#myview, #instrument-view).instrument .mission-obj {
+	background: transparent;
+	border-left-color: var(--accent);
+	border-radius: 0;
+}
+/* Saut quantique : anneau de progression (caché dans les autres habillages) */
+.qt-ring {
+	display: none;
+}
+:is(#myview, #instrument-view).instrument .qtcard:has(.qt-ring) {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-areas: "ring head" "ring dest" "ring grid" "ring rest";
+	column-gap: 16px;
+	align-items: start;
+}
+:is(#myview, #instrument-view).instrument .qtcard .qt-ring {
+	display: grid;
+	grid-area: ring;
+	position: relative;
+	width: 150px;
+	height: 150px;
+	place-content: center;
+	text-align: center;
+}
+:is(#myview, #instrument-view).instrument .qt-ring svg {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+:is(#myview, #instrument-view).instrument .qt-ring .qt-ring-num {
+	font-family: var(--ins-mono);
+	font-size: 26px;
+	position: relative;
+}
+:is(#myview, #instrument-view).instrument .qt-ring .sc-l {
+	position: relative;
+}
+:is(#myview, #instrument-view).instrument .qtcard > .qt-head {
+	grid-area: head;
+}
+:is(#myview, #instrument-view).instrument .qtcard > .qt-dest {
+	grid-area: dest;
+}
+:is(#myview, #instrument-view).instrument .qtcard > .sc-grid {
+	grid-area: grid;
+	grid-template-columns: 1fr;
+}
+:is(#myview, #instrument-view).instrument .qtcard > :is(.sc-bar, .hint) {
+	grid-column: 2;
+}
+:is(#myview, #instrument-view).instrument .card.function.hold-action {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 2px;
+}
+:is(#myview, #instrument-view).instrument .card.function.hold-action .label {
+	color: var(--bad);
+}
+:is(#myview, #instrument-view).instrument .card.function.hold-action .vhold-hint {
+	font-family: var(--ins-mono);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+}
+/* Valeurs sur une ligne (performances) : libellé moins espacé pour laisser la place au chiffre. */
+:is(#myview, #instrument-view).instrument .g-line .glabel {
+	letter-spacing: 0.06em;
+}
+/* Écran étroit (téléphone) : chiffres et libellés plus serrés, anneau plus petit. */
+@media (max-width: 600px) {
+	:is(#myview, #instrument-view).instrument :is(.glabel, .card .label, .sc-l) {
+		letter-spacing: 0.04em;
+	}
+	:is(#myview, #instrument-view).instrument :is(.g-number .gvalue, .g-segments .gvalue) {
+		font-size: 17px;
+	}
+	:is(#myview, #instrument-view).instrument .qtcard .qt-ring {
+		width: 120px;
+		height: 120px;
+	}
+	:is(#myview, #instrument-view).instrument .qt-ring .qt-ring-num {
+		font-size: 21px;
+	}
+}
+/* Onglet « Instrument de bord » : phrase d'aide et bouton de copie sur une ligne. */

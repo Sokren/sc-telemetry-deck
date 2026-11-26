@@ -73,6 +73,7 @@ function applyTexts() {
 	$("tab-grid").textContent = t("tabGrid");
 	$("tab-character").textContent = t("tabCharacter");
 	$("tab-ship").textContent = t("tabShip");
+	$("tab-instrument").textContent = t("tabInstrument");
 	$("tab-debug").textContent = `🐞 ${t("tabDebug")}`;
 	$("view-add").title = t("addView");
 	$("view-add").setAttribute("aria-label", t("addView"));
@@ -96,6 +97,8 @@ function applyTexts() {
 	debugTab?.applyTexts();
 	$("emotes-hint").textContent = t("emotesHint");
 	myView?.applyTexts();
+	instrumentView?.applyTexts();
+	loadInstrument();
 	lanPanel?.applyTexts();
 	renderAutoButton();
 	if ($("auto").open) renderAuto();
@@ -293,7 +296,36 @@ function setTheme(next) {
 	renderOptions();
 }
 
+// Plein écran (tablette / téléphone Android) : bouton caché si le navigateur ne le permet pas (iPhone).
+const fsDoc = document;
+const fsEnabled = fsDoc.fullscreenEnabled === true || fsDoc.webkitFullscreenEnabled === true;
+const fsIcon = (d) =>
+	`<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+const FS_ENTER_ICON = fsIcon("M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5");
+const FS_EXIT_ICON = fsIcon("M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5");
+const fsElement = () => fsDoc.fullscreenElement ?? fsDoc.webkitFullscreenElement ?? null;
+function renderFullscreen() {
+	const b = $("fullscreen");
+	b.hidden = !fsEnabled;
+	const on = fsElement() !== null;
+	// Coins vers l'extérieur = entrer ; coins vers l'intérieur = sortir.
+	b.innerHTML = on ? FS_EXIT_ICON : FS_ENTER_ICON;
+	b.title = t(on ? "fullscreenOff" : "fullscreenOn");
+	b.setAttribute("aria-label", b.title);
+	b.setAttribute("aria-pressed", String(on));
+}
+$("fullscreen").addEventListener("click", () => {
+	const root = document.documentElement;
+	const p = fsElement()
+		? (fsDoc.exitFullscreen ?? fsDoc.webkitExitFullscreen)?.call(fsDoc)
+		: (root.requestFullscreen ?? root.webkitRequestFullscreen)?.call(root);
+	// Refus du navigateur : rien à faire, le bouton reste dans son état.
+	Promise.resolve(p).catch(() => {});
+});
+for (const ev of ["fullscreenchange", "webkitfullscreenchange"]) document.addEventListener(ev, renderFullscreen);
+
 function renderOptions() {
+	renderFullscreen();
 	$("options-open").textContent = t("optionsButton");
 	$("options-title").textContent = t("optionsTitle");
 	$("opt-h-look").textContent = t("optLook");
@@ -400,8 +432,8 @@ $("about-open").addEventListener("click", () => {
 
 // ---------- Onglets ----------
 // Onglets fixes, puis un onglet par vue (« view:<id> ») ; « ＋ » crée une vue. Téléphone : liste déroulante.
-const TABS = ["grid", "character", "ship", "debug"];
-const TAB_TEXT = { grid: "tabGrid", character: "tabCharacter", ship: "tabShip", debug: "tabDebug" };
+const TABS = ["grid", "character", "ship", "instrument", "debug"];
+const TAB_TEXT = { grid: "tabGrid", character: "tabCharacter", ship: "tabShip", instrument: "tabInstrument", debug: "tabDebug" };
 const MAX_VIEWS = 10;
 const ADD = "__add";
 /** Vues connues (nom et id), dans l'ordre des onglets ; `null` tant que l'appli ne les a pas envoyées. */
@@ -593,6 +625,7 @@ async function loadEmotes() {
 		if (!r.ok) throw new Error(String(r.status));
 		const { groups, live } = await r.json();
 		myView?.setActions(groups);
+		instrumentView?.setActions(groups);
 		const emotes = groups.find((g) => g.category === EMOTES)?.actions ?? [];
 		renderEmotes(emotes);
 		renderPlayerActions(groups.find((g) => g.category === PLAYER)?.actions ?? []);
@@ -831,6 +864,8 @@ function connect() {
 		if (inShip) $("ship-card").replaceChildren(shipCard(lastState, 2, t));
 		renderSituation(lastState);
 		myView?.setState(lastState);
+		instrumentView.setState(lastState);
+		if (instrumentLang !== lang) loadInstrument();
 		// Onglet Debug : on y reste, la vue automatique ne s'applique pas. Mode du perso prioritaire s'il a sa vue.
 		if (currentTab !== "debug") autoSwitch?.update(situationOf(lastState.character.locomotion, lastState.character.mode, autoSettings));
 	});
@@ -919,6 +954,7 @@ function renderNumbersOption() {
 				setNumberFormat(lang, id);
 				renderNumbersOption();
 				if (lastState) myView?.setState(lastState);
+				if (lastState) instrumentView?.setState(lastState);
 			});
 			return b;
 		}),
@@ -926,8 +962,22 @@ function renderNumbersOption() {
 }
 
 // ---------- Ma vue ----------
-const myView = createView({
+/** Ce que le moteur de vues reçoit de la page (Ma vue et vue intégrée « Instrument de bord »). */
+const viewCtx = {
 	t,
+	token: () => token,
+	lang: () => lang,
+	card,
+	pressFunction: (id, el) => pressFunction(id, el, "view"),
+	triggerAction: (name, el) => triggerEmote(name, el, "view"),
+	holdToPress,
+	holdActions: HOLD_ACTIONS,
+	morse: sendMorse,
+	showMessage,
+	storage: { get: storageGet, set: storageSet },
+};
+const myView = createView({
+	...viewCtx,
 	// Vue reverrouillée : un changement automatique en attente peut se faire.
 	onLockChange: (unlocked) => !unlocked && autoSwitch?.retry(),
 	token: () => token,
@@ -944,15 +994,34 @@ const myView = createView({
 		if (viewTabs?.[0]) showTab(`view:${viewTabs[0].id}`);
 		else showTab("grid");
 	},
-	card,
-	pressFunction: (id, el) => pressFunction(id, el, "view"),
-	triggerAction: (name, el) => triggerEmote(name, el, "view"),
-	holdToPress,
-	holdActions: HOLD_ACTIONS,
-	morse: sendMorse,
-	showMessage,
-	storage: { get: storageGet, set: storageSet },
 });
+
+// ---------- Onglet « Instrument de bord » : vue intégrée (modèle instrument_panel), toujours verrouillée ----------
+const instrumentView = createView({ ...viewCtx, root: $("instrument-view"), fixed: true, onViewsChanged() {}, openView() {}, onMissing() {} });
+/** Langue du modèle affiché (relu au changement de langue) ; `null` tant qu'il n'est pas chargé. */
+let instrumentLang = null;
+let instrumentLoading = false;
+async function loadInstrument() {
+	if (instrumentLoading || instrumentLang === lang) return;
+	instrumentLoading = true;
+	const wanted = lang;
+	try {
+		const r = await fetch(`/api/v1/views/templates?lang=${wanted}`, { headers: { authorization: `Bearer ${token}` } });
+		const tpl = r.ok ? (await r.json()).templates.find((x) => x.id === "instrument_panel") : undefined;
+		if (tpl) {
+			instrumentLang = wanted;
+			instrumentView.setFixedView(tpl.view);
+			if (lastState) instrumentView.setState(lastState);
+		}
+	} catch {
+		/* appli injoignable : nouvel essai à la prochaine trame */
+	} finally {
+		instrumentLoading = false;
+	}
+	// Langue changée pendant la lecture : relire dans la nouvelle (sinon, nouvel essai à la prochaine trame).
+	if (wanted !== lang) loadInstrument();
+}
+loadInstrument();
 
 // ---------- Changement de vue automatique (réglage propre à cet appareil) ----------
 const AUTO_KEY = "sctd-autoswitch";
@@ -1075,13 +1144,13 @@ const lanPanel = createLan({
 		connect();
 	},
 	views: () => viewTabs ?? [],
-	currentView: () => viewId(currentTab),
+	currentView: () => (currentTab === "instrument" ? "instrument" : viewId(currentTab)),
 });
 
 applyTexts();
 // Onglet de départ : lien `?view=`, sinon dernier choix de l'appareil (ancien « myview » → première vue).
 const savedTab = storageGet(TAB_KEY);
-showTab(viewParam ? `view:${viewParam}` : savedTab === "myview" ? "view:main" : savedTab || "grid");
+showTab(viewParam === "instrument" ? "instrument" : viewParam ? `view:${viewParam}` : savedTab === "myview" ? "view:main" : savedTab || "grid");
 if (!token) {
 	setStatus("off", "");
 	showMessage(t("needToken"));

@@ -43,6 +43,43 @@ export function travelProgress(q) {
 	return travelStart > 0 ? (1 - q.distanceM / travelStart) * 100 : null;
 }
 
+/** Temps restant en « m:ss » (ou « h:mm:ss »), pour le centre de l'anneau. */
+export function ringClock(seconds) {
+	const s = Math.max(0, Math.round(seconds));
+	const h = Math.floor(s / 3600);
+	const m = Math.floor((s % 3600) / 60);
+	const ss = String(s % 60).padStart(2, "0");
+	return h ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
+}
+
+const SVG = "http://www.w3.org/2000/svg";
+/** Anneau de progression (habillage « Instrument de bord » seulement : caché ailleurs par la feuille de style). */
+function qtRing(percent, center, caption) {
+	const box = el("div", "qt-ring");
+	const svg = document.createElementNS(SVG, "svg");
+	svg.setAttribute("viewBox", "0 0 170 170");
+	svg.setAttribute("aria-hidden", "true");
+	const r = 74;
+	const c = 2 * Math.PI * r;
+	const circle = (stroke, extra = {}) => {
+		const k = document.createElementNS(SVG, "circle");
+		for (const [a, v] of Object.entries({ cx: 85, cy: 85, r, fill: "none", stroke, "stroke-width": 7, ...extra })) k.setAttribute(a, String(v));
+		return k;
+	};
+	svg.append(circle("var(--line)"));
+	const p = Math.max(0, Math.min(100, percent));
+	if (p > 0) svg.append(circle("var(--accent)", { "stroke-dasharray": `${(p / 100) * c} ${c}`, transform: "rotate(-90 85 85)" }));
+	for (let i = 0; i < 48; i++) {
+		const a = (i / 48) * 2 * Math.PI;
+		const r2 = i % 4 ? 63 : 66;
+		const line = document.createElementNS(SVG, "line");
+		for (const [k, v] of Object.entries({ x1: 85 + 60 * Math.sin(a), y1: 85 - 60 * Math.cos(a), x2: 85 + r2 * Math.sin(a), y2: 85 - r2 * Math.cos(a), stroke: "var(--line)", "stroke-width": 1.5 })) line.setAttribute(k, String(v));
+		svg.append(line);
+	}
+	box.append(svg, el("div", "qt-ring-num", center), el("div", "sc-l", caption));
+	return box;
+}
+
 const QT_PILL = { off: "", idle: "", aligning: "warn", traveling: "qt", cooldown: "" };
 
 /** Encart « Saut quantique ». */
@@ -61,6 +98,9 @@ export function quantumCard(state, t) {
 	head.append(el("span", `sc-pill ${QT_PILL[q.state] ?? ""}`, q.label));
 	if (q.destination) box.append(el("div", "qt-dest", `→ ${q.destination}`));
 	const progress = travelProgress(q);
+	if (q.state === "traveling") box.append(qtRing(progress ?? 0, q.etaSeconds != null ? ringClock(q.etaSeconds) : "—", t("qtEta")));
+	else if (q.state === "aligning") box.append(qtRing(q.calibration, pct(q.calibration), t("qtCalibration")));
+	else box.append(qtRing(0, "—", q.label));
 	if (q.state === "off") {
 		box.append(el("p", "hint", t("qtOff")));
 		return box;

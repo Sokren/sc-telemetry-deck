@@ -160,8 +160,11 @@ const button = (cls, text, title) => {
  */
 export function createView(ctx) {
 	const { t } = ctx;
-	const root = document.getElementById("myview");
-	const lockBtn = document.getElementById("view-lock");
+	// `ctx.fixed` : vue intégrée (onglet Instrument de bord) — une seule vue fournie par `setFixedView`, toujours
+	// verrouillée : pas de cadenas, pas d'édition, pas d'enregistrement.
+	const fixed = ctx.fixed === true;
+	const root = ctx.root ?? document.getElementById("myview");
+	const lockBtn = fixed ? null : document.getElementById("view-lock");
 	/** Toutes les vues (dernière liste reçue, avec la vue affichée telle qu'éditée ici). */
 	let views = null;
 	let currentId = null;
@@ -169,7 +172,7 @@ export function createView(ctx) {
 	let view = null;
 	let state = null;
 	let actionGroups = [];
-	let unlocked = ctx.storage.get(UNLOCK_KEY) === "1";
+	let unlocked = !fixed && ctx.storage.get(UNLOCK_KEY) === "1";
 	let visible = false;
 	let saveTimer;
 	let drag = null;
@@ -786,6 +789,7 @@ export function createView(ctx) {
 		// Cockpit : le HUD (cadres, chiffres) plus les boutons centrés et les jauges sur une ligne de la maquette.
 		root.classList.toggle("hud", view?.look === "hud" || view?.look === "cockpit");
 		root.classList.toggle("cockpit", view?.look === "cockpit");
+		root.classList.toggle("instrument", view?.look === "instrument");
 		if (!view) return root.replaceChildren(el("p", "hint", t("connecting")));
 		const list = el("div", "vsections");
 		list.append(...view.sections.map(renderSection));
@@ -803,7 +807,7 @@ export function createView(ctx) {
 			parts.push(add);
 		}
 		if (!view.sections.length && !unlocked) parts.push(el("p", "hint", t("viewEmpty")));
-		parts.push(el("p", "hint vhint", unlocked ? t("viewHintEdit") : t("viewHintLocked")));
+		if (!fixed) parts.push(el("p", "hint vhint", unlocked ? t("viewHintEdit") : t("viewHintLocked")));
 		root.replaceChildren(...parts);
 	}
 
@@ -859,6 +863,7 @@ export function createView(ctx) {
 			["standard", "lookStandard"],
 			["hud", "lookHud"],
 			["cockpit", "lookCockpit"],
+			["instrument", "lookInstrument"],
 		]) {
 			const b = button("vlook-opt", t(key));
 			b.setAttribute("role", "radio");
@@ -876,6 +881,7 @@ export function createView(ctx) {
 	}
 
 	function renderLock() {
+		if (!lockBtn) return;
 		lockBtn.hidden = !visible;
 		lockBtn.textContent = unlocked ? t("viewDone") : t("viewLocked");
 		lockBtn.classList.toggle("open", unlocked);
@@ -896,6 +902,7 @@ export function createView(ctx) {
 	}
 
 	function scheduleSave() {
+		if (fixed) return;
 		clearTimeout(saveTimer);
 		saveTimer = setTimeout(save, SAVE_DELAY);
 	}
@@ -908,6 +915,7 @@ export function createView(ctx) {
 
 	/** Enregistre la vue affichée (elle seule : les autres vues ne sont pas touchées). */
 	async function save() {
+		if (fixed) return;
 		clearTimeout(saveTimer);
 		saveTimer = undefined;
 		if (!view) return;
@@ -1343,12 +1351,13 @@ export function createView(ctx) {
 	}
 
 	// ---------- Cadenas ----------
-	lockBtn.addEventListener("click", () => {
+	lockBtn?.addEventListener("click", () => {
 		if (unlocked && saveTimer) save();
 		setUnlocked(!unlocked);
 	});
 
 	function setUnlocked(v) {
+		if (fixed) return;
 		unlocked = v;
 		ctx.storage.set(UNLOCK_KEY, unlocked ? "1" : "0");
 		renderLock();
@@ -1437,6 +1446,12 @@ export function createView(ctx) {
 			const input = root.querySelector(".vname-input");
 			input?.focus();
 			input?.select();
+		},
+		/** Vue intégrée (mode `fixed`) : affiche cette vue telle quelle. */
+		setFixedView(v) {
+			view = v ? structuredClone(v) : null;
+			currentId = v ? "__fixed" : null;
+			render();
 		},
 		setState(s) {
 			const first = !state;
