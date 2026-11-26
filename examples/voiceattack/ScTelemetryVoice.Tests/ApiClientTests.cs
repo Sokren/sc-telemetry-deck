@@ -103,4 +103,44 @@ public sealed class ApiClientTests
 		Assert.NotEmpty(logs);
 		Assert.All(logs, l => Assert.DoesNotContain("sct_ext", l));
 	}
+
+	[Fact]
+	public async Task Events_call_onDisconnect_once_when_connected_stream_ends()
+	{
+		using var cts = new CancellationTokenSource();
+		var attempts = 0;
+		var disconnects = 0;
+		var h = new FakeHandler((_, _) =>
+		{
+			if (++attempts == 1) return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("event: status\ndata: {}\n\n") });
+			if (attempts == 3) cts.Cancel();
+			throw new HttpRequestException("refused");
+		});
+		await new ApiClient(Config, h, retryDelay: TimeSpan.Zero).RunEventsAsync((_, _) => { }, _ => { }, cts.Token, () => disconnects++);
+		Assert.Equal(1, disconnects);
+	}
+
+	[Fact]
+	public async Task Events_log_refused_token_once_with_reason()
+	{
+		using var cts = new CancellationTokenSource();
+		var logs = new List<string>();
+		var attempts = 0;
+		var h = new FakeHandler((_, _) =>
+		{
+			if (++attempts == 3) cts.Cancel();
+			return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized) { Content = new StringContent("""{"error":"unauthorized","reason":"stopped"}""") });
+		});
+		await new ApiClient(Config, h, retryDelay: TimeSpan.Zero, refusedDelay: TimeSpan.Zero).RunEventsAsync((_, _) => { }, logs.Add, cts.Token);
+		var line = Assert.Single(logs);
+		Assert.Contains("stopped", line);
+		Assert.DoesNotContain("sct_ext", line);
+	}
+
+	[Theory]
+	[InlineData("""{"error":"forbidden","reason":"dangerous_action"}""", "dangerous_action")]
+	[InlineData("""{"error":"unauthorized"}""", null)]
+	[InlineData("pas du json", null)]
+	public void ReasonOf_reads_reason_field(string body, string? expected) =>
+		Assert.Equal(expected, ApiClient.ReasonOf(body));
 }

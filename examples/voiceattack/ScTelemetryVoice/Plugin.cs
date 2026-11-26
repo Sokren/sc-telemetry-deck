@@ -41,7 +41,7 @@ public static class Plugin
 		_alerts = new AlertEngine(_config.Thresholds, () => DateTime.UtcNow);
 		_cts = new CancellationTokenSource();
 		var ct = _cts.Token;
-		_stream = Task.Run(() => _client.RunEventsAsync(OnEvent, m => Log(m, "orange"), ct), ct);
+		_stream = Task.Run(() => _client.RunEventsAsync(OnEvent, m => Log(m, "orange"), ct, OnDisconnect), ct);
 		Log($"SC Telemetry Deck – Voice : prêt / ready ({_config.Url})", "green");
 	}
 
@@ -69,11 +69,15 @@ public static class Plugin
 			switch (ContextParser.Parse(context))
 			{
 				case FunctionOrder f:
-					var press = Replies.ForFunction(lang, _client.PressAsync(f.Id, f.Mode).GetAwaiter().GetResult(), State.Function(f.Id), f.Mode);
+					var pressed = _client.PressAsync(f.Id, f.Mode).GetAwaiter().GetResult();
+					LogRefused(pressed);
+					var press = Replies.ForFunction(lang, pressed, State.Function(f.Id), f.Mode);
 					Reply(vaProxy, press.Outcome.ToString().ToLowerInvariant(), press.Reply);
 					break;
 				case ActionOrder a:
-					var trig = Replies.ForAction(lang, _client.TriggerAsync(a.Name).GetAwaiter().GetResult(), a.Name);
+					var triggered = _client.TriggerAsync(a.Name).GetAwaiter().GetResult();
+					LogRefused(triggered);
+					var trig = Replies.ForAction(lang, triggered, a.Name);
 					Reply(vaProxy, trig.Outcome.ToString().ToLowerInvariant(), trig.Reply);
 					break;
 				case SayOrder s:
@@ -110,13 +114,41 @@ public static class Plugin
 				default:
 					return; // tile, views, feedback… : sans intérêt ici
 			}
-			foreach (var command in _alerts?.Evaluate(State) ?? [])
-				Set(p => { if (p.Command.Exists(command)) p.Command.Execute(command); });
+			RunAlerts();
 		}
 		catch (Exception e)
 		{
 			Log($"SC Telemetry Deck – Voice : {e.GetType().Name} ({ev})", "red");
 		}
+	}
+
+	// Thread de fond : flux coupé (appli fermée…) → on oublie les valeurs, plus rien n'est « live ».
+	private static void OnDisconnect()
+	{
+		try
+		{
+			State.Reset();
+			Set(p => p.SetText("SCTD_jeu", "no_data"));
+			PublishState();
+			RunAlerts();
+		}
+		catch (Exception e)
+		{
+			Log($"SC Telemetry Deck – Voice : {e.GetType().Name} (disconnect)", "red");
+		}
+	}
+
+	private static void RunAlerts()
+	{
+		foreach (var command in _alerts?.Evaluate(State) ?? [])
+			Set(p => { if (p.Command.Exists(command)) p.Command.Execute(command); });
+	}
+
+	// Jeton refusé sur un ordre : la raison (level, lan, stopped, dangerous_action…) au journal, jamais le jeton.
+	private static void LogRefused(ApiResponse r)
+	{
+		if (r.Status is 401 or 403)
+			Log($"SC Telemetry Deck – Voice : refusé / refused ({r.Status}, {ApiClient.ReasonOf(r.Body) ?? "?"})", "orange");
 	}
 
 	private static void PublishState()

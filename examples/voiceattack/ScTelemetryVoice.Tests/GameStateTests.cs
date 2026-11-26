@@ -68,4 +68,19 @@ public sealed class GameStateTests
 		s.ApplyState(Samples.State(inShip: false));
 		Assert.False(s.InShip);
 	}
+
+	[Fact]
+	public void Reset_forgets_everything()
+	{
+		var s = new GameState();
+		s.ApplyStatus(Samples.Status(live: true));
+		s.ApplyState(Samples.State(gearState: "on"));
+		s.Reset();
+		Assert.False(s.Live);
+		Assert.False(s.InShip);
+		Assert.Null(s.ShipName);
+		Assert.Null(s.Percent("shields"));
+		Assert.Null(s.Percent("oxygen"));
+		Assert.Null(s.Function("gear"));
+	}
 }

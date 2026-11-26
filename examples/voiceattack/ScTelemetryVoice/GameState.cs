@@ -32,6 +32,19 @@ public sealed class GameState
 	public string? Label(string key) { lock (_lock) return _values.TryGetValue(key, out var v) ? v.Label : null; }
 	public FunctionWords? Function(string id) { lock (_lock) return _functions.GetValueOrDefault(id); }
 
+	/// <summary>Oublie tout (flux coupé, appli fermée) : plus « live », plus de valeurs.</summary>
+	public void Reset()
+	{
+		lock (_lock)
+		{
+			_live = false;
+			_inShip = false;
+			_shipName = null;
+			_values = [];
+			_functions = [];
+		}
+	}
+
 	/// <summary>Événement <c>status</c> : <c>telemetry</c> vaut <c>live</c> ou <c>no_data</c>.</summary>
 	public void ApplyStatus(string json)
 	{
