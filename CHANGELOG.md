@@ -33,6 +33,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 - The event stream no longer sends views to external tokens, and only the allowed views to a plugin.
 
 ### Changed
+- Update check: only **main versions** are offered (`x.y.z`). Pre-releases, betas and release candidates are ignored, even when they are not flagged as pre-release on GitHub, and a beta is never counted as newer than the version of the same number.
 - Game schema updated: 5.0 PTU build 13273298 (5.0.202.35026).
 
 ## [0.3.15] — 2026-11-24

@@ -1,5 +1,10 @@
-/** Dépôt public dont on lit la dernière release (lecture seule, aucune donnée envoyée). */
-export const RELEASES_API = "https://api.github.com/repos/Sokren/sc-telemetry-deck/releases/latest";
+/**
+ * Releases du dépôt public (lecture seule, aucune donnée envoyée). La liste plutôt que `/releases/latest` : on ne
+ * propose que les versions principales, même si une bêta n'a pas été cochée « pre-release » sur GitHub.
+ */
+export const RELEASES_API = "https://api.github.com/repos/Sokren/sc-telemetry-deck/releases?per_page=30";
+/** Version principale : `x.y.z` (un `v` devant permis), sans suffixe `-beta`, `-rc`… */
+const STABLE_TAG = /^v?\d+\.\d+\.\d+$/i;
 /** Vérification automatique : au démarrage puis une fois par jour. */
 export const CHECK_EVERY_MS = 24 * 60 * 60 * 1000;
 
@@ -17,28 +22,50 @@ export type UpdateState = {
 	checkedAt: string | null;
 };
 
-/** Compare deux versions `a.b.c` (un `v` devant est ignoré) : négatif si a < b, 0 si égales, positif si a > b. */
+/**
+ * Compare deux versions `a.b.c` (un `v` devant est ignoré) : négatif si a < b, 0 si égales, positif si a > b.
+ * Une préversion (`0.4.0-beta.1`) passe avant la version principale du même numéro (`0.4.0`).
+ */
 export function compareVersions(a: string, b: string): number {
-	const parts = (v: string) => v.replace(/^v/i, "").split(/[.-]/).map((p) => Number.parseInt(p, 10) || 0);
-	const pa = parts(a);
-	const pb = parts(b);
-	for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-		const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+	const split = (v: string) => {
+		const [main = "", pre] = v.replace(/^v/i, "").split(/-(.*)/s);
+		return { nums: main.split(".").map((p) => Number.parseInt(p, 10) || 0), pre: pre ?? null };
+	};
+	const va = split(a);
+	const vb = split(b);
+	for (let i = 0; i < Math.max(va.nums.length, vb.nums.length); i++) {
+		const d = (va.nums[i] ?? 0) - (vb.nums[i] ?? 0);
 		if (d) return d;
 	}
-	return 0;
+	if (va.pre === vb.pre) return 0;
+	if (va.pre === null) return 1;
+	if (vb.pre === null) return -1;
+	return va.pre.localeCompare(vb.pre, "en", { numeric: true });
 }
 
-/** Lit la dernière release sur GitHub (5 s maximum). En-tête générique : aucune information sur le joueur. */
+/**
+ * Lit la plus haute version principale publiée sur GitHub (5 s maximum) : brouillons, préversions et tags avec
+ * suffixe (`-beta`, `-rc`…) ignorés. En-tête générique : aucune information sur le joueur.
+ */
 export async function fetchLatestRelease(fetchImpl: typeof fetch = fetch): Promise<LatestRelease> {
 	const r = await fetchImpl(RELEASES_API, {
 		headers: { accept: "application/vnd.github+json", "user-agent": "sc-telemetry-deck" },
 		signal: AbortSignal.timeout(5000),
 	});
 	if (!r.ok) throw new Error(`GitHub ${r.status}`);
-	const body = (await r.json()) as { tag_name?: unknown; html_url?: unknown; published_at?: unknown };
-	if (typeof body.tag_name !== "string" || typeof body.html_url !== "string") throw new Error("réponse GitHub inattendue");
-	return { version: body.tag_name.replace(/^v/i, ""), url: body.html_url, publishedAt: typeof body.published_at === "string" ? body.published_at : null };
+	const body: unknown = await r.json();
+	if (!Array.isArray(body)) throw new Error("réponse GitHub inattendue");
+	let best: LatestRelease | undefined;
+	for (const x of body as { tag_name?: unknown; html_url?: unknown; published_at?: unknown; draft?: unknown; prerelease?: unknown }[]) {
+		if (!x || x.draft === true || x.prerelease === true) continue;
+		if (typeof x.tag_name !== "string" || !STABLE_TAG.test(x.tag_name) || typeof x.html_url !== "string") continue;
+		const version = x.tag_name.replace(/^v/i, "");
+		if (!best || compareVersions(version, best.version) > 0) {
+			best = { version, url: x.html_url, publishedAt: typeof x.published_at === "string" ? x.published_at : null };
+		}
+	}
+	if (!best) throw new Error("aucune version principale publiée");
+	return best;
 }
 
 /**

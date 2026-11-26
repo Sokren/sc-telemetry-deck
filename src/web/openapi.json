@@ -1830,7 +1830,7 @@
 					"General"
 				],
 				"summary": "Update check state — état de la vérification de version",
-				"description": "Whether a newer version of the web app is published on GitHub (read only: the app only reads the latest public release, sends no data, and never downloads anything). — FR : indique si une version plus récente de l'appli est publiée sur GitHub (lecture seule : l'appli lit seulement la dernière version publique, n'envoie aucune donnée et ne télécharge rien).",
+				"description": "Whether a newer version of the web app is published on GitHub (read only: the app only reads the public releases and offers main versions only, never a pre-release, beta or release candidate; it sends no data and never downloads anything). — FR : indique si une version plus récente de l'appli est publiée sur GitHub (lecture seule : l'appli lit seulement les versions publiques et ne propose que les versions principales, jamais une préversion, une bêta ou une version candidate ; elle n'envoie aucune donnée et ne télécharge rien).",
 				"responses": {
 					"200": {
 						"description": "State — état",

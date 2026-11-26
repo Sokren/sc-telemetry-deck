@@ -33,6 +33,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 - Le flux d'événements n'envoie plus les vues aux jetons externes, et seulement les vues permises à un plugin.
 
 ### Modifié
+- Vérification de version : seules les **versions principales** sont proposées (`x.y.z`). Préversions, bêtas et versions candidates sont ignorées, même si elles ne sont pas marquées « pre-release » sur GitHub, et une bêta n'est jamais comptée comme plus récente que la version du même numéro.
 - Schéma du jeu mis à jour : 5.0 PTU build 13273298 (5.0.202.35026).
 
 ## [0.3.15] — 2026-11-24

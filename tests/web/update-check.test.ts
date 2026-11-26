@@ -12,14 +12,23 @@ describe("compareVersions", () => {
 		expect(compareVersions("0.3.10", "v0.3.10")).toBe(0);
 		expect(compareVersions("0.4", "0.3.99")).toBeGreaterThan(0);
 	});
+
+	test("préversion plus ancienne que la version stable du même numéro", () => {
+		expect(compareVersions("0.4.0-beta.1", "0.4.0")).toBeLessThan(0);
+		expect(compareVersions("0.4.0", "0.4.0-rc.2")).toBeGreaterThan(0);
+		expect(compareVersions("0.4.0-beta.1", "0.3.15")).toBeGreaterThan(0);
+	});
 });
+
+const rel = (tag: string, extra: Record<string, unknown> = {}) => ({ tag_name: tag, html_url: `https://github.com/x/releases/tag/${tag}`, published_at: "2026-11-24T10:00:00Z", draft: false, prerelease: false, ...extra });
+const answer = (body: unknown) => (async () => new Response(JSON.stringify(body))) as unknown as typeof fetch;
 
 describe("fetchLatestRelease", () => {
 	test("lit tag, page et date ; en-tête générique ; réponse inattendue → erreur", async () => {
 		const calls: RequestInit[] = [];
 		const ok = (async (_u: string, init: RequestInit) => {
 			calls.push(init);
-			return new Response(JSON.stringify({ tag_name: "v0.3.11", html_url: "https://github.com/x/releases/tag/v0.3.11", published_at: "2026-11-24T10:00:00Z" }));
+			return new Response(JSON.stringify([rel("v0.3.11")]));
 		}) as unknown as typeof fetch;
 		expect(await fetchLatestRelease(ok)).toEqual({ version: "0.3.11", url: "https://github.com/x/releases/tag/v0.3.11", publishedAt: "2026-11-24T10:00:00Z" });
 		expect((calls[0].headers as Record<string, string>)["user-agent"]).toBe("sc-telemetry-deck");
@@ -27,6 +36,22 @@ describe("fetchLatestRelease", () => {
 		await expect(fetchLatestRelease(bad)).rejects.toThrow();
 		const down = (async () => new Response("", { status: 503 })) as unknown as typeof fetch;
 		await expect(fetchLatestRelease(down)).rejects.toThrow("503");
+	});
+
+	test("versions principales seulement : préversions, bêtas, RC et brouillons ignorés ; la plus haute gagne", async () => {
+		const list = [
+			rel("v0.5.0-beta.1"),
+			rel("v0.4.1", { prerelease: true }),
+			rel("v0.4.2", { draft: true }),
+			rel("v0.4.0-rc.1"),
+			rel("v0.4.0"),
+			rel("v0.3.15"),
+		];
+		expect((await fetchLatestRelease(answer(list))).version).toBe("0.4.0");
+		// Ordre de la liste sans importance.
+		expect((await fetchLatestRelease(answer([rel("v0.3.15"), rel("v0.3.16"), rel("v0.3.9")]))).version).toBe("0.3.16");
+		// Aucune version principale publiée : erreur (« on réessaiera »), jamais une bêta proposée.
+		await expect(fetchLatestRelease(answer([rel("v0.5.0-beta.1")]))).rejects.toThrow();
 	});
 });
 
