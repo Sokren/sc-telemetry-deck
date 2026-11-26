@@ -770,7 +770,21 @@ export function createView(ctx) {
 			});
 			ctl.append(width, tall, handle, del);
 			head.append(ctl);
-		} else head.append(el("h2", "vtitle", section.title));
+		} else {
+			const title = el("h2", "vtitle", section.title);
+			head.append(title);
+			// Section « ship » (modèles Instrument de bord) : marque et nom du vaisseau à côté du titre.
+			if (section.id === "ship") {
+				const ship = el("span", "vtitle-ship");
+				title.append(ship);
+				const update = () => {
+					const m = state?.shipStatus?.model;
+					ship.textContent = m ? ` — ${[m.manufacturerShort, m.name].filter(Boolean).join(" ")}` : "";
+				};
+				update();
+				updaters.set(`section:${section.id}`, update);
+			}
+		}
 		const grid = el("div", "vgrid");
 		grid.append(...section.items.map((i) => renderItem(section, i)));
 		sec.append(head, grid);

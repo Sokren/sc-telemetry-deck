@@ -3636,6 +3636,16 @@ dialog .opt-back {
 :is(#myview, #instrument-view).instrument .vswitch .flash.ok {
 	display: none;
 }
+/* Marque et nom du vaisseau après le titre de la section Vaisseau (une ligne, coupée si trop longue). */
+.vsec[data-id="ship"] .vtitle {
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+#instrument-view .vsec[data-id="ship"] .vhead {
+	padding-right: 124px;
+}
 /* Onglet fixe : le mode NAV / SCM dans l'en-tête de la section Vaisseau, à droite du titre. */
 #instrument-view .vsec[data-id="ship"] .vitem[data-id="master_nav"] {
 	position: absolute;
