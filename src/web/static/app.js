@@ -62,6 +62,10 @@ function setStatus(kind, text) {
 	$("status-text").textContent = text;
 }
 
+// Page ouverte ailleurs que sur le PC (tablette, téléphone) : un jeton refusé veut dire « rescanne le QR code ».
+const ON_PC = ["127.0.0.1", "localhost", "[::1]", "::1"].includes(location.hostname);
+const refusedText = () => t(ON_PC ? "badToken" : "mobileLinkInvalid");
+
 function showMessage(text) {
 	$("message").textContent = text;
 	$("message").hidden = !text;
@@ -281,7 +285,7 @@ const debugTab = createDebug({
 	top: debugPerf,
 	t: (k) => t(k),
 	request: (method, url) => fetch(url, { method, headers: { authorization: `Bearer ${token}` } }),
-	onUnauthorized: () => showMessage(t("badToken")),
+	onUnauthorized: () => showMessage(refusedText()),
 	lang: () => lang,
 });
 $("tab-debug").hidden = !debugOn;
@@ -557,7 +561,7 @@ async function press(index) {
 	ownPresses.set(index, Date.now());
 	try {
 		const r = await fetch(`/api/v1/layout/tiles/${index}/press`, { method: "POST", headers: { authorization: `Bearer ${token}`, "x-sctd-origin": "grid" } });
-		if (r.status === 401) return showMessage(t("badToken"));
+		if (r.status === 401) return showMessage(refusedText());
 		const body = await r.json();
 		flashOn(tileButton(index), body.feedback === "ok" ? "ok" : "alert");
 	} catch {
@@ -698,7 +702,7 @@ async function triggerEmote(name, el, origin = "character") {
 			method: "POST",
 			headers: { authorization: `Bearer ${token}`, "x-sctd-origin": origin },
 		});
-		if (r.status === 401) return showMessage(t("badToken"));
+		if (r.status === 401) return showMessage(refusedText());
 		const ok = r.status === 200;
 		flashOn(el, ok ? "ok" : "alert");
 		showFailure(el, ok ? null : await r.json().catch(() => ({ reason: String(r.status) })));
@@ -718,7 +722,7 @@ async function sendMorse(body, el) {
 			headers: { authorization: `Bearer ${token}`, ...(playing ? {} : { "content-type": "application/json" }) },
 			...(playing ? {} : { body: JSON.stringify(body) }),
 		});
-		if (r.status === 401) return showMessage(t("badToken"));
+		if (r.status === 401) return showMessage(refusedText());
 		// Arrêt : message déjà terminé (404) = rien à arrêter, pas une erreur.
 		flashOn(el, r.ok || (playing && r.status === 404) ? "ok" : "alert");
 	} catch {
@@ -734,7 +738,7 @@ async function pressFunction(id, el, origin = "ship") {
 			headers: { authorization: `Bearer ${token}`, "content-type": "application/json", "x-sctd-origin": origin },
 			body: JSON.stringify({ mode: "toggle" }),
 		});
-		if (r.status === 401) return showMessage(t("badToken"));
+		if (r.status === 401) return showMessage(refusedText());
 		const ok = r.status === 200;
 		flashOn(el, ok ? "ok" : "alert");
 		showFailure(el, ok ? null : await r.json().catch(() => ({ reason: String(r.status) })));
@@ -893,7 +897,9 @@ function connect() {
 		const used = token;
 		try {
 			const r = await fetch("/api/v1/status", { headers: { authorization: `Bearer ${used}` } });
-			if (r.status === 401 && mine === source && used === token) {
+			// 401 : jeton inconnu ; 403 pc_only : jeton admin utilisé hors du PC (ancien lien d'une tablette).
+			const refused = r.status === 401 || (r.status === 403 && (await r.json().catch(() => ({}))).reason === "pc_only");
+			if (refused && mine === source && used === token) {
 				// Nouveau jeton créé dans un autre onglet du PC : repris ici au lieu de « jeton refusé ».
 				const stored = storageGet(TOKEN_KEY);
 				if (stored && stored !== used) {
@@ -901,7 +907,7 @@ function connect() {
 					return connect();
 				}
 				source.close();
-				showMessage(t("badToken"));
+				showMessage(refusedText());
 			}
 		} catch {
 			/* l'appli est fermée : EventSource se reconnecte seul */
