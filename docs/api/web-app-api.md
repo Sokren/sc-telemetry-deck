@@ -23,22 +23,29 @@ The full contract is the OpenAPI file that the app serves.
 
 ## Authentication
 
-Every endpoint except `/api/v1/openapi.json` needs the access token.
+Every endpoint except `/api/v1/openapi.json` needs a token.
 
-- Send it in a header: `Authorization: Bearer <TOKEN>`.
-- The app stores it in `%APPDATA%\SC Telemetry Deck\settings.json`.
-- Browsers cannot add headers to `EventSource` or to a page link: pass the token as `?t=<TOKEN>` instead.
-- **New token** in ⚙ Options → Tablet / phone replaces the token. Every other device must then scan the QR code again.
+| Token | Where it works | Rights |
+|---|---|---|
+| Admin token | This PC only | Everything |
+| Mobile token | Everywhere (QR code, tablet link) | The page's rights, without the administration routes |
+| External token (`sct_ext_…`) | This PC, or the network if its option is set | Its level: Read, Pilot or Full pilot |
 
-A request without a valid token gets `401`.
+- Send the token in a header: `Authorization: Bearer <TOKEN>`.
+- The app stores the admin and mobile tokens in `%APPDATA%\SC Telemetry Deck\settings.json`.
+- Browsers cannot add headers to `EventSource` or to a page link: pass the admin or mobile token as `?t=<TOKEN>` instead.
+- Administration routes: `/api/v1/lan*`, `/api/v1/access/*`, `/api/v1/plugins*`, `PUT /api/v1/update`, `POST /api/v1/update/check`.
+- **New token** in ⚙ Options → Tablet / phone replaces the mobile token. Tablets and phones must scan the QR code again; the PC stays connected.
+
+A request without a valid token gets `401`. The admin token used off the PC, or the mobile token on an administration route, gets `403` `{"error": "forbidden", "reason": "pc_only"}`.
 
 ## Network access
 
 By default, the app listens on this PC only (`127.0.0.1`).
 
 - ⚙ Options → Tablet / phone → **Allow access from the local network** adds one network card of the PC.
-- The connection is not encrypted, and the tablet link contains the token. Use it on a home network only.
-- The `/api/v1/lan` endpoints answer only to the PC itself. Other devices get `403`.
+- The connection is not encrypted, and the tablet link contains the mobile token. Use it on a home network only.
+- The administration routes answer only to the admin token on the PC itself. Other callers get `403`.
 
 ## Errors
 
@@ -52,7 +59,7 @@ Errors return a JSON body:
 |---|---|
 | `400` | Invalid body or parameter |
 | `401` | Token missing or wrong |
-| `403` | Allowed from the PC only (`/api/v1/lan`) |
+| `403` | Not allowed for this token (`reason`: `pc_only`, `level`, `lan`, `stopped`…) |
 | `404` | Unknown name or ID |
 | `409` | Not possible now (for example the ship lacks the function, or 10 views already exist) |
 | `422` | Nothing to send (empty Morse message) |

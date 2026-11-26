@@ -23,22 +23,29 @@ Le contrat complet est le fichier OpenAPI servi par l'appli.
 
 ## Authentification
 
-Tous les points d'accès sauf `/api/v1/openapi.json` demandent le jeton d'accès.
+Tous les points d'accès sauf `/api/v1/openapi.json` demandent un jeton.
 
-- Envoie-le dans un en-tête : `Authorization: Bearer <JETON>`.
-- L'appli l'enregistre dans `%APPDATA%\SC Telemetry Deck\settings.json`.
-- Les navigateurs ne peuvent pas ajouter d'en-tête à un `EventSource` ni à un lien : passe alors le jeton en `?t=<JETON>`.
-- **Nouveau jeton**, dans ⚙ Options → Tablette / téléphone, remplace le jeton. Les autres appareils doivent alors rescanner le QR code.
+| Jeton | Où il marche | Droits |
+|---|---|---|
+| Jeton admin | Ce PC seulement | Tout |
+| Jeton mobile | Partout (QR code, lien de la tablette) | Ceux de la page, sans les routes d'administration |
+| Jeton externe (`sct_ext_…`) | Ce PC, ou le réseau si son option est cochée | Son niveau : Lecture, Pilotage ou Pilotage complet |
 
-Une requête sans jeton valide reçoit `401`.
+- Envoie le jeton dans un en-tête : `Authorization: Bearer <JETON>`.
+- L'appli enregistre les jetons admin et mobile dans `%APPDATA%\SC Telemetry Deck\settings.json`.
+- Les navigateurs ne peuvent pas ajouter d'en-tête à un `EventSource` ni à un lien : passe alors le jeton admin ou mobile en `?t=<JETON>`.
+- Routes d'administration : `/api/v1/lan*`, `/api/v1/access/*`, `/api/v1/plugins*`, `PUT /api/v1/update`, `POST /api/v1/update/check`.
+- **Nouveau jeton**, dans ⚙ Options → Tablette / téléphone, remplace le jeton mobile. Les tablettes et téléphones doivent rescanner le QR code ; le PC reste connecté.
+
+Une requête sans jeton valide reçoit `401`. Le jeton admin utilisé hors du PC, ou le jeton mobile sur une route d'administration, reçoit `403` `{"error": "forbidden", "reason": "pc_only"}`.
 
 ## Accès réseau
 
 Par défaut, l'appli n'écoute que sur ce PC (`127.0.0.1`).
 
 - ⚙ Options → Tablette / téléphone → **Autoriser l'accès depuis le réseau local** ajoute une carte réseau du PC.
-- La connexion n'est pas chiffrée et le lien de la tablette contient le jeton. Utilise-le seulement sur ton réseau à la maison.
-- Les points d'accès `/api/v1/lan` ne répondent qu'au PC lui-même. Les autres appareils reçoivent `403`.
+- La connexion n'est pas chiffrée et le lien de la tablette contient le jeton mobile. Utilise-le seulement sur ton réseau à la maison.
+- Les routes d'administration ne répondent qu'au jeton admin, sur le PC lui-même. Les autres appelants reçoivent `403`.
 
 ## Erreurs
 
@@ -52,7 +59,7 @@ Les erreurs renvoient un corps JSON :
 |---|---|
 | `400` | Corps ou paramètre invalide |
 | `401` | Jeton absent ou faux |
-| `403` | Permis depuis le PC seulement (`/api/v1/lan`) |
+| `403` | Non permis pour ce jeton (`reason` : `pc_only`, `level`, `lan`, `stopped`…) |
 | `404` | Nom ou identifiant inconnu |
 | `409` | Impossible maintenant (par exemple le vaisseau n'a pas la fonction, ou il y a déjà 10 vues) |
 | `422` | Rien à émettre (message morse vide) |
