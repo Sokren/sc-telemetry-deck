@@ -36,6 +36,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 - The event stream no longer sends views to external tokens, and only the allowed views to a plugin.
 
 ### Changed
+- Web app: the **first console line** shows the app version, the API contract version and the game schema version, to find your way in a screenshot.
 - Update check: only **main versions** are offered (`x.y.z`). Pre-releases, betas and release candidates are ignored, even when they are not flagged as pre-release on GitHub, and a beta is never counted as newer than the version of the same number.
 - `GET /api/v1/game` (game state and performance) is open to **Read** tokens.
 - Token logs: **every dangerous action** is flagged “sensitive action” (⚠), even at the Pilot level — emergency exit, power off, opening the doors, on top of eject, self destruct and unlocking. The last 50 stay visible even when many ordinary calls push them out, apart from the errors.

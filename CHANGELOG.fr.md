@@ -36,6 +36,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 - Le flux d'événements n'envoie plus les vues aux jetons externes, et seulement les vues permises à un plugin.
 
 ### Modifié
+- Appli web : la **première ligne de la console** donne la version de l'appli, celle du contrat d'API et celle du schéma du jeu, pour s'y retrouver dans une capture d'écran.
 - Vérification de version : seules les **versions principales** sont proposées (`x.y.z`). Préversions, bêtas et versions candidates sont ignorées, même si elles ne sont pas marquées « pre-release » sur GitHub, et une bêta n'est jamais comptée comme plus récente que la version du même numéro.
 - `GET /api/v1/game` (état du jeu et performances) est accessible aux jetons **Lecture**.
 - Journal des jetons : **toutes les actions dangereuses** sont marquées « action sensible » (⚠), même au niveau Pilotage — sortie d'urgence, coupure de l'alimentation, ouverture des portes, en plus de l'éjection, de l'autodestruction et du déverrouillage. Les 50 dernières restent visibles même chassées par de nombreux appels ordinaires, à part des erreurs.

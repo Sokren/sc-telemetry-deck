@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, test } from "vitest";
-import { startServer } from "../../src/web/server-core.js";
+import { startServer, VERSION } from "../../src/web/server-core.js";
 import { I18N } from "../../src/web/static/i18n.js";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -13,7 +13,7 @@ afterEach(async () => {
 	stop = undefined;
 });
 
-async function start() {
+async function start(log: (msg: string) => void = () => {}) {
 	const settingsDir = fs.mkdtempSync(path.join(os.tmpdir(), "sc-srv-"));
 	const s = await startServer({
 		settingsDir,
@@ -23,7 +23,7 @@ async function start() {
 		port: 0,
 		gameAddress: "127.0.0.1:1",
 		openBrowser: false,
-		log: () => {},
+		log,
 	});
 	stop = async () => {
 		await s.close();
@@ -33,6 +33,14 @@ async function start() {
 }
 
 describe("serveur", () => {
+	test("première ligne de la console : version de l'appli, du contrat d'API et du schéma du jeu", async () => {
+		const lines: string[] = [];
+		await start((m) => lines.push(m));
+		const api = JSON.parse(fs.readFileSync(path.join(root, "src/web/openapi.json"), "utf-8")).info.version;
+		const schema = JSON.parse(fs.readFileSync(path.join(root, "schema/actions.json"), "utf-8")).game_version;
+		expect(lines[0]).toBe(`SC Telemetry Deck ${VERSION} — API ${api} — schéma / schema ${schema}`);
+	});
+
 	test("démarre sur 127.0.0.1, répond à l'API avec le jeton créé", async () => {
 		const s = await start();
 		expect(s.url).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);

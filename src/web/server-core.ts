@@ -146,6 +146,9 @@ export async function startServer(o: ServerOptions): Promise<RunningServer> {
 	} catch {
 		/* instantané absent : version inconnue */
 	}
+	const openapi = JSON.parse(fs.readFileSync(o.openapiFile, "utf-8"));
+	// Première ligne, avant tout ce qui peut échouer (port occupé…) : de quoi s'y retrouver dans une capture.
+	o.log(`SC Telemetry Deck ${VERSION} — API ${openapi.info?.version ?? "?"} — schéma / schema ${schemaVersion}`);
 	let debugSchema: SchemaField[] | null = null;
 	try {
 		debugSchema = streamSchemaTree(loadSchema(path.join(o.dataDir, "sc_extrait.desc")));
@@ -162,7 +165,7 @@ export async function startServer(o: ServerOptions): Promise<RunningServer> {
 		game,
 		hub,
 		source: new ActionSource(game, () => readSnapshot(snapshotFile)),
-		openapi: JSON.parse(fs.readFileSync(o.openapiFile, "utf-8")),
+		openapi,
 		swaggerDir: o.swaggerDir,
 		viewFile: path.join(o.settingsDir, "view.json"),
 		saveSettings: () => saveSettings(o.settingsDir, settings),
@@ -189,7 +192,7 @@ export async function startServer(o: ServerOptions): Promise<RunningServer> {
 	}
 	const url = `http://127.0.0.1:${listener.port}`;
 	const pageUrl = `${url}/?t=${settings.token}`;
-	o.log(`SC Telemetry Deck ${VERSION} — page : ${pageUrl}`);
+	o.log(`Page : ${pageUrl}`);
 	o.log(`API : ${url}/api/docs`);
 	if (o.openBrowser) openInBrowser(pageUrl);
 	// Plugins activés et inchangés : lancés maintenant que l'API répond. Un nouveau plugin ne se lance jamais seul.
