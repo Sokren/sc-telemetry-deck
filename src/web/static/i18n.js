@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Textes de la page, en français et en anglais (règle du projet : tout texte visible dans les deux langues).
 export const I18N = {
 	fr: {

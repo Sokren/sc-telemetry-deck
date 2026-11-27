@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { DANGEROUS_ACTIONS, PROTECTED_ACTIONS } from "../../game/dangerous.js";
 import { mayTriggerDangerous } from "../access.js";
 import type { Lang } from "../../catalog/labels.js";

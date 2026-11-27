@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { ACTOR_GROUPS, SHIP_GROUPS } from "../../catalog/dropdown.js";
 import { groupLabel, labelFor } from "../../catalog/labels.js";
 import type { ActionSource } from "../../catalog/source.js";

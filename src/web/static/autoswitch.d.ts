@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /** Changement de vue automatique (autoswitch.js). */
 export type AutoSettings = { enabled: boolean; on_foot: string; seated: string; eva: string } & Record<string, string | boolean>;
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /** Types de tuiles de la page : les mêmes que les actions du plugin, avec les mêmes réglages. */
 export type TileType = "actor-action" | "actor-display" | "ship-toggle" | "ship-action" | "morse";
 

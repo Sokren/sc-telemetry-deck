@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Applique le thème enregistré sur cet appareil avant l'affichage de la page (script classique, chargé dans <head>),
 // pour éviter un éclair aux couleurs par défaut. Même format que themes.js.
 (function () {

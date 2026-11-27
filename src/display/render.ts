@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { COLORS, type DisplayView } from "./format.js";
 
 const BG = "#111418";

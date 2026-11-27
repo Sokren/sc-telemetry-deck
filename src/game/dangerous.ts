@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Actions sensibles : autodestruction, éjection, coupure totale, ouverture ou déverrouillage des portes et des sas.
  * Les touches Stream Deck et l'appli web les envoient en un appui (décision du

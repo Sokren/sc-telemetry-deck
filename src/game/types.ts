@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /** Action déclenchable exposée par le jeu (`ListTriggerableActions`). */
 export type GameAction = {
 	name: string;

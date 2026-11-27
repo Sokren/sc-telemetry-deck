@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { ShipSections } from "./countermeasures.js";
 import type { Level } from "./values.js";
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { action } from "@elgato/streamdeck";
 import { ShipCommandAction } from "./ship-command-action.js";
 

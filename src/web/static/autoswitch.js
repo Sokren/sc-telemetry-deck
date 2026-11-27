@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Changement de vue automatique : selon la position du perso (à pied, assis, EVA), ou selon son mode (minage, combat…,
 // build 13273298) quand une vue est choisie pour ce mode, ouvre la vue choisie. Réglage propre à chaque appareil. Bascule après une position stable, jamais pendant l'édition d'une vue,
 // et respecte un changement d'onglet fait à la main jusqu'au prochain vrai changement de position.

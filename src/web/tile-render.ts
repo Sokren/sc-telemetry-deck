@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /** Image des tuiles qui n'ont pas de dessin dans le plugin (actions perso, commandes vaisseau, morse). */
 export type LabelTileKind = "actor" | "ship" | "morse";
 

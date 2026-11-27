@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { TitleParametersDidChangeEvent } from "@elgato/streamdeck";
 
 /** Titre saisi dans le Stream Deck pour une touche, et si le Stream Deck l'affiche lui-même. */

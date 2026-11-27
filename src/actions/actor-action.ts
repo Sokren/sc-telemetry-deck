@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { action } from "@elgato/streamdeck";
 import { ACTOR_GROUPS } from "../catalog/dropdown.js";
 import { CategoryAction, type CategoryActionDeps } from "./category-action.js";

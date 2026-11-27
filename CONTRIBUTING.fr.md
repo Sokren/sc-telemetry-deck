@@ -16,6 +16,7 @@ Merci de votre intérêt ! Signalements, idées et pull requests sont les bienve
 ## Pull requests
 
 - Code en TypeScript (strict). Identifiants en anglais ; tout texte visible en **français et en anglais**.
+- Chaque fichier de code commence par `// SPDX-License-Identifier: MPL-2.0` (`#` en Python) ; un test le vérifie.
 - `npm test`, `npm run build`, `npm run build:web` et `streamdeck validate com.sokren.sc-telemetry.sdPlugin` doivent
   passer. Ajoutez des tests pour ce que vous changez.
 - Le plugin Stream Deck doit continuer à marcher : un changement pour l'appli web ne doit pas le casser.

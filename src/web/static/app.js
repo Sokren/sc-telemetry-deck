@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Page de SC Telemetry Deck : grille de tuiles, onglets Personnage et Vaisseau, état en direct
 // (Server-Sent Events), appuis. Utilise uniquement l'API publique v1 (la même que n'importe quel autre logiciel).
 import { I18N } from "./i18n.js";

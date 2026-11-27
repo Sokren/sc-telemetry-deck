@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 """Cherche dans StarCitizen.exe le schéma protobuf de la télémétrie embarqué
 par le code gRPC/protobuf compilé, et le reconstruit.
 

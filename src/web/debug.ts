@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { TelemetryFrame } from "../game/types.js";
 import type { TelemetryHub } from "../telemetry/hub.js";
 

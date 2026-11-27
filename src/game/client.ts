@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import * as grpc from "@grpc/grpc-js";
 import type protobuf from "protobufjs";
 import { SERVICE, type GameSchema } from "./schema.js";

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Fabrique dist/sc-telemetry-web-<version>-portable.zip : l'appli web (dist-web) + le node.exe officiel,
 // non modifié donc toujours signé par l'OpenJS Foundation (Windows Smart App Control le laisse passer,
 // contrairement à l'exe SEA dont l'injection efface la signature), un lanceur .cmd et un README.txt EN / FR.

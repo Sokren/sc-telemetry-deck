@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Fenêtre « Tablette / téléphone » : accès depuis le réseau local, QR code, lien, jeton. Sur le PC seulement
 // (l'API répond 403 aux autres appareils). Adresse et QR code masqués à chaque ouverture : aucune IP à l'écran
 // sans action explicite.

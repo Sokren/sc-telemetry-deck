@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Encart « Mon vaisseau » : nom, constructeur, type, état (en vol / posé, mode, rôle, boost) et quelques instruments.
 // Construit à partir de l'événement « state » ; utilisé en tête de l'onglet Vaisseau et comme case des vues.
 

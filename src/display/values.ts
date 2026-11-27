@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /** Données du personnage affichables, dans l'ordre de la liste (et de la rotation des molettes). */
 export const DISPLAY_VALUES = [
 	"health",

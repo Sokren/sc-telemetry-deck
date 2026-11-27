@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { IncomingMessage } from "node:http";
 import qrcode from "qrcode-generator";
 import type { Route } from "../http.js";

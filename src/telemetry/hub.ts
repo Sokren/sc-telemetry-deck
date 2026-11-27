@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { GameApi, StreamSubscription, TelemetryFrame } from "../game/types.js";
 
 export type TelemetryHubOptions = {

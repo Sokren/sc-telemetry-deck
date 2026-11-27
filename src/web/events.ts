@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Lang } from "../catalog/labels.js";
 import { DISPLAY_VALUES } from "../display/values.js";

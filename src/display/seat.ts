@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { Lang } from "../catalog/labels.js";
 
 type Role = "pilot" | "gunner" | "crew" | "none";

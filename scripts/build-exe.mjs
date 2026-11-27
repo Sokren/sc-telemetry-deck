@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Fabrique dist/sc-telemetry-web.exe : un seul fichier, sans Node.js à installer (Node SEA).
 // Étapes : appli web construite (dist-web), serveur en CommonJS, blob SEA avec les fichiers intégrés,
 // copie de node.exe, injection du blob (postject).

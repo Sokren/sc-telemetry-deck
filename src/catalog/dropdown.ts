@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { ShipFunctionId } from "../ship/functions.js";
 import { shipFunctionName } from "../ship/render.js";
 import type { MergedCommand } from "./merged.js";

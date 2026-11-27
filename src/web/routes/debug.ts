@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { SchemaField } from "../../game/schema-tree.js";
 import type { TelemetryHub } from "../../telemetry/hub.js";
 import { labelFor } from "../../catalog/labels.js";

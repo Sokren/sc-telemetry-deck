@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import crypto from "node:crypto";
 import type { WebSettings } from "./config.js";
 

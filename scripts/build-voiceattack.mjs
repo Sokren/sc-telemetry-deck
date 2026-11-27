@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Fabrique dist/sc-telemetry-voice-<version>.zip : le plugin VoiceAttack 2 (DLL compilée en Release + modèle
 // de réglages, dossier à copier tel quel dans %APPDATA%\VoiceAttack2\Apps\), les profils .vap régénérés et un
 // README.txt EN / FR. Il faut le kit .NET 8 SDK (dotnet) pour compiler la DLL.

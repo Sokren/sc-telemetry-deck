@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { Lang } from "../catalog/labels.js";
 import { COLORS, percentText, type DisplayView } from "./format.js";
 import { clockText, readGame, readQuantum, readWhereabouts } from "./situation.js";

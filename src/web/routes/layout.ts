@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { Route } from "../http.js";
 import type { Tile } from "../layout.js";
 import { pressTile, renderTile, type TileContext, type TileFeedback } from "../tiles.js";

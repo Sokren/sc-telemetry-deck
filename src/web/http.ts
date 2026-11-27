@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import crypto from "node:crypto";
 import net from "node:net";
 import type { IncomingMessage, ServerResponse } from "node:http";

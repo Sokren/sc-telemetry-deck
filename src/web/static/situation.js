@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Encarts des données du build 13273298 : saut quantique, qui / où / mode, mission suivie, performances.
 // Construits à partir de l'événement « state » ; utilisés dans les onglets Vaisseau, Personnage et Debug et comme cases
 // des vues. Mêmes classes que l'encart « Mon vaisseau » (shipcard.js).

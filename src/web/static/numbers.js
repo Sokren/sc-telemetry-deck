@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Format des nombres choisi par appareil, indépendant de la langue de la page (HUD en anglais, nombres lus à la
 // française). L'appli met en forme les nombres dans la langue de la page ; ici on ne change que les séparateurs.
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { CountermeasureTracker } from "../../display/countermeasures.js";
 import type { TelemetryHub } from "../../telemetry/hub.js";
 import type { Route } from "../http.js";

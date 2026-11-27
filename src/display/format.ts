@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { Lang } from "../catalog/labels.js";
 import en from "./labels.en.json" with { type: "json" };
 import fr from "./labels.fr.json" with { type: "json" };

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { Lang } from "../../catalog/labels.js";
 import { toView } from "../../display/format.js";
 import { DISPLAY_VALUES, isDisplayValueId, readValue, type DisplayValueId } from "../../display/values.js";

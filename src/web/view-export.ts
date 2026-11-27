@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { deflateRawSync, inflateRawSync } from "node:zlib";
 import type { Lang } from "../catalog/labels.js";
 import { lookOf, normalizeViewName, readSections, type NamedView, type SavedLook, type Skipped, type ViewInput, type ViewSection } from "./view.js";

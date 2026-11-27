@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { ShipFunctionId } from "./functions.js";
 import type { ShipState } from "./state.js";
 

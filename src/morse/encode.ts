@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Code morse international (lettres et chiffres), rythme standard en unités.
 const MORSE: Record<string, string> = {
 	A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---",

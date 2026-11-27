@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 """Pont HTTP -> gRPC pour la télémétrie locale de Star Citizen.
 
 Le jeu parle gRPC (HTTP/2 + protobuf binaire), qu'un plugin Stream Deck « requête web »

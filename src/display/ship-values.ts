@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { Lang } from "../catalog/labels.js";
 import type { CmReading, CmType, CountermeasureTracker, ShipSections } from "./countermeasures.js";
 import { COLORS, percentText, type DisplayView } from "./format.js";

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Réécrit docs/vues/*.json et *.code.txt (modèles de vues à importer) depuis src/web/view-templates.ts,
 // puis vérifie qu'ils se relisent à l'identique (même test que npm test).
 import { spawnSync } from "node:child_process";

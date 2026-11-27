@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Appui maintenu (ex. éjection) : il faut rester appuyé HOLD_MS ; un anneau rouge montre le temps restant ;
 // relâcher (ou glisser hors du bouton) avant la fin annule. Même règle que les touches du plugin (src/game/dangerous.ts).
 

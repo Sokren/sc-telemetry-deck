@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Tuto « Activer la télémétrie » : les étapes pour Star Citizen 5.0 (user.cfg) et 4.10.3 (variable d'environnement).
 // L'appli ne touche à aucun fichier du jeu : elle explique, le joueur crée user.cfg lui-même.
 

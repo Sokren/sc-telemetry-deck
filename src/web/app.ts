@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import fs from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createRequire } from "node:module";

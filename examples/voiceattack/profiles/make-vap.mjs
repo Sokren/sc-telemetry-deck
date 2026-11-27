@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Génère les profils d'exemple VoiceAttack (format XML .vap, importable par « Import Commands »).
 // Generates the VoiceAttack example profiles (XML .vap, importable with "Import Commands").
 //

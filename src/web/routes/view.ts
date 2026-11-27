@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { viewRightAllows, type Caller, type ViewGrant } from "../access.js";
 import type { Route } from "../http.js";
 import type { Lang } from "../../catalog/labels.js";

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { defaultFinder } from "./plugins/find.js";
 import { loadSchema } from "../game/schema.js";
 import { streamSchemaTree, type SchemaField } from "../game/schema-tree.js";

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Onglet 🐞 Debug (activé dans ⚙ Options → Avancé) : tout ce que le jeu envoie, brut, en lecture seule.
 // Sections avec leur âge, arbre complet fusionné avec le schéma (champs prévus mais pas envoyés en gris),
 // filtre, figer, copier, enregistrer le flux en JSON, derniers événements. Rien n'est jamais envoyé au jeu.

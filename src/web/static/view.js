@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Onglets « Ma vue » : vues nommées faites de sections et de cases composées par l'utilisateur, enregistrées
 // dans l'appli (une route par vue : /api/v1/views/{id}) et rendues à partir de l'événement « state ». Édition au cadenas : glisser-déposer souris + tactile (événements
 // pointer), menu « Ajouter », largeur, taille, renommage. Aucune bibliothèque.

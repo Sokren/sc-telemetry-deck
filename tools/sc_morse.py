@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 """Fait clignoter la torche de Star Citizen en morse.
 
 Utilisation (invite de commandes, dans le dossier de sc_extrait.desc) :

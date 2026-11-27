@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Lumière qui émet le morse. `flashlight` : la torche du perso, sans état lisible, basculée (`toggle_flashlight`).
  * `ship_lights` : les phares du vaisseau, commandés en allumer / éteindre explicites (`v_lights_on` / `v_lights_off`),

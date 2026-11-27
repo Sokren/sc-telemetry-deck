@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /** Rendu à envoyer : `payload` sert à éviter les doublons, `send` l'envoie au Stream Deck. */
 export type RenderJob = { payload: string; send: () => Promise<void> };
 

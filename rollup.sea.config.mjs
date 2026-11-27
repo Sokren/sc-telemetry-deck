@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Serveur de l'appli web en CommonJS, pour l'exécutable Node SEA (dist-exe/server.cjs).
 // Séparé de rollup.config.mjs (plugin Stream Deck) et de rollup.web.config.mjs (dist-web).
 import commonjs from "@rollup/plugin-commonjs";

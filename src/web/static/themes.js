@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Thèmes de couleurs de la page, par appareil (localStorage) : 5 thèmes tout faits + une couleur d'accent au choix.
 // Les palettes sont dans style.css (`:root[data-theme="…"]`) ; theme-boot.js applique le choix avant l'affichage.
 // Les couleurs OK / attention / danger ne sont pas réglables : chaque thème les ajuste seulement pour rester lisible.

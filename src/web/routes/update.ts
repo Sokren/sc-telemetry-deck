@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { Route } from "../http.js";
 import type { UpdateChecker } from "../update-check.js";
 

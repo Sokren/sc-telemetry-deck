@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { fileURLToPath } from "node:url";
 import streamDeck from "@elgato/streamdeck";
 import type { JsonValue } from "@elgato/utils";

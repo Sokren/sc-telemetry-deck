@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { Lang } from "../catalog/labels.js";
 import type { ShipFunctionId } from "./functions.js";
 import { BASE_ICONS, stateGlyph } from "./icons.js";

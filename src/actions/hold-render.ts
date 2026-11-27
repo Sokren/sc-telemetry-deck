@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Image de touche pendant un appui maintenu (ex. éjection) : anneau rouge qui se remplit et temps restant.
 
 const FONT = "Segoe UI, Arial, sans-serif";

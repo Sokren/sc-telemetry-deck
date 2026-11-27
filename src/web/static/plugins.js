@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Fenêtre « Plugins » et indicateur de la barre du haut. Les plugins sont des programmes séparés que l'appli lance
 // (dossier `plugins` à côté de l'appli). Sur le PC seulement (l'API répond 403 ailleurs). Un plugin nouveau ou modifié
 // ne se lance qu'après la fenêtre de consentement, qui montre la commande exacte, les fichiers et ce qu'il demande.

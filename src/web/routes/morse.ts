@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { Route } from "../http.js";
 import { MorseControl, type MorseRequest } from "../morse-control.js";
 

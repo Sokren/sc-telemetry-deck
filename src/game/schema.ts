@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import fs from "node:fs";
 import protobuf from "protobufjs";
 import "protobufjs/ext/descriptor.js"; // ajoute Root.fromDescriptor

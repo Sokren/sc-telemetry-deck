@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Fenêtre « Accès externes » : jetons nommés pour les autres logiciels (VoiceAttack, overlay, bot…), chacun avec
 // un niveau (Lecture, Pilotage, Pilotage complet) et l'option réseau local. Sur le PC seulement (l'API répond
 // 403 ailleurs). Un jeton n'est montré qu'une fois, juste après sa création.

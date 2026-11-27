@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 export type PlayResult = "done" | "stopped" | "failed";
 
 /** Allume (`true`) ou éteint (`false`) la lumière ; une torche sans état lisible se contente de basculer. */

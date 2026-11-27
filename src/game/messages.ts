@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { TriggerResult } from "./types.js";
 
 /** Le jeu ne connaît pas les commandes d'actions (ex. 4.10 : télémétrie seule, actions arrivées en 5.0). */

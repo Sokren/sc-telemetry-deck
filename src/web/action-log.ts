@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { IncomingMessage } from "node:http";
 import type { GameApi, TriggerResult } from "../game/types.js";

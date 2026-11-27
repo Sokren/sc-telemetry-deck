@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 """Affiche les champs que le jeu envoie dans la télémétrie mais que le schéma
 (sc_extrait.desc) ne connaît pas, et signale quand leur valeur change.
 

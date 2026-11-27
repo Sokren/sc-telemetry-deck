@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { IncomingMessage } from "node:http";
 import type { AccessStore } from "../access.js";
 import type { Route } from "../http.js";

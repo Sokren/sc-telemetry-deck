@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import dgram from "node:dgram";
 import os from "node:os";
 import { newToken, type WebSettings } from "./config.js";

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // « Ma vue » : fenêtres Exporter / Importer. Le serveur fait tout le travail (/api/v1/views/export et /import) ;
 // ici : choix, téléchargement du fichier .json, copie du code SCTD1:…, aperçu avant import (dry_run).
 

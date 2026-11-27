@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Releases du dépôt public (lecture seule, aucune donnée envoyée). La liste plutôt que `/releases/latest` : on ne
  * propose que les versions principales, même si une bêta n'a pas été cochée « pre-release » sur GitHub.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Jauges de « Ma vue » : anneau, arc, barres, segments et chiffre. Dessin construit une fois, puis mis à jour sur
 // place à chaque frame (longueur de l'arc, taille de la barre, segments allumés, texte). Couleurs par classes
 // `level-*` et variables du thème (style.css) : aucune couleur ici.

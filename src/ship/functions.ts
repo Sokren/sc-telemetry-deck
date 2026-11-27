@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /** Fonctions vaisseau avec état, dans l'ordre de la liste du panneau. */
 export const SHIP_FUNCTION_IDS = [
 	"gear",

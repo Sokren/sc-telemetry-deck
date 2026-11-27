@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Construction de l'appli web autonome → dist-web/. Séparée de rollup.config.mjs (plugin Stream Deck).
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";

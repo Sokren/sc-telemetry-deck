@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import type { GameApi } from "../game/types.js";
 import { normalizeText, progressAt, toSigns, toToggleTimes, type MorseProgress } from "../morse/encode.js";
 import { lightSwitch, morseLight, type MorseLight } from "../morse/lights.js";

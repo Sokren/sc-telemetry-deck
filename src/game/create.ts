@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { GameClient } from "./client.js";
 import { loadSchema } from "./schema.js";
 import type { GameAction, GameApi, StreamSubscription, TelemetryFrame, TriggerResult } from "./types.js";

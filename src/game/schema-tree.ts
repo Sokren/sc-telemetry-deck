@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import protobuf from "protobufjs";
 import { PACKAGE, type GameSchema } from "./schema.js";
 

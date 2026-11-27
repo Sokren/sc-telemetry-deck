@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { HOLD_ACTIONS } from "../game/dangerous.js";
 import { labelFor, type Lang } from "../catalog/labels.js";
 import { commandFor, mergedGroup } from "../catalog/merged.js";

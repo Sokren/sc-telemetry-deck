@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 """Repère les commandes ajoutées ou retirées par un patch de Star Citizen.
 
 Deux comparaisons :

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Point d'entrée de l'appli web autonome : `node dist-web/server.mjs`, ou `sc-telemetry-web.exe`.
 // Indépendant du plugin Stream Deck.
 import os from "node:os";
