@@ -30,6 +30,7 @@ Plugin Stream Deck **et appli web autonome** pour **Star Citizen**, basés sur l
 - [Développement du plugin](#développement-du-plugin)
 - [Outils](#outils-tools)
 - [Limites connues](#limites-connues)
+- [Contribuer](#contribuer)
 - [Licence](#licence)
 
 ## 🎬 Démo
@@ -286,8 +287,14 @@ Scripts Python autonomes (`pip install grpcio protobuf`) :
 - Une frame peut ne contenir qu'une partie des sections ; les valeurs nulles (`0`, `false`) sont omises (proto3).
 - Certaines actions du jeu sont **dangereuses** (`v_self_destruct`, `v_eject`, `v_power_set_off`, ouverture / déverrouillage des portes…) et le jeu les exécute sans confirmation. Les touches et l'appli web les envoient en un appui (éjection : rester appuyé 1,5 s) ; les scripts de `tools/` ne les filtrent pas.
 
+## Contribuer
+
+Signalements, idées et pull requests sont les bienvenus : lisez d'abord [CONTRIBUTING.fr.md](CONTRIBUTING.fr.md).
+
 ## Licence
 
-À définir.
+SC Telemetry Deck est distribué sous la [Mozilla Public License 2.0](LICENSE) (MPL-2.0), à partir de la version 0.4.0.
+Vous pouvez l'utiliser, le modifier et le redistribuer, y compris dans un projet plus large sous une autre licence ;
+les fichiers de ce projet que vous modifiez et redistribuez doivent rester sous MPL-2.0, avec leur code source disponible.
 
 Tiers : les QR codes de l'appli web sont faits avec [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) de Kazuhiko Arase (licence MIT). « QR Code » est une marque déposée de DENSO WAVE INCORPORATED.

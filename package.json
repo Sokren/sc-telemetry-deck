@@ -1,6 +1,7 @@
 {
     "name": "sc-telemetry-deck",
     "private": true,
+    "license": "MPL-2.0",
     "description": "Plugin Stream Deck pour Star Citizen, via l'API de télémétrie locale du jeu",
     "type": "module",
     "scripts": {

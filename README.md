@@ -30,6 +30,7 @@ Stream Deck plugin **and standalone web app** for **Star Citizen**, built on the
 - [Plugin development](#plugin-development)
 - [Tools](#tools-tools)
 - [Known limitations](#known-limitations)
+- [Contributing](#contributing)
 - [License](#license)
 
 ## 🎬 Demo
@@ -288,8 +289,14 @@ The scripts' messages and comments are in French.
 - A frame may contain only some sections; zero values (`0`, `false`) are omitted (proto3).
 - Some game actions are **dangerous** (`v_self_destruct`, `v_eject`, `v_power_set_off`, opening / unlocking doors…) and the game runs them without confirmation. Keys and the web app send them in one press (Eject: hold 1.5 s); the `tools/` scripts do not filter them.
 
+## Contributing
+
+Bug reports, ideas and pull requests are welcome: read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+
 ## License
 
-To be decided.
+SC Telemetry Deck is distributed under the [Mozilla Public License 2.0](LICENSE) (MPL-2.0), from version 0.4.0.
+You may use, modify and redistribute it, including inside a larger project under another license; files of this
+project that you modify and redistribute must stay under MPL-2.0, with their source available.
 
 Third-party: the web app's QR codes are made with [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) by Kazuhiko Arase (MIT license). “QR Code” is a registered trademark of DENSO WAVE INCORPORATED.

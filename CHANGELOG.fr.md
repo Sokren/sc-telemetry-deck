@@ -12,6 +12,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 ## [Non publié]
 
 ### Ajouté
+- **Licence** : le projet est désormais distribué sous la **Mozilla Public License 2.0** (`LICENSE`) ; guide de contribution dans `CONTRIBUTING.fr.md`.
 - **Onglet 🧭 Instrument de bord** : vue intégrée pour tablette (saut quantique en anneau, jauges à crans, fonctions, mission, performances), en plus des 10 vues ; le modèle du même nom (＋ Nouvelle vue) en fait une vue modifiable ; nouvel **habillage « Instrument de bord »** pour toutes les vues ; ouverture directe par le QR code / le lien `?view=instrument`.
 - **Bouton ⛶ Plein écran** dans la barre du haut de l'appli web (tablette, téléphone Android, PC) ; caché là où le navigateur ne le permet pas (iPhone).
 - **Nouveautés du jeu 5.0 PTU (build 13273298)**, affichées quand le jeu les envoie. Ce build n'ouvre pas encore l'API locale : rien n'a pu être vérifié en jeu.
