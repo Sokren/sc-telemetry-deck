@@ -170,6 +170,51 @@ describe("jetons externes : actions protégées", () => {
 		}
 	});
 
+	const lastEntry = async (srv: TestServer, id: string) => (await srv.call("GET", `/api/v1/access/tokens/${id}/log`)).body.entries.at(-1);
+	const press = (srv: TestServer, secret: string, id: string, mode: string) =>
+		fetch(`${srv.url}/api/v1/ship/functions/${id}/press`, {
+			method: "POST",
+			headers: { authorization: `Bearer ${secret}`, "content-type": "application/json" },
+			body: JSON.stringify({ mode }),
+		});
+
+	test("déclencher une dangereuse non protégée au Pilotage : envoyée et marquée « sensible »", async () => {
+		const { srv, sent, pilot } = await ship();
+		try {
+			for (const name of ["v_power_set_off", "v_emergency_exit", "v_open_all_doors", "V_Power_Toggle"]) {
+				expect((await statusOf("POST", `/api/v1/actions/${name}/trigger`, pilot.secret, srv)).status).toBe(200);
+				expect(await lastEntry(srv, pilot.token.id)).toMatchObject({ path: "/api/v1/actions/{name}/trigger", status: 200, sensitive: true });
+			}
+			expect(sent).toEqual(["v_power_set_off", "v_emergency_exit", "v_open_all_doors", "V_Power_Toggle"]);
+		} finally {
+			await srv.close();
+		}
+	});
+
+	test("déclencher une action ordinaire : non marquée", async () => {
+		const { srv, pilot } = await ship();
+		try {
+			expect((await statusOf("POST", "/api/v1/actions/emote_wave/trigger", pilot.secret, srv)).status).toBe(200);
+			expect(await lastEntry(srv, pilot.token.id)).not.toHaveProperty("sensitive");
+		} finally {
+			await srv.close();
+		}
+	});
+
+	test("appuyer power_main off (v_power_set_off) au Pilotage : envoyée et marquée ; gear : non marquée", async () => {
+		const { srv, sent, pilot } = await ship();
+		try {
+			const r = await press(srv, pilot.secret, "power_main", "off");
+			expect(r.status).toBe(200);
+			expect(sent).toEqual(["v_power_set_off"]);
+			expect(await lastEntry(srv, pilot.token.id)).toMatchObject({ path: "/api/v1/ship/functions/{id}/press", sensitive: true });
+			await press(srv, pilot.secret, "gear", "toggle");
+			expect(await lastEntry(srv, pilot.token.id)).not.toHaveProperty("sensitive");
+		} finally {
+			await srv.close();
+		}
+	});
+
 	test("liste des actions : sans les actions protégées pour Lecture et Pilotage, avec pour Pilotage complet", async () => {
 		const { srv, read, pilot, full } = await ship();
 		try {

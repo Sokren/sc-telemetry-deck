@@ -16,7 +16,7 @@ export type Ctx = {
 	res: ServerResponse;
 	/** Appelant : jeton principal, jeton externe, ou anonyme (routes publiques). */
 	caller: Caller;
-	/** Marque la requête dans le journal du jeton externe (action protégée envoyée). */
+	/** Marque la requête dans le journal du jeton externe (action dangereuse envoyée). */
 	mark: (tag: "sensitive") => void;
 };
 

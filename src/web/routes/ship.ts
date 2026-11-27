@@ -1,4 +1,4 @@
-import { PROTECTED_ACTIONS } from "../../game/dangerous.js";
+import { DANGEROUS_ACTIONS, PROTECTED_ACTIONS } from "../../game/dangerous.js";
 import { mayTriggerDangerous } from "../access.js";
 import type { Lang } from "../../catalog/labels.js";
 import type { GameApi } from "../../game/types.js";
@@ -59,8 +59,11 @@ export async function pressShipFunction(
 	mode: ShipMode,
 	deps: { hub: Pick<TelemetryHub, "section">; game: Pick<GameApi, "trigger"> },
 	lang: Lang = "en",
-	/** `false` : une commande protégée (déverrouillage) est refusée sans rien envoyer ; `onProtected` : elle part. */
-	guard: { allowProtected: boolean; onProtected?: () => void } = { allowProtected: true },
+	/**
+	 * `allowProtected: false` : une commande protégée (déverrouillage) est refusée sans rien envoyer.
+	 * `onSensitive` : appelé juste avant l'envoi de toute commande dangereuse (protégée ou non).
+	 */
+	guard: { allowProtected: boolean; onSensitive?: () => void } = { allowProtected: true },
 ): Promise<PressOutcome> {
 	const fn = shipFunction(id);
 	const state = readShipState(id, deps.hub.section("vehicle"), deps.hub.section("actor"));
@@ -71,10 +74,8 @@ export async function pressShipFunction(
 		const code: RefusalCode = state === "unavailable" ? "unavailable" : "no_command";
 		return { status: 409, json: { decision: "refused", code, reason: REFUSALS[code][lang] } };
 	}
-	if (PROTECTED_ACTIONS.has(decision.action)) {
-		if (!guard.allowProtected) return { status: 403, json: { error: "forbidden", reason: "dangerous_action" } };
-		guard.onProtected?.();
-	}
+	if (PROTECTED_ACTIONS.has(decision.action) && !guard.allowProtected) return { status: 403, json: { error: "forbidden", reason: "dangerous_action" } };
+	if (DANGEROUS_ACTIONS.has(decision.action)) guard.onSensitive?.();
 	const result = await deps.game.trigger(decision.action, TRIGGER_TIMEOUT_MS);
 	return result.ok
 		? { status: 200, json: { decision: "sent", action: decision.action, ok: true } }
@@ -106,7 +107,7 @@ export function shipRoutes(deps: { hub: Pick<TelemetryHub, "section">; game: Pic
 				if (asked !== undefined && !MODES.includes(asked as ShipMode)) return { status: 400, json: { error: "bad_request" } };
 				return pressShipFunction(params.id, (asked as ShipMode | undefined) ?? "toggle", deps, lang, {
 					allowProtected: mayTriggerDangerous(caller),
-					onProtected: () => mark("sensitive"),
+					onSensitive: () => mark("sensitive"),
 				});
 			},
 		},

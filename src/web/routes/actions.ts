@@ -1,7 +1,7 @@
 import { ACTOR_GROUPS, SHIP_GROUPS } from "../../catalog/dropdown.js";
 import { groupLabel, labelFor } from "../../catalog/labels.js";
 import type { ActionSource } from "../../catalog/source.js";
-import { PROTECTED_ACTIONS } from "../../game/dangerous.js";
+import { DANGEROUS_ACTIONS, PROTECTED_ACTIONS } from "../../game/dangerous.js";
 import type { GameApi } from "../../game/types.js";
 import { mayTriggerDangerous } from "../access.js";
 import type { Route } from "../http.js";
@@ -42,10 +42,10 @@ export function actionRoutes(deps: { game: Pick<GameApi, "trigger">; source: Act
 			access: "pilot",
 			handle: async ({ params, caller, mark }) => {
 				// Comparaison sans casse ni espaces : le jeu pourrait accepter « V_EJECT » ou « v_eject ».
-				if (PROTECTED_ACTIONS.has(params.name.trim().toLowerCase())) {
-					if (!mayTriggerDangerous(caller)) return { status: 403, json: { error: "forbidden", reason: "dangerous_action" } };
-					mark("sensitive");
-				}
+				const name = params.name.trim().toLowerCase();
+				if (PROTECTED_ACTIONS.has(name) && !mayTriggerDangerous(caller)) return { status: 403, json: { error: "forbidden", reason: "dangerous_action" } };
+				// Toute action dangereuse envoyée (protégée ou non) est marquée « sensible » au journal du jeton.
+				if (DANGEROUS_ACTIONS.has(name)) mark("sensitive");
 				const result = await deps.game.trigger(params.name, TRIGGER_TIMEOUT_MS);
 				return result.ok ? { status: 200, json: { ok: true } } : { status: 502, json: result };
 			},

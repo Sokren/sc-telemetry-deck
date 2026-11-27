@@ -2440,7 +2440,7 @@
 					"Access"
 				],
 				"summary": "External token log — journal d’un jeton externe",
-				"description": "Last 100 calls of this token (kept in memory, lost when the app restarts), refusals counted, protected actions flagged. — FR : les 100 derniers appels de ce jeton (en mémoire, perdus au redémarrage), refus comptés, actions protégées marquées. Admin token only, from the PC (the mobile token and other devices get 403 forbidden, reason pc_only). — FR : jeton admin seulement, depuis le PC (le jeton mobile et les autres appareils reçoivent 403 forbidden, raison pc_only).",
+				"description": "Last 100 calls of this token (kept in memory, lost when the app restarts), refusals counted, dangerous actions flagged (sensitive). — FR : les 100 derniers appels de ce jeton (en mémoire, perdus au redémarrage), refus comptés, actions dangereuses marquées (sensitive). Admin token only, from the PC (the mobile token and other devices get 403 forbidden, reason pc_only). — FR : jeton admin seulement, depuis le PC (le jeton mobile et les autres appareils reçoivent 403 forbidden, raison pc_only).",
 				"responses": {
 					"200": {
 						"description": "Log — journal",
@@ -4975,7 +4975,7 @@
 								},
 								"sensitive": {
 									"const": true,
-									"description": "A protected action was sent — FR : une action protégée a été envoyée"
+									"description": "A dangerous action was sent (eject, self destruct, unlock, emergency exit, power off, open doors) — FR : une action dangereuse a été envoyée (éjection, autodestruction, déverrouillage, sortie d'urgence, coupure, ouverture des portes)"
 								}
 							}
 						}
