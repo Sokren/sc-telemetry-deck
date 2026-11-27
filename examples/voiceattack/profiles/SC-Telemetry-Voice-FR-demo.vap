@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Profile xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Id>c8ce2a92-3672-4fe1-b1f0-f0a4385b1c55</Id>
-  <Name>SC Telemetry Voice FR</Name>
+  <Id>563929ca-59ec-5596-968c-751a348e3184</Id>
+  <Name>SC Telemetry Voice FR (demo)</Name>
   <Commands>
     <Command>
-      <Id>f7d8a974-7f42-4b3a-9094-d05f27c8cb29</Id>
+      <Id>4e37577d-6ead-51b8-955f-13bb61ab5a29</Id>
       <CommandString>sors le train</CommandString>
       <ActionSequence>
         <CommandAction>
@@ -12,7 +12,7 @@
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>cdb4a73a-e4b0-47cd-8e57-44b5c01f0575</Id>
+          <Id>0725d29a-5f82-5de2-a4ec-3b39ae3141a0</Id>
           <ActionType>ExternalInvoke</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
@@ -20,7 +20,7 @@
           <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
           <Context2 />
           <Context3 />
-          <Context4>fonction:gear:on</Context4>
+          <Context4>function:gear:on</Context4>
           <X>1</X>
           <Y>0</Y>
           <InputMode>0</InputMode>
@@ -35,12 +35,12 @@
           <Ordinal>1</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>bea542bd-95e4-4195-990b-6e812e9ea2c5</Id>
+          <Id>2caba2b8-7fdc-5fb2-9d37-fb682939fa82</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>{TXT:SCTD_reponse}</Context>
+          <Context>{TXT:SCTD_reply}</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -56,7 +56,7 @@
       </ActionSequence>
       <Async>true</Async>
       <Enabled>true</Enabled>
-      <Category>SCTD ordres</Category>
+      <Category>SCTD vol</Category>
       <UseShortcut>false</UseShortcut>
       <keyValue>0</keyValue>
       <keyShift>0</keyShift>
@@ -74,7 +74,7 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>6cde66fa-c595-48fd-9ea7-4aa026787ee8</Id>
+      <Id>2e6968c7-8ac5-5969-91f6-0057186e853c</Id>
       <CommandString>rentre le train</CommandString>
       <ActionSequence>
         <CommandAction>
@@ -82,7 +82,7 @@
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>71a5c527-fbfd-46b1-a8d6-aabee557315a</Id>
+          <Id>ec8bb1b7-1a1b-50c1-92d4-0f181cee9f7b</Id>
           <ActionType>ExternalInvoke</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
@@ -90,7 +90,7 @@
           <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
           <Context2 />
           <Context3 />
-          <Context4>fonction:gear:off</Context4>
+          <Context4>function:gear:off</Context4>
           <X>1</X>
           <Y>0</Y>
           <InputMode>0</InputMode>
@@ -105,12 +105,12 @@
           <Ordinal>1</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>a120cbef-0383-48de-bf39-b6d4741f1dcc</Id>
+          <Id>560c1a9f-17a3-58d5-8d2e-3c7ee23ffc87</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>{TXT:SCTD_reponse}</Context>
+          <Context>{TXT:SCTD_reply}</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -126,7 +126,7 @@
       </ActionSequence>
       <Async>true</Async>
       <Enabled>true</Enabled>
-      <Category>SCTD ordres</Category>
+      <Category>SCTD vol</Category>
       <UseShortcut>false</UseShortcut>
       <keyValue>0</keyValue>
       <keyShift>0</keyShift>
@@ -144,77 +144,7 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>4b3dfb67-1312-4905-962f-e8c2cd9b2680</Id>
-      <CommandString>phares</CommandString>
-      <ActionSequence>
-        <CommandAction>
-          <PairingSet>false</PairingSet>
-          <Ordinal>0</Ordinal>
-          <ConditionMet xsi:nil="true" />
-          <IndentLevel>0</IndentLevel>
-          <Id>74301634-29f1-4bf3-b4c1-ef75678b1ffa</Id>
-          <ActionType>ExternalInvoke</ActionType>
-          <Duration>0</Duration>
-          <Delay>0</Delay>
-          <KeyCodes />
-          <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
-          <Context2 />
-          <Context3 />
-          <Context4>fonction:lights</Context4>
-          <X>1</X>
-          <Y>0</Y>
-          <InputMode>0</InputMode>
-          <ConditionPairing>0</ConditionPairing>
-          <ConditionGroup>0</ConditionGroup>
-          <ConditionStartOperator>0</ConditionStartOperator>
-          <ConditionStartValue>0</ConditionStartValue>
-          <ConditionStartValueType>0</ConditionStartValueType>
-        </CommandAction>
-        <CommandAction>
-          <PairingSet>false</PairingSet>
-          <Ordinal>1</Ordinal>
-          <ConditionMet xsi:nil="true" />
-          <IndentLevel>0</IndentLevel>
-          <Id>e5df1f31-16a2-4d91-b4c8-a06b4c79fad6</Id>
-          <ActionType>Say</ActionType>
-          <Duration>0</Duration>
-          <Delay>0</Delay>
-          <KeyCodes />
-          <Context>{TXT:SCTD_reponse}</Context>
-          <Context2 />
-          <Context3 />
-          <Context4></Context4>
-          <X>100</X>
-          <Y>0</Y>
-          <InputMode>0</InputMode>
-          <ConditionPairing>0</ConditionPairing>
-          <ConditionGroup>0</ConditionGroup>
-          <ConditionStartOperator>0</ConditionStartOperator>
-          <ConditionStartValue>0</ConditionStartValue>
-          <ConditionStartValueType>0</ConditionStartValueType>
-        </CommandAction>
-      </ActionSequence>
-      <Async>true</Async>
-      <Enabled>true</Enabled>
-      <Category>SCTD ordres</Category>
-      <UseShortcut>false</UseShortcut>
-      <keyValue>0</keyValue>
-      <keyShift>0</keyShift>
-      <keyAlt>0</keyAlt>
-      <keyCtrl>0</keyCtrl>
-      <keyWin>0</keyWin>
-      <keyPassthru>true</keyPassthru>
-      <UseSpokenPhrase>true</UseSpokenPhrase>
-      <onlyKeyUp>false</onlyKeyUp>
-      <RepeatNumber>2</RepeatNumber>
-      <RepeatType>0</RepeatType>
-      <CommandType>0</CommandType>
-      <SourceProfile>00000000-0000-0000-0000-000000000000</SourceProfile>
-      <Referrer xsi:nil="true" />
-      <Confidence>0</Confidence>
-    </Command>
-    <Command>
-      <Id>863acc88-5c0f-45cd-a85c-a93e7185420f</Id>
+      <Id>6cd813e3-085b-5b02-bd1d-9a1df54eff4c</Id>
       <CommandString>VTOL</CommandString>
       <ActionSequence>
         <CommandAction>
@@ -222,7 +152,7 @@
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>32b02ee2-a807-4317-9780-84a9fc9021e9</Id>
+          <Id>eb126a09-3661-5063-b7e8-613071c4b3bc</Id>
           <ActionType>ExternalInvoke</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
@@ -230,7 +160,7 @@
           <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
           <Context2 />
           <Context3 />
-          <Context4>fonction:vtol</Context4>
+          <Context4>function:vtol</Context4>
           <X>1</X>
           <Y>0</Y>
           <InputMode>0</InputMode>
@@ -245,12 +175,12 @@
           <Ordinal>1</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>eb27267a-a140-4b4f-b1b7-1611a4812269</Id>
+          <Id>4741df00-0aeb-5b08-af55-e3e9c36587f9</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>{TXT:SCTD_reponse}</Context>
+          <Context>{TXT:SCTD_reply}</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -266,7 +196,7 @@
       </ActionSequence>
       <Async>true</Async>
       <Enabled>true</Enabled>
-      <Category>SCTD ordres</Category>
+      <Category>SCTD vol</Category>
       <UseShortcut>false</UseShortcut>
       <keyValue>0</keyValue>
       <keyShift>0</keyShift>
@@ -284,7 +214,7 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>85a5ba60-b216-4a17-b40a-fc0e07417d7c</Id>
+      <Id>35df45c0-e0e6-5652-ac40-fa133729fc11</Id>
       <CommandString>découplé</CommandString>
       <ActionSequence>
         <CommandAction>
@@ -292,7 +222,7 @@
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>31ed4d79-5c8e-4225-b04a-de1fb5917c88</Id>
+          <Id>5f205c90-cb2b-53a5-bc8d-7c1bb575a328</Id>
           <ActionType>ExternalInvoke</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
@@ -300,7 +230,7 @@
           <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
           <Context2 />
           <Context3 />
-          <Context4>fonction:decoupled</Context4>
+          <Context4>function:decoupled</Context4>
           <X>1</X>
           <Y>0</Y>
           <InputMode>0</InputMode>
@@ -315,12 +245,12 @@
           <Ordinal>1</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>61499e68-06e0-4ad6-93d6-802e84844ec2</Id>
+          <Id>237199b3-6048-5c0c-a324-5d8abc570e19</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>{TXT:SCTD_reponse}</Context>
+          <Context>{TXT:SCTD_reply}</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -336,7 +266,7 @@
       </ActionSequence>
       <Async>true</Async>
       <Enabled>true</Enabled>
-      <Category>SCTD ordres</Category>
+      <Category>SCTD vol</Category>
       <UseShortcut>false</UseShortcut>
       <keyValue>0</keyValue>
       <keyShift>0</keyShift>
@@ -354,7 +284,217 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>d4e72846-efaf-4012-a0ac-64fd6eca366b</Id>
+      <Id>9ce4c5ee-4265-5567-8fa3-ad916a2d2259</Id>
+      <CommandString>mode navigation</CommandString>
+      <ActionSequence>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>0</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>6b8525e5-373d-5f7c-86de-80a1916e7d2b</Id>
+          <ActionType>ExternalInvoke</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
+          <Context2 />
+          <Context3 />
+          <Context4>function:master_nav:on</Context4>
+          <X>1</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>1</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>7624b691-64b1-5b81-ac35-6552efac5c39</Id>
+          <ActionType>Say</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>{TXT:SCTD_reply}</Context>
+          <Context2 />
+          <Context3 />
+          <Context4></Context4>
+          <X>100</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+      </ActionSequence>
+      <Async>true</Async>
+      <Enabled>true</Enabled>
+      <Category>SCTD vol</Category>
+      <UseShortcut>false</UseShortcut>
+      <keyValue>0</keyValue>
+      <keyShift>0</keyShift>
+      <keyAlt>0</keyAlt>
+      <keyCtrl>0</keyCtrl>
+      <keyWin>0</keyWin>
+      <keyPassthru>true</keyPassthru>
+      <UseSpokenPhrase>true</UseSpokenPhrase>
+      <onlyKeyUp>false</onlyKeyUp>
+      <RepeatNumber>2</RepeatNumber>
+      <RepeatType>0</RepeatType>
+      <CommandType>0</CommandType>
+      <SourceProfile>00000000-0000-0000-0000-000000000000</SourceProfile>
+      <Referrer xsi:nil="true" />
+      <Confidence>0</Confidence>
+    </Command>
+    <Command>
+      <Id>80117182-c1fe-537d-864d-30b0e1b8e3c9</Id>
+      <CommandString>allume le vaisseau</CommandString>
+      <ActionSequence>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>0</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>837e2645-d945-5bcb-864f-916818eba63e</Id>
+          <ActionType>ExternalInvoke</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
+          <Context2 />
+          <Context3 />
+          <Context4>function:power_main:on</Context4>
+          <X>1</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>1</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>acd51827-34c1-56ca-ab96-400d152dd692</Id>
+          <ActionType>Say</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>{TXT:SCTD_reply}</Context>
+          <Context2 />
+          <Context3 />
+          <Context4></Context4>
+          <X>100</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+      </ActionSequence>
+      <Async>true</Async>
+      <Enabled>true</Enabled>
+      <Category>SCTD énergie</Category>
+      <UseShortcut>false</UseShortcut>
+      <keyValue>0</keyValue>
+      <keyShift>0</keyShift>
+      <keyAlt>0</keyAlt>
+      <keyCtrl>0</keyCtrl>
+      <keyWin>0</keyWin>
+      <keyPassthru>true</keyPassthru>
+      <UseSpokenPhrase>true</UseSpokenPhrase>
+      <onlyKeyUp>false</onlyKeyUp>
+      <RepeatNumber>2</RepeatNumber>
+      <RepeatType>0</RepeatType>
+      <CommandType>0</CommandType>
+      <SourceProfile>00000000-0000-0000-0000-000000000000</SourceProfile>
+      <Referrer xsi:nil="true" />
+      <Confidence>0</Confidence>
+    </Command>
+    <Command>
+      <Id>3a8fcaba-6f5d-5f04-bff5-9df6a43e7c83</Id>
+      <CommandString>phares</CommandString>
+      <ActionSequence>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>0</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>cff6dc60-4f35-57c1-bc8d-7984d3d3b839</Id>
+          <ActionType>ExternalInvoke</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
+          <Context2 />
+          <Context3 />
+          <Context4>function:lights</Context4>
+          <X>1</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>1</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>ee6e3a3b-f5f1-5718-be96-1619279b98a6</Id>
+          <ActionType>Say</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>{TXT:SCTD_reply}</Context>
+          <Context2 />
+          <Context3 />
+          <Context4></Context4>
+          <X>100</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+      </ActionSequence>
+      <Async>true</Async>
+      <Enabled>true</Enabled>
+      <Category>SCTD lumières</Category>
+      <UseShortcut>false</UseShortcut>
+      <keyValue>0</keyValue>
+      <keyShift>0</keyShift>
+      <keyAlt>0</keyAlt>
+      <keyCtrl>0</keyCtrl>
+      <keyWin>0</keyWin>
+      <keyPassthru>true</keyPassthru>
+      <UseSpokenPhrase>true</UseSpokenPhrase>
+      <onlyKeyUp>false</onlyKeyUp>
+      <RepeatNumber>2</RepeatNumber>
+      <RepeatType>0</RepeatType>
+      <CommandType>0</CommandType>
+      <SourceProfile>00000000-0000-0000-0000-000000000000</SourceProfile>
+      <Referrer xsi:nil="true" />
+      <Confidence>0</Confidence>
+    </Command>
+    <Command>
+      <Id>4218f0b4-65ae-56e5-b332-27dc694000f9</Id>
       <CommandString>vision nocturne</CommandString>
       <ActionSequence>
         <CommandAction>
@@ -362,7 +502,7 @@
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>00f1f61c-6eff-407e-b3de-17d23375d952</Id>
+          <Id>1d88c869-5077-5cf8-b0ba-da30cd599f00</Id>
           <ActionType>ExternalInvoke</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
@@ -370,7 +510,7 @@
           <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
           <Context2 />
           <Context3 />
-          <Context4>fonction:night_vision</Context4>
+          <Context4>function:night_vision</Context4>
           <X>1</X>
           <Y>0</Y>
           <InputMode>0</InputMode>
@@ -385,12 +525,12 @@
           <Ordinal>1</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>3fcca04e-cb9a-4484-a9c7-d1cb8d5485f0</Id>
+          <Id>0bd34a44-b408-5003-bbbf-624b6935c0cd</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>{TXT:SCTD_reponse}</Context>
+          <Context>{TXT:SCTD_reply}</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -406,7 +546,7 @@
       </ActionSequence>
       <Async>true</Async>
       <Enabled>true</Enabled>
-      <Category>SCTD ordres</Category>
+      <Category>SCTD lumières</Category>
       <UseShortcut>false</UseShortcut>
       <keyValue>0</keyValue>
       <keyShift>0</keyShift>
@@ -424,7 +564,77 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>bc8c4af7-e710-4ff6-8245-513eea6e79e3</Id>
+      <Id>8e4a643c-76a9-5242-a2de-45f60791ffe5</Id>
+      <CommandString>saut quantique</CommandString>
+      <ActionSequence>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>0</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>5ef0fe66-0eb1-5a89-99d0-50c9f9786b49</Id>
+          <ActionType>ExternalInvoke</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
+          <Context2 />
+          <Context3 />
+          <Context4>action:v_toggle_qdrive_engagement</Context4>
+          <X>1</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>1</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>63b3f221-a519-50a4-bfa9-2de57df9ad22</Id>
+          <ActionType>Say</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>{TXT:SCTD_reply}</Context>
+          <Context2 />
+          <Context3 />
+          <Context4></Context4>
+          <X>100</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+      </ActionSequence>
+      <Async>true</Async>
+      <Enabled>true</Enabled>
+      <Category>SCTD siège</Category>
+      <UseShortcut>false</UseShortcut>
+      <keyValue>0</keyValue>
+      <keyShift>0</keyShift>
+      <keyAlt>0</keyAlt>
+      <keyCtrl>0</keyCtrl>
+      <keyWin>0</keyWin>
+      <keyPassthru>true</keyPassthru>
+      <UseSpokenPhrase>true</UseSpokenPhrase>
+      <onlyKeyUp>false</onlyKeyUp>
+      <RepeatNumber>2</RepeatNumber>
+      <RepeatType>0</RepeatType>
+      <CommandType>0</CommandType>
+      <SourceProfile>00000000-0000-0000-0000-000000000000</SourceProfile>
+      <Referrer xsi:nil="true" />
+      <Confidence>0</Confidence>
+    </Command>
+    <Command>
+      <Id>ee9d7495-8c47-59f3-923b-64a498b9680c</Id>
       <CommandString>carburant</CommandString>
       <ActionSequence>
         <CommandAction>
@@ -432,7 +642,7 @@
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>e45c6391-d55c-48d9-8437-13559d21cfcf</Id>
+          <Id>7f553d01-d8e9-5c23-952c-ed3d22a4e61f</Id>
           <ActionType>ExternalInvoke</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
@@ -440,7 +650,7 @@
           <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
           <Context2 />
           <Context3 />
-          <Context4>dire:hydrogen</Context4>
+          <Context4>say:hydrogen</Context4>
           <X>1</X>
           <Y>0</Y>
           <InputMode>0</InputMode>
@@ -455,12 +665,12 @@
           <Ordinal>1</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>45e25f53-e5b1-43df-8123-9a8584a21b5c</Id>
+          <Id>8b341751-47ec-56aa-ac12-b851ab82313b</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>{TXT:SCTD_reponse}</Context>
+          <Context>{TXT:SCTD_reply}</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -476,7 +686,7 @@
       </ActionSequence>
       <Async>true</Async>
       <Enabled>true</Enabled>
-      <Category>SCTD ordres</Category>
+      <Category>SCTD questions</Category>
       <UseShortcut>false</UseShortcut>
       <keyValue>0</keyValue>
       <keyShift>0</keyShift>
@@ -494,7 +704,7 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>cb52e29c-b805-42fd-ade5-bbeb7193f45a</Id>
+      <Id>b4695258-85bc-53c0-85b1-8b347d3904b7</Id>
       <CommandString>boucliers</CommandString>
       <ActionSequence>
         <CommandAction>
@@ -502,7 +712,7 @@
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>7b64eff8-e439-4f5f-8c82-01c6af731c57</Id>
+          <Id>16b8428b-8a72-5cdb-ae23-23b54c4d4e54</Id>
           <ActionType>ExternalInvoke</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
@@ -510,7 +720,7 @@
           <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
           <Context2 />
           <Context3 />
-          <Context4>dire:shields</Context4>
+          <Context4>say:shields</Context4>
           <X>1</X>
           <Y>0</Y>
           <InputMode>0</InputMode>
@@ -525,12 +735,12 @@
           <Ordinal>1</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>ba5a890b-1941-4b5a-85c2-aecec91ba11c</Id>
+          <Id>ab0224bd-c276-58ba-be85-5fd10577da04</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>{TXT:SCTD_reponse}</Context>
+          <Context>{TXT:SCTD_reply}</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -546,7 +756,7 @@
       </ActionSequence>
       <Async>true</Async>
       <Enabled>true</Enabled>
-      <Category>SCTD ordres</Category>
+      <Category>SCTD questions</Category>
       <UseShortcut>false</UseShortcut>
       <keyValue>0</keyValue>
       <keyShift>0</keyShift>
@@ -564,7 +774,147 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>275e525a-27ff-4060-ba69-03e3efec117f</Id>
+      <Id>bc03c406-737d-569b-a759-0b4f726dce23</Id>
+      <CommandString>santé</CommandString>
+      <ActionSequence>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>0</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>85febd4a-76cf-5635-8e91-14a2f3d8281b</Id>
+          <ActionType>ExternalInvoke</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
+          <Context2 />
+          <Context3 />
+          <Context4>say:health</Context4>
+          <X>1</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>1</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>be3c4687-83b5-568a-acd5-7b4fe5c23899</Id>
+          <ActionType>Say</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>{TXT:SCTD_reply}</Context>
+          <Context2 />
+          <Context3 />
+          <Context4></Context4>
+          <X>100</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+      </ActionSequence>
+      <Async>true</Async>
+      <Enabled>true</Enabled>
+      <Category>SCTD questions</Category>
+      <UseShortcut>false</UseShortcut>
+      <keyValue>0</keyValue>
+      <keyShift>0</keyShift>
+      <keyAlt>0</keyAlt>
+      <keyCtrl>0</keyCtrl>
+      <keyWin>0</keyWin>
+      <keyPassthru>true</keyPassthru>
+      <UseSpokenPhrase>true</UseSpokenPhrase>
+      <onlyKeyUp>false</onlyKeyUp>
+      <RepeatNumber>2</RepeatNumber>
+      <RepeatType>0</RepeatType>
+      <CommandType>0</CommandType>
+      <SourceProfile>00000000-0000-0000-0000-000000000000</SourceProfile>
+      <Referrer xsi:nil="true" />
+      <Confidence>0</Confidence>
+    </Command>
+    <Command>
+      <Id>220fe69e-8eba-5fdb-aec1-82d8791d3633</Id>
+      <CommandString>soif</CommandString>
+      <ActionSequence>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>0</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>70a0be53-08eb-5721-9915-812528be7c90</Id>
+          <ActionType>ExternalInvoke</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>b9bf338c-95ea-4631-b380-7595ae51cee1</Context>
+          <Context2 />
+          <Context3 />
+          <Context4>say:thirst</Context4>
+          <X>1</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+        <CommandAction>
+          <PairingSet>false</PairingSet>
+          <Ordinal>1</Ordinal>
+          <ConditionMet xsi:nil="true" />
+          <IndentLevel>0</IndentLevel>
+          <Id>8affc28b-5bd7-5421-985f-ec349df9e6b7</Id>
+          <ActionType>Say</ActionType>
+          <Duration>0</Duration>
+          <Delay>0</Delay>
+          <KeyCodes />
+          <Context>{TXT:SCTD_reply}</Context>
+          <Context2 />
+          <Context3 />
+          <Context4></Context4>
+          <X>100</X>
+          <Y>0</Y>
+          <InputMode>0</InputMode>
+          <ConditionPairing>0</ConditionPairing>
+          <ConditionGroup>0</ConditionGroup>
+          <ConditionStartOperator>0</ConditionStartOperator>
+          <ConditionStartValue>0</ConditionStartValue>
+          <ConditionStartValueType>0</ConditionStartValueType>
+        </CommandAction>
+      </ActionSequence>
+      <Async>true</Async>
+      <Enabled>true</Enabled>
+      <Category>SCTD questions</Category>
+      <UseShortcut>false</UseShortcut>
+      <keyValue>0</keyValue>
+      <keyShift>0</keyShift>
+      <keyAlt>0</keyAlt>
+      <keyCtrl>0</keyCtrl>
+      <keyWin>0</keyWin>
+      <keyPassthru>true</keyPassthru>
+      <UseSpokenPhrase>true</UseSpokenPhrase>
+      <onlyKeyUp>false</onlyKeyUp>
+      <RepeatNumber>2</RepeatNumber>
+      <RepeatType>0</RepeatType>
+      <CommandType>0</CommandType>
+      <SourceProfile>00000000-0000-0000-0000-000000000000</SourceProfile>
+      <Referrer xsi:nil="true" />
+      <Confidence>0</Confidence>
+    </Command>
+    <Command>
+      <Id>16cde8ce-61c8-51e7-83e0-0e11b82104f7</Id>
       <CommandString>état du vaisseau</CommandString>
       <ActionSequence>
         <CommandAction>
@@ -572,12 +922,12 @@
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>5e6c36d1-4e04-4ae3-9224-44b1ca051ea1</Id>
+          <Id>2cc90f6c-ef26-5c54-ac21-efd491a04b11</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>{TXT:SCTD_vaisseau}. Boucliers {INT:SCTD_boucliers} pour cent, coque {INT:SCTD_coque} pour cent.</Context>
+          <Context>{TXT:SCTD_ship}. Boucliers {INT:SCTD_shields} pour cent, coque {INT:SCTD_hull} pour cent.</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -593,7 +943,7 @@
       </ActionSequence>
       <Async>true</Async>
       <Enabled>true</Enabled>
-      <Category>SCTD ordres</Category>
+      <Category>SCTD questions</Category>
       <UseShortcut>false</UseShortcut>
       <keyValue>0</keyValue>
       <keyShift>0</keyShift>
@@ -611,67 +961,20 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>0cd405e0-a56c-4f38-958a-70ee1932d190</Id>
-      <CommandString>((SCTD alerte boucliers))</CommandString>
+      <Id>773202d1-eeb4-5c98-a0e1-d66a0a5a05e3</Id>
+      <CommandString>((SCTD alert shields))</CommandString>
       <ActionSequence>
         <CommandAction>
           <PairingSet>false</PairingSet>
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>f0043a07-e728-4d1d-8edc-34c747cafc99</Id>
+          <Id>22048167-173a-51c1-86d9-579fcbd8dd00</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>Attention, boucliers à {INT:SCTD_boucliers} pour cent.</Context>
-          <Context2 />
-          <Context3 />
-          <Context4></Context4>
-          <X>100</X>
-          <Y>0</Y>
-          <InputMode>0</InputMode>
-          <ConditionPairing>0</ConditionPairing>
-          <ConditionGroup>0</ConditionGroup>
-          <ConditionStartOperator>0</ConditionStartOperator>
-          <ConditionStartValue>0</ConditionStartValue>
-          <ConditionStartValueType>0</ConditionStartValueType>
-        </CommandAction>
-      </ActionSequence>
-      <Async>true</Async>
-      <Enabled>true</Enabled>
-      <Category>SCTD alertes</Category>
-      <UseShortcut>false</UseShortcut>
-      <keyValue>0</keyValue>
-      <keyShift>0</keyShift>
-      <keyAlt>0</keyAlt>
-      <keyCtrl>0</keyCtrl>
-      <keyWin>0</keyWin>
-      <keyPassthru>true</keyPassthru>
-      <UseSpokenPhrase>true</UseSpokenPhrase>
-      <onlyKeyUp>false</onlyKeyUp>
-      <RepeatNumber>2</RepeatNumber>
-      <RepeatType>0</RepeatType>
-      <CommandType>0</CommandType>
-      <SourceProfile>00000000-0000-0000-0000-000000000000</SourceProfile>
-      <Referrer xsi:nil="true" />
-      <Confidence>0</Confidence>
-    </Command>
-    <Command>
-      <Id>b4c99237-54d5-41b6-98d8-4abe1bb81251</Id>
-      <CommandString>((SCTD alerte coque))</CommandString>
-      <ActionSequence>
-        <CommandAction>
-          <PairingSet>false</PairingSet>
-          <Ordinal>0</Ordinal>
-          <ConditionMet xsi:nil="true" />
-          <IndentLevel>0</IndentLevel>
-          <Id>b54bae0f-f9e5-41ae-9138-3beff1bc2fd4</Id>
-          <ActionType>Say</ActionType>
-          <Duration>0</Duration>
-          <Delay>0</Delay>
-          <KeyCodes />
-          <Context>Attention, coque à {INT:SCTD_coque} pour cent.</Context>
+          <Context>Attention, boucliers à {INT:SCTD_shields} pour cent.</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -705,20 +1008,20 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>04a021ec-3c3d-4303-aaba-abd878f0b7a5</Id>
-      <CommandString>((SCTD alerte carburant))</CommandString>
+      <Id>0e8e7487-654a-54c8-ad46-e7fc1507c862</Id>
+      <CommandString>((SCTD alert hull))</CommandString>
       <ActionSequence>
         <CommandAction>
           <PairingSet>false</PairingSet>
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>87bb9c66-50e0-4457-991e-ec0d4bfdb148</Id>
+          <Id>a7ccb2ce-044b-51e4-bed1-8c7b34c20ad2</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>Carburant faible, {INT:SCTD_hydrogene} pour cent.</Context>
+          <Context>Attention, coque à {INT:SCTD_hull} pour cent.</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -752,20 +1055,20 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>f2042743-5a85-4392-b366-0727c9053711</Id>
-      <CommandString>((SCTD alerte oxygène))</CommandString>
+      <Id>3f4fbb31-404b-5fb5-acf9-a21f4218972f</Id>
+      <CommandString>((SCTD alert fuel))</CommandString>
       <ActionSequence>
         <CommandAction>
           <PairingSet>false</PairingSet>
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>3b28e6f3-6ba7-4910-90f9-4ffc392fb9f6</Id>
+          <Id>ae0a1719-8a4b-5391-9726-fe0388c859dd</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>Oxygène faible.</Context>
+          <Context>Carburant faible, {INT:SCTD_hydrogen} pour cent.</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -799,15 +1102,15 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>02b56a71-a078-41e6-9ac0-504e45d8f89a</Id>
-      <CommandString>((SCTD alerte santé))</CommandString>
+      <Id>7b807762-5a51-51d0-8a84-d8a89e210e96</Id>
+      <CommandString>((SCTD alert health))</CommandString>
       <ActionSequence>
         <CommandAction>
           <PairingSet>false</PairingSet>
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>c20958ba-69d6-47a5-81ca-d402552db86d</Id>
+          <Id>bc265617-b146-5fcf-9828-63e5f361840b</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
@@ -846,20 +1149,20 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>ad59d5b7-0051-4d58-8daa-4e1fa2d628b8</Id>
-      <CommandString>((SCTD connecté))</CommandString>
+      <Id>79e5833a-a3fe-563f-87b2-eb3316ac7e00</Id>
+      <CommandString>((SCTD alert thirst))</CommandString>
       <ActionSequence>
         <CommandAction>
           <PairingSet>false</PairingSet>
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>d687a6f2-eae1-4fd0-acd5-7f3b59c75684</Id>
+          <Id>5280a171-ec88-57c8-a877-d352fb8f1e5b</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>
           <KeyCodes />
-          <Context>Télémétrie connectée.</Context>
+          <Context>Soif, {INT:SCTD_thirst} pour cent. Pense à boire.</Context>
           <Context2 />
           <Context3 />
           <Context4></Context4>
@@ -893,15 +1196,15 @@
       <Confidence>0</Confidence>
     </Command>
     <Command>
-      <Id>86427d18-3fe1-45e0-b38e-79f07b3c4eca</Id>
-      <CommandString>((SCTD jeu perdu))</CommandString>
+      <Id>156fbb2d-b3be-596c-abc9-3391b883168d</Id>
+      <CommandString>((SCTD game lost))</CommandString>
       <ActionSequence>
         <CommandAction>
           <PairingSet>false</PairingSet>
           <Ordinal>0</Ordinal>
           <ConditionMet xsi:nil="true" />
           <IndentLevel>0</IndentLevel>
-          <Id>690d7523-e2f9-494a-b8f9-e9f96276b552</Id>
+          <Id>aeb42c20-cf28-59f7-88b7-d58370c05243</Id>
           <ActionType>Say</ActionType>
           <Duration>0</Duration>
           <Delay>0</Delay>

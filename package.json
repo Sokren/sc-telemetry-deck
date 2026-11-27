@@ -11,6 +11,7 @@
         "start:web": "node dist-web/server.mjs",
         "build:exe": "node scripts/build-exe.mjs",
         "build:portable": "node scripts/build-portable.mjs",
+		"build:voiceattack": "node scripts/build-voiceattack.mjs",
         "templates:export": "node scripts/export-templates.mjs"
     },
     "engines": {

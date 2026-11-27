@@ -10,6 +10,7 @@ dist/
 dist-web/
 dist-exe/
 dist-portable/
+dist-voiceattack/
 *.sdPlugin/bin/
 *.sdPlugin/logs/
 *.sdPlugin/data/
