@@ -37,7 +37,7 @@ export const MAX_TOKEN_NAME = 32;
 export const TOKEN_PREFIX = "sct_ext_";
 export const PLUGIN_PREFIX = "sct_plg_";
 const LOG_SIZE = 100;
-/** Appels en alerte gardés en plus quand des appels normaux les chassent des 100 derniers. */
+/** Appels en alerte, et actions sensibles, gardés en plus (chacun jusqu'à 50) quand d'autres appels les chassent des 100 derniers. */
 const KEPT_ALERTS = 50;
 const HASH = /^[0-9a-f]{64}$/;
 const ID = /^[A-Za-z0-9_-]{1,32}$/;
@@ -106,7 +106,7 @@ export function mayTriggerDangerous(caller: Caller): boolean {
 }
 
 export class AccessStore {
-	readonly #logs = new Map<string, { entries: AccessLogEntry[]; kept: AccessLogEntry[]; refused: number }>();
+	readonly #logs = new Map<string, { entries: AccessLogEntry[]; kept: AccessLogEntry[]; keptSensitive: AccessLogEntry[]; refused: number }>();
 	/** Jetons des plugins en marche, par dossier de plugin : jamais enregistrés. */
 	readonly #plugins = new Map<string, AccessToken>();
 
@@ -236,13 +236,15 @@ export class AccessStore {
 	}
 
 	record(id: string, entry: AccessLogEntry): void {
-		const log = this.#logs.get(id) ?? { entries: [], kept: [], refused: 0 };
+		const log = this.#logs.get(id) ?? { entries: [], kept: [], keptSensitive: [], refused: 0 };
 		log.entries.push(entry);
 		if (log.entries.length > LOG_SIZE) {
 			const out = log.entries.shift()!;
-			if (isAlertStatus(out.status)) {
-				log.kept.push(out);
-				if (log.kept.length > KEPT_ALERTS) log.kept.shift();
+			// Réserves séparées : des erreurs ne chassent pas une action sensible, ni l'inverse.
+			const reserve = out.sensitive ? log.keptSensitive : isAlertStatus(out.status) ? log.kept : undefined;
+			if (reserve) {
+				reserve.push(out);
+				if (reserve.length > KEPT_ALERTS) reserve.shift();
 			}
 		}
 		if (entry.status === 401 || entry.status === 403) log.refused++;
@@ -251,6 +253,7 @@ export class AccessStore {
 
 	log(id: string): { entries: AccessLogEntry[]; refused: number; lastUsed: string | null } {
 		const log = this.#logs.get(id);
-		return { entries: [...(log?.kept ?? []), ...(log?.entries ?? [])], refused: log?.refused ?? 0, lastUsed: log?.entries.at(-1)?.at ?? null };
+		const kept = [...(log?.kept ?? []), ...(log?.keptSensitive ?? [])].sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+		return { entries: [...kept, ...(log?.entries ?? [])], refused: log?.refused ?? 0, lastUsed: log?.entries.at(-1)?.at ?? null };
 	}
 }

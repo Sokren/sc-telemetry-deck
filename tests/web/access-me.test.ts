@@ -149,16 +149,23 @@ describe("cohérence : can dit la même chose que les refus des routes", () => {
 });
 
 describe("clés actions.<catégorie> stables", () => {
-	test("catégories de l'instantané toujours présentes, même si la liste du jeu en manque ; catégories nouvelles du jeu ajoutées", async () => {
+	test("catégories de l'instantané seul, sans interroger le jeu (pas d'attente, clés stables)", async () => {
 		const { accessMeRoute } = await import("../../src/web/routes/access.js");
 		const route = accessMeRoute({
-			source: {
-				getActions: async () => ({ actions: [{ name: "x_new", category: "new_cat", holdable: false }], live: true }),
-				getSnapshot: () => [{ name: "v_radar", category: "spaceship_radar", holdable: false }],
-			},
+			source: { getSnapshot: () => [{ name: "v_radar", category: "spaceship_radar", holdable: false }] },
 		});
 		const reply = (await route.handle({ caller: { kind: "main" } } as never)) as { json: { can: Record<string, unknown> } };
 		expect(reply.json.can).toHaveProperty("actions.spaceship_radar", true);
-		expect(reply.json.can).toHaveProperty("actions.new_cat", true);
+		expect(Object.keys(reply.json.can).filter((k) => k.startsWith("actions."))).toEqual(["actions.spaceship_radar", "actions.unknown", "actions.dangerous", "actions.protected"]);
+	});
+});
+
+describe("contrat : l'exception est nommée", () => {
+	test("la description générale cite GET /api/v1/access/me (EN et FR) et le conseil de relecture", async () => {
+		const { OPENAPI } = await import("./harness.js");
+		const d: string = OPENAPI.info.description;
+		expect(d.match(/GET \/api\/v1\/access\/me/g)?.length).toBe(2);
+		expect(d).toContain("after a 403");
+		expect(d).toContain("après un 403");
 	});
 });

@@ -114,16 +114,16 @@ export function accessRoutes(deps: {
 /**
  * `GET /api/v1/access/me` : qui est l'appelant et ce qu'il peut faire (`can`). Ouverte à tout jeton en marche ; lit le
  * jeton à chaque appel, donc des droits changés en marche (plugin) se voient tout de suite. Catégories d'actions : celles
- * de l'instantané plus celles du jeu, pour qu'une clé `actions.<catégorie>` ne disparaisse pas quand le jeu se coupe.
+ * de l'instantané seul, sans interroger le jeu — réponse immédiate même jeu bloqué, et clés `actions.<catégorie>` qui ne
+ * disparaissent jamais ; une catégorie que seul le jeu connaît relève de `actions.unknown`.
  */
-export function accessMeRoute(deps: { source: Pick<ActionSource, "getActions" | "getSnapshot"> }): Route {
+export function accessMeRoute(deps: { source: Pick<ActionSource, "getSnapshot"> }): Route {
 	return {
 		method: "GET",
 		path: "/api/v1/access/me",
 		self: true,
 		handle: async ({ caller }) => {
-			const { actions } = await deps.source.getActions();
-			const categories = [...deps.source.getSnapshot(), ...actions].map((a) => a.category);
+			const categories = deps.source.getSnapshot().map((a) => a.category);
 			return { status: 200, json: describeCaller(caller, categories) };
 		},
 	};

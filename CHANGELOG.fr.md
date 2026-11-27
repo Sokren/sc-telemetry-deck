@@ -38,7 +38,7 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/) ; les note
 ### Modifié
 - Vérification de version : seules les **versions principales** sont proposées (`x.y.z`). Préversions, bêtas et versions candidates sont ignorées, même si elles ne sont pas marquées « pre-release » sur GitHub, et une bêta n'est jamais comptée comme plus récente que la version du même numéro.
 - `GET /api/v1/game` (état du jeu et performances) est accessible aux jetons **Lecture**.
-- Journal des jetons : **toutes les actions dangereuses** sont marquées « action sensible » (⚠), même au niveau Pilotage — sortie d'urgence, coupure de l'alimentation, ouverture des portes, en plus de l'éjection, de l'autodestruction et du déverrouillage.
+- Journal des jetons : **toutes les actions dangereuses** sont marquées « action sensible » (⚠), même au niveau Pilotage — sortie d'urgence, coupure de l'alimentation, ouverture des portes, en plus de l'éjection, de l'autodestruction et du déverrouillage. Les 50 dernières restent visibles même chassées par de nombreux appels ordinaires, à part des erreurs.
 - Fenêtre **Plugins** : quand un plugin demande Pilotage complet, **Pilotage** est coché par défaut ; Pilotage complet ⚠ reste à choisir soi-même.
 - Schéma du jeu mis à jour : 5.0 PTU build 13273298 (5.0.202.35026).
 

@@ -41,3 +41,15 @@ describe("fenêtre Plugins : niveau présélectionné", () => {
 		expect(defaultLevel("read", "pilot")).toBe("read");
 	});
 });
+
+describe("fenêtre Plugins : avertissement Pilotage complet", () => {
+	test("dit que toute action dangereuse est marquée à tous les niveaux, et que le journal n'empêche rien (FR + EN)", async () => {
+		const { I18N } = await import("../../src/web/static/i18n.js");
+		expect(I18N.fr.pluginsFullWarn).toContain("chaque action dangereuse, à tous les niveaux");
+		expect(I18N.fr.pluginsFullWarn).toContain("il n'empêche pas");
+		expect(I18N.fr.pluginsFullWarn).not.toContain("protégée");
+		expect(I18N.en.pluginsFullWarn).toContain("every dangerous action");
+		expect(I18N.en.pluginsFullWarn).toContain("it does not block");
+		expect(I18N.en.pluginsFullWarn).not.toContain("protected");
+	});
+});

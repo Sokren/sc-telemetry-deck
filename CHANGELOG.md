@@ -38,7 +38,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 ### Changed
 - Update check: only **main versions** are offered (`x.y.z`). Pre-releases, betas and release candidates are ignored, even when they are not flagged as pre-release on GitHub, and a beta is never counted as newer than the version of the same number.
 - `GET /api/v1/game` (game state and performance) is open to **Read** tokens.
-- Token logs: **every dangerous action** is flagged “sensitive action” (⚠), even at the Pilot level — emergency exit, power off, opening the doors, on top of eject, self destruct and unlocking.
+- Token logs: **every dangerous action** is flagged “sensitive action” (⚠), even at the Pilot level — emergency exit, power off, opening the doors, on top of eject, self destruct and unlocking. The last 50 stay visible even when many ordinary calls push them out, apart from the errors.
 - **Plugins** window: when a plugin asks for Full pilot, **Pilot** is checked by default; Full pilot ⚠ is for you to pick.
 - Game schema updated: 5.0 PTU build 13273298 (5.0.202.35026).
 

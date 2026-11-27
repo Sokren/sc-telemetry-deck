@@ -162,6 +162,38 @@ describe("jetons externes : journal en mémoire", () => {
 		expect(log.entries.some((e) => e.status === 404)).toBe(false);
 		expect(log.lastUsed).toBe(at(202));
 	});
+
+	test("une action sensible reste visible même chassée par 100 appels normaux", () => {
+		const store = new AccessStore(settings(), () => {});
+		const r = store.create({ name: "a", level: "pilot", lan: false });
+		if (typeof r === "string") throw new Error(r);
+		const at = (i: number) => `2026-11-25T10:00:${String(i).padStart(3, "0")}Z`;
+		store.record(r.token.id, { at: at(0), method: "POST", path: "/api/v1/actions/{name}/trigger", status: 200, sensitive: true });
+		for (let i = 1; i < 201; i++) store.record(r.token.id, { at: at(i), method: "GET", path: "/api/v1/status", status: 200 });
+		const log = store.log(r.token.id);
+		expect(log.entries[0]).toEqual({ at: at(0), method: "POST", path: "/api/v1/actions/{name}/trigger", status: 200, sensitive: true });
+		expect(log.entries).toHaveLength(101);
+	});
+
+	test("des erreurs ne chassent pas les actions sensibles, et l'inverse ; tri par date ; 50 de chaque au plus", () => {
+		const store = new AccessStore(settings(), () => {});
+		const r = store.create({ name: "a", level: "pilot", lan: false });
+		if (typeof r === "string") throw new Error(r);
+		const at = (i: number) => `2026-11-25T10:${String(i).padStart(4, "0")}Z`;
+		let i = 0;
+		store.record(r.token.id, { at: at(i++), method: "POST", path: "/api/v1/actions/{name}/trigger", status: 502, sensitive: true });
+		for (let k = 0; k < 60; k++) store.record(r.token.id, { at: at(i++), method: "GET", path: "/api/v1/status", status: 500 });
+		store.record(r.token.id, { at: at(i++), method: "POST", path: "/api/v1/ship/functions/{id}/press", status: 200, sensitive: true });
+		for (let k = 0; k < 60; k++) store.record(r.token.id, { at: at(i++), method: "POST", path: "/api/v1/actions/{name}/trigger", status: 200, sensitive: true });
+		for (let k = 0; k < 200; k++) store.record(r.token.id, { at: at(i++), method: "GET", path: "/api/v1/status", status: 200 });
+		const log = store.log(r.token.id);
+		const old = log.entries.slice(0, log.entries.length - 100);
+		expect(old.filter((e) => e.sensitive)).toHaveLength(50);
+		expect(old.filter((e) => !e.sensitive)).toHaveLength(50);
+		expect(old.map((e) => e.at)).toEqual([...old.map((e) => e.at)].sort());
+		// Les 50 sensibles gardées sont les plus récentes : la toute première (502) a été évincée par les suivantes.
+		expect(old.some((e) => e.at === at(0))).toBe(false);
+	});
 });
 
 describe("jetons externes : lecture de settings.json", () => {
