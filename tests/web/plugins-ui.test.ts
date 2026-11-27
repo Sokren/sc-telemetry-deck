@@ -27,3 +27,17 @@ describe("journaux : rouge = alerte", () => {
 		expect([200, 400, 401, 403, 404, 409, 502].filter(isAlert)).toEqual([400, 401, 403, 502]);
 	});
 });
+
+describe("fenêtre Plugins : niveau présélectionné", () => {
+	test("jamais Pilotage complet d'office ; un accord existant au plus égal à la demande est gardé", async () => {
+		// @ts-expect-error module JS de la page, sans types
+		const { defaultLevel } = await import("../../src/web/static/plugins.js");
+		expect(defaultLevel("pilot_full")).toBe("pilot");
+		expect(defaultLevel("pilot")).toBe("pilot");
+		expect(defaultLevel("read")).toBe("read");
+		expect(defaultLevel("pilot_full", "pilot_full")).toBe("pilot_full");
+		expect(defaultLevel("pilot_full", "read")).toBe("read");
+		expect(defaultLevel("pilot", "pilot_full")).toBe("pilot");
+		expect(defaultLevel("read", "pilot")).toBe("read");
+	});
+});

@@ -23,6 +23,15 @@ const button = (cls, text) => {
 	return b;
 };
 
+/**
+ * Niveau coché à l'ouverture de la fenêtre d'accord : un accord existant au plus égal au niveau demandé est gardé ;
+ * sinon le niveau demandé, sauf Pilotage complet → Pilotage (le joueur choisit lui-même Pilotage complet ⚠).
+ */
+export function defaultLevel(asked, granted) {
+	if (granted && LEVELS.indexOf(granted) >= 0 && LEVELS.indexOf(granted) <= LEVELS.indexOf(asked)) return granted;
+	return asked === "pilot_full" ? "pilot" : asked;
+}
+
 /** Table par id de plugin, sans prototype : « __proto__ » ou « constructor » y restent de simples entrées. */
 export const idMap = (v = {}) => Object.assign(Object.create(null), v && typeof v === "object" && !Array.isArray(v) ? v : {});
 
@@ -174,7 +183,7 @@ export function createPlugins(ctx) {
 		const asked = new Set(p.manifest.views ?? []);
 		consent = {
 			p,
-			level: p.grant?.level && LEVELS.indexOf(p.grant.level) <= LEVELS.indexOf(p.manifest.access) ? p.grant.level : p.manifest.access,
+			level: defaultLevel(p.manifest.access, p.grant?.level),
 			read: asked.has("read"),
 			create: asked.has("create"),
 			// Modifier des vues : décoché tant que le joueur n'a rien choisi (rien n'est accordé d'office).
