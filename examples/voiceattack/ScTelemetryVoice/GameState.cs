@@ -15,7 +15,7 @@ public sealed class GameState
 {
 	// Instruments (shipStatus.instruments) et constantes (vitals) dont on garde le pourcentage.
 	private static readonly string[] InstrumentKeys = ["shields", "hull", "hydrogen", "quantum"];
-	private static readonly string[] VitalKeys = ["health", "oxygen"];
+	private static readonly string[] VitalKeys = ["health", "oxygen", "thirst"];
 
 	private readonly object _lock = new();
 	private bool _live;

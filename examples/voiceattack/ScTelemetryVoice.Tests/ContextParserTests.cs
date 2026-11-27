@@ -3,9 +3,9 @@ namespace ScTelemetryVoice.Tests;
 public sealed class ContextParserTests
 {
 	[Theory]
-	[InlineData("fonction:gear", "gear", "toggle")]
-	[InlineData("fonction:lights:on", "lights", "on")]
-	[InlineData(" FONCTION:Gear:OFF ", "gear", "off")]
+	[InlineData("function:gear", "gear", "toggle")]
+	[InlineData("function:lights:on", "lights", "on")]
+	[InlineData(" FUNCTION:Gear:OFF ", "gear", "off")]
 	public void Parse_function(string ctx, string id, string mode) =>
 		Assert.Equal(new FunctionOrder(id, mode), ContextParser.Parse(ctx));
 
@@ -14,15 +14,15 @@ public sealed class ContextParserTests
 		Assert.Equal(new ActionOrder("v_lights_toggle"), ContextParser.Parse("action:v_lights_toggle"));
 
 	[Fact]
-	public void Parse_say() => Assert.Equal(new SayOrder("hydrogen"), ContextParser.Parse("dire:hydrogen"));
+	public void Parse_say() => Assert.Equal(new SayOrder("hydrogen"), ContextParser.Parse("say:hydrogen"));
 
 	[Theory]
 	[InlineData(null)]
 	[InlineData("")]
-	[InlineData("fonction:")]
-	[InlineData("fonction:gear:maybe")]
+	[InlineData("function:")]
+	[InlineData("function:gear:maybe")]
 	[InlineData("xyz")]
 	[InlineData("action:")]
-	[InlineData("dire:")]
+	[InlineData("say:")]
 	public void Parse_invalid_is_null(string? ctx) => Assert.Null(ContextParser.Parse(ctx));
 }

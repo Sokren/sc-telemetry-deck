@@ -5,7 +5,7 @@ internal static class Samples
 {
 	public static string State(
 		bool inShip = true, int? shields = 62, int? hull = 100, int? hydrogen = 18, int? oxygen = 90, int? health = 100,
-		string gearState = "off", string name = "Titan", string lang = "fr")
+		int? thirst = 80, string gearState = "off", string name = "Titan", string lang = "fr")
 	{
 		static string Pct(int? p) => p is null ? "" : $",\"percent\":{p}";
 		var (gearName, on, off) = lang == "fr" ? ("Train", "SORTI", "RENTRÉ") : ("Landing gear", "DEPLOYED", "RETRACTED");
@@ -16,7 +16,8 @@ internal static class Samples
 		{
 		  "vitals": [
 		    {"id":"health","label":"Santé","available":{{healthAvailable}},"text":"{{health}}","unit":"%","level":"ok"{{Pct(health)}}},
-		    {"id":"oxygen","label":"Oxygène","available":true,"text":"{{oxygen}}","unit":"%","level":"ok"{{Pct(oxygen)}}}
+		    {"id":"oxygen","label":"Oxygène","available":true,"text":"{{oxygen}}","unit":"%","level":"ok"{{Pct(oxygen)}}},
+		    {"id":"thirst","label":"Soif","available":true,"text":"{{thirst}}","unit":"%","level":"ok"{{Pct(thirst)}}}
 		  ],
 		  "ship": [
 		    {"id":"gear","name":"{{gearName}}","label":"GEAR","state":"{{gearState}}","word":"{{word}}","words":{"on":"{{on}}","off":"{{off}}"} }

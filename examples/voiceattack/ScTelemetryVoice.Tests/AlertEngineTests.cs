@@ -2,7 +2,7 @@ namespace ScTelemetryVoice.Tests;
 
 public sealed class AlertEngineTests
 {
-	private const string Shields = "((SCTD alerte boucliers))";
+	private const string Shields = "((SCTD alert shields))";
 	private DateTime _clock = new(2026, 11, 26, 20, 0, 0);
 	private readonly GameState _s = new();
 	private AlertEngine _e;
@@ -13,8 +13,8 @@ public sealed class AlertEngineTests
 		_s.ApplyStatus(Samples.Status(live: true));
 	}
 
-	private void Set(int? shields, bool inShip = true, int? oxygen = 90) =>
-		_s.ApplyState(Samples.State(inShip: inShip, shields: shields, oxygen: oxygen, hydrogen: 60));
+	private void Set(int? shields, bool inShip = true, int? oxygen = 90, int? thirst = 80) =>
+		_s.ApplyState(Samples.State(inShip: inShip, shields: shields, oxygen: oxygen, hydrogen: 60, thirst: thirst));
 
 	private void Live(bool live) => _s.ApplyStatus(Samples.Status(live));
 
@@ -64,7 +64,14 @@ public sealed class AlertEngineTests
 	public void Oxygen_fires_on_foot()
 	{
 		Set(null, inShip: false, oxygen: 20);
-		Assert.Contains("((SCTD alerte oxygène))", _e.Evaluate(_s));
+		Assert.Contains("((SCTD alert oxygen))", _e.Evaluate(_s));
+	}
+
+	[Fact]
+	public void Thirst_fires_on_foot_below_25()
+	{
+		Set(null, inShip: false, thirst: 30); Assert.DoesNotContain("((SCTD alert thirst))", _e.Evaluate(_s));
+		Set(null, inShip: false, thirst: 20); Assert.Contains("((SCTD alert thirst))", _e.Evaluate(_s));
 	}
 
 	[Fact]
@@ -72,7 +79,7 @@ public sealed class AlertEngineTests
 	{
 		Set(80); _e.Evaluate(_s);
 		Live(false); Set(5);
-		Assert.Equal(["((SCTD jeu perdu))"], _e.Evaluate(_s));
+		Assert.Equal(["((SCTD game lost))"], _e.Evaluate(_s));
 	}
 
 	[Fact]
@@ -81,7 +88,7 @@ public sealed class AlertEngineTests
 		var e = new AlertEngine(new AlertThresholds(), () => _clock);
 		Live(false); e.Evaluate(_s);
 		Live(true);
-		Assert.Contains("((SCTD connecté))", e.Evaluate(_s));
+		Assert.Contains("((SCTD connected))", e.Evaluate(_s));
 	}
 
 	[Fact]
@@ -130,7 +137,7 @@ public sealed class AlertEngineTests
 	{
 		_s.ApplyState(Samples.State(shields: 10, hull: 10, hydrogen: 10, oxygen: 10, health: 10));
 		Assert.Equal(
-			["((SCTD alerte boucliers))", "((SCTD alerte coque))", "((SCTD alerte carburant))", "((SCTD alerte oxygène))", "((SCTD alerte santé))"],
+			["((SCTD alert shields))", "((SCTD alert hull))", "((SCTD alert fuel))", "((SCTD alert oxygen))", "((SCTD alert health))"],
 			_e.Evaluate(_s));
 	}
 }

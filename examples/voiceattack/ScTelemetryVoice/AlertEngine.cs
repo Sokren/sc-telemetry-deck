@@ -7,8 +7,8 @@ namespace ScTelemetryVoice;
 /// </summary>
 public sealed class AlertEngine
 {
-	public const string Connected = "((SCTD connecté))";
-	public const string Lost = "((SCTD jeu perdu))";
+	public const string Connected = "((SCTD connected))";
+	public const string Lost = "((SCTD game lost))";
 	private const int Rearm = 10;
 	private static readonly TimeSpan Cooldown = TimeSpan.FromSeconds(30);
 
@@ -31,11 +31,12 @@ public sealed class AlertEngine
 		_now = now;
 		_rules =
 		[
-			new("((SCTD alerte boucliers))", "shields", true, t.Shields),
-			new("((SCTD alerte coque))", "hull", true, t.Hull),
-			new("((SCTD alerte carburant))", "hydrogen", true, t.Hydrogen),
-			new("((SCTD alerte oxygène))", "oxygen", false, t.Oxygen),
-			new("((SCTD alerte santé))", "health", false, t.Health),
+			new("((SCTD alert shields))", "shields", true, t.Shields),
+			new("((SCTD alert hull))", "hull", true, t.Hull),
+			new("((SCTD alert fuel))", "hydrogen", true, t.Hydrogen),
+			new("((SCTD alert oxygen))", "oxygen", false, t.Oxygen),
+			new("((SCTD alert health))", "health", false, t.Health),
+			new("((SCTD alert thirst))", "thirst", false, t.Thirst),
 		];
 	}
 

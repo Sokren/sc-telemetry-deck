@@ -38,6 +38,15 @@ public sealed class GameStateTests
 	}
 
 	[Fact]
+	public void Reads_thirst_percent_and_label()
+	{
+		var s = new GameState();
+		s.ApplyState(Samples.State(thirst: 35));
+		Assert.Equal(35, s.Percent("thirst"));
+		Assert.Equal("Soif : 35 %.", Replies.ForSay("fr", s, "thirst"));
+	}
+
+	[Fact]
 	public void ApplyStatus_live()
 	{
 		var s = new GameState();

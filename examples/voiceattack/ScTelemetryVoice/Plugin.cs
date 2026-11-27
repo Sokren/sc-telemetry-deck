@@ -105,7 +105,7 @@ public static class Plugin
 			{
 				case "status":
 					State.ApplyStatus(data);
-					Set(p => p.SetText("SCTD_jeu", State.Live ? "live" : "no_data"));
+					Set(p => p.SetText("SCTD_game", State.Live ? "live" : "no_data"));
 					break;
 				case "state":
 					State.ApplyState(data);
@@ -128,7 +128,7 @@ public static class Plugin
 		try
 		{
 			State.Reset();
-			Set(p => p.SetText("SCTD_jeu", "no_data"));
+			Set(p => p.SetText("SCTD_game", "no_data"));
 			PublishState();
 			RunAlerts();
 		}
@@ -155,22 +155,23 @@ public static class Plugin
 	{
 		Set(p =>
 		{
-			p.SetBoolean("SCTD_dans_vaisseau", (bool?)State.InShip);
-			p.SetText("SCTD_vaisseau", State.ShipName);
-			p.SetInt("SCTD_boucliers", State.Percent("shields"));
-			p.SetInt("SCTD_coque", State.Percent("hull"));
-			p.SetInt("SCTD_hydrogene", State.Percent("hydrogen"));
+			p.SetBoolean("SCTD_in_ship", (bool?)State.InShip);
+			p.SetText("SCTD_ship", State.ShipName);
+			p.SetInt("SCTD_shields", State.Percent("shields"));
+			p.SetInt("SCTD_hull", State.Percent("hull"));
+			p.SetInt("SCTD_hydrogen", State.Percent("hydrogen"));
 			p.SetInt("SCTD_quantum", State.Percent("quantum"));
-			p.SetInt("SCTD_sante", State.Percent("health"));
-			p.SetInt("SCTD_oxygene", State.Percent("oxygen"));
-			p.SetText("SCTD_train", State.Function("gear")?.Word);
+			p.SetInt("SCTD_health", State.Percent("health"));
+			p.SetInt("SCTD_oxygen", State.Percent("oxygen"));
+			p.SetInt("SCTD_thirst", State.Percent("thirst"));
+			p.SetText("SCTD_gear", State.Function("gear")?.Word);
 		});
 	}
 
 	private static void Reply(dynamic vaProxy, string outcome, string reply)
 	{
-		vaProxy.SetText("SCTD_resultat", outcome);
-		vaProxy.SetText("SCTD_reponse", reply);
+		vaProxy.SetText("SCTD_result", outcome);
+		vaProxy.SetText("SCTD_reply", reply);
 	}
 
 	private static void Set(Action<dynamic> write)

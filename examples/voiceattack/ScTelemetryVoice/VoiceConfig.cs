@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace ScTelemetryVoice;
 
 /// <summary>Seuils d'alerte en pourcentage (une alerte part quand la valeur passe dessous).</summary>
-public sealed record AlertThresholds(int Shields = 25, int Hull = 50, int Hydrogen = 20, int Oxygen = 25, int Health = 30);
+public sealed record AlertThresholds(int Shields = 25, int Hull = 50, int Hydrogen = 20, int Oxygen = 25, int Health = 30, int Thirst = 25);
 
 /// <summary>Réglages lus dans <c>sctd-voice.json</c>, à côté de la DLL.</summary>
 public sealed record VoiceConfig(string Url, string Token, string Lang, AlertThresholds Thresholds);
@@ -49,7 +49,8 @@ public static class ConfigLoader
 					Int(a, "hull") ?? t.Hull,
 					Int(a, "hydrogen") ?? t.Hydrogen,
 					Int(a, "oxygen") ?? t.Oxygen,
-					Int(a, "health") ?? t.Health);
+					Int(a, "health") ?? t.Health,
+					Int(a, "thirst") ?? t.Thirst);
 			}
 			return new VoiceConfig(url, token.Trim(), lang, t);
 		}

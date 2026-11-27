@@ -43,6 +43,14 @@ public sealed class ConfigTests : IDisposable
 		var c = LoadText("""{"token":"t","alerts":{"shields":40}}""", out _)!;
 		Assert.Equal(40, c.Thresholds.Shields);
 		Assert.Equal(50, c.Thresholds.Hull);
+		Assert.Equal(25, c.Thresholds.Thirst);
+	}
+
+	[Fact]
+	public void Load_reads_thirst_threshold()
+	{
+		var c = LoadText("""{"token":"t","alerts":{"thirst":40}}""", out _)!;
+		Assert.Equal(40, c.Thresholds.Thirst);
 	}
 
 	[Theory]
