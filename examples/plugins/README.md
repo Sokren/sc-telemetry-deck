@@ -27,3 +27,11 @@ A plugin is a **program**: it runs with your rights on this PC. Only enable code
 know. The fields above are the same in English (`pilot_full` is never checked by default); the plugin gets the same
 four environment variables. To learn what it was granted, it calls `GET /api/v1/access/me` and reads `can`
 (e.g. `can["actions.spaceship_power"]`), never the level name; it ignores keys it does not know.
+
+## Licence / License
+
+**FR** — `bonjour-telemetrie` est sous [licence MIT](bonjour-telemetrie/LICENSE) : copiez-le comme point de départ,
+même pour un plugin fermé, en gardant l'avis de copyright.
+
+**EN** — `bonjour-telemetrie` is under the [MIT License](bonjour-telemetrie/LICENSE): copy it as a starting point,
+even for a closed-source plugin, keeping the copyright notice.

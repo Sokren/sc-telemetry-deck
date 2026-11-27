@@ -25,6 +25,8 @@ const plugin = path.join(stage, "ScTelemetryVoice");
 fs.mkdirSync(plugin, { recursive: true });
 fs.copyFileSync(path.join(src, "ScTelemetryVoice", "bin", "Release", "net8.0", "ScTelemetryVoice.dll"), path.join(plugin, "ScTelemetryVoice.dll"));
 fs.copyFileSync(path.join(src, "sctd-voice.example.json"), path.join(plugin, "sctd-voice.example.json"));
+// Exemple sous licence MIT : le texte accompagne la DLL et les profils.
+fs.copyFileSync(path.join(src, "LICENSE"), path.join(stage, "LICENSE.txt"));
 fs.mkdirSync(path.join(stage, "profiles"));
 for (const f of fs.readdirSync(path.join(src, "profiles")).filter((f) => f.endsWith(".vap")))
 	fs.copyFileSync(path.join(src, "profiles", f), path.join(stage, "profiles", f));

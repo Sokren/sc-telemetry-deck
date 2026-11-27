@@ -24,14 +24,18 @@ Merci de votre intérêt ! Signalements, idées et pull requests sont les bienve
 
 ## Licence des contributions
 
-Le projet est distribué sous la [Mozilla Public License 2.0](LICENSE).
+Le projet est distribué sous la [Mozilla Public License 2.0](LICENSE) ; les exemples de `examples/` sont sous licence
+MIT.
 
 En proposant une contribution (pull request, correctif, code dans une issue), vous confirmez que vous l'avez écrite ou
-que vous avez le droit de la proposer, et vous acceptez :
+que vous avez le droit de la proposer, et vous acceptez qu'elle soit distribuée sous la licence des fichiers qu'elle
+modifie (MPL 2.0, ou MIT dans `examples/`).
 
-1. qu'elle soit distribuée sous la Mozilla Public License 2.0, comme le reste du projet ;
-2. que le mainteneur puisse aussi la publier, dans les versions suivantes du projet, sous une autre licence open source
-   (par exemple MIT), sans vous redemander votre accord.
+Si le mainteneur souhaite un jour publier le projet sous une autre licence open source, il vous demandera votre accord
+explicite pour toute contribution importante, dans sa pull request ou plus tard. Sans cet accord, votre contribution
+reste sous sa licence d'origine. Les versions déjà publiées gardent toujours leur licence.
 
-Les versions déjà publiées gardent leur licence. Si vous n'êtes pas d'accord avec le point 2, dites-le dans votre pull
-request avant qu'elle soit fusionnée.
+## Forks
+
+Un fichier repris de ce projet garde son en-tête de licence (MPL 2.0 §3.4). Les fichiers neufs de votre fork sont à
+vous : ce projet ne leur impose ni en-tête, ni contrôle, ni licence.

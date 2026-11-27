@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: MIT
 // Plugin d'exemple (lecture seule, sans dépendance) : l'appli le lance avec, dans son environnement,
 // l'adresse de l'API (SC_TELEMETRY_URL) et son jeton (SC_TELEMETRY_TOKEN, à envoyer dans l'en-tête Authorization).
 // Ce qu'il écrit apparaît dans ⚙ Options → Plugins → Journal → Sortie du programme.

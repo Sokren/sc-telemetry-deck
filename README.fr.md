@@ -297,4 +297,11 @@ SC Telemetry Deck est distribué sous la [Mozilla Public License 2.0](LICENSE) (
 Vous pouvez l'utiliser, le modifier et le redistribuer, y compris dans un projet plus large sous une autre licence ;
 les fichiers de ce projet que vous modifiez et redistribuez doivent rester sous MPL-2.0, avec leur code source disponible.
 
+Les **exemples** ([`examples/`](examples/) : plugin d'exemple, plugin VoiceAttack) sont sous **licence MIT**, chacun
+avec son `LICENSE` : copiez-les comme point de départ, même pour un plugin fermé, en gardant l'avis de copyright.
+
+**Forks, en bref :** un fichier repris de ce projet garde son en-tête de licence (MPL 2.0 §3.4) ; les fichiers neufs
+que vous écrivez sont à vous, sous la licence de votre choix. Les licences des logiciels tiers livrés dans le plugin,
+l'appli web et l'exe sont dans `THIRD_PARTY_NOTICES.txt`, à côté d'eux.
+
 Tiers : les QR codes de l'appli web sont faits avec [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) de Kazuhiko Arase (licence MIT). « QR Code » est une marque déposée de DENSO WAVE INCORPORATED.

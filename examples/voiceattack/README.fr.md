@@ -240,3 +240,8 @@ secondes à sortir, attendre bloquerait VoiceAttack.
 ```powershell
 dotnet test examples/voiceattack/ScTelemetryVoice.sln
 ```
+
+## Licence
+
+Cet exemple (plugin, profils, tests) est sous [licence MIT](LICENSE) : copiez-le et adaptez-le librement, même pour
+un plugin fermé, en gardant l'avis de copyright. Le reste de SC Telemetry Deck est sous MPL 2.0.

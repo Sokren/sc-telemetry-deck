@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: MIT
 namespace ScTelemetryVoice;
 
 /// <summary>Ordre demandé par une commande VoiceAttack (contexte du plugin).</summary>

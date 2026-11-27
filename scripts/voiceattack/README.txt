@@ -75,3 +75,5 @@ Seuils d'alerte (%) : « alerts » dans sctd-voice.json, puis redémarrez VoiceA
 
 Toutes les phrases, vos propres commandes, les variables, le code source :
   https://github.com/Sokren/sc-telemetry-deck/blob/main/examples/voiceattack/README.fr.md
+
+License / Licence : MIT (LICENSE.txt).

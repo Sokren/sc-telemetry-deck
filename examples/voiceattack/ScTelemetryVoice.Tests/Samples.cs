@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: MIT
 namespace ScTelemetryVoice.Tests;
 
 /// <summary>Exemples de JSON au format du contrat (src/web/openapi.json, événements status / state).</summary>

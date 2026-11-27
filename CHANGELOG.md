@@ -12,7 +12,7 @@ and on the [GitHub releases page](https://github.com/Sokren/sc-telemetry-deck/re
 ## [Unreleased]
 
 ### Added
-- **License**: the project is now distributed under the **Mozilla Public License 2.0** (`LICENSE`); contribution guide in `CONTRIBUTING.md`.
+- **License**: the project is now distributed under the **Mozilla Public License 2.0** (`LICENSE`); the examples (`examples/`) are under the **MIT License**, to be copied freely; contribution guide in `CONTRIBUTING.md`. The plugin, the web app, the exe and the portable zip now ship `THIRD_PARTY_NOTICES.txt` (licenses of the bundled software, Node.js included).
 - **🧭 Instrument panel tab**: a built-in view for a tablet (quantum travel as a ring, notched gauges, functions, mission, performance), on top of the 10 views; the template of the same name (＋ New view) turns it into an editable view; new **« Instrument panel » look** for every view; opens directly from the QR code / the `?view=instrument` link.
 - **⛶ Full screen button** in the web app's top bar (tablet, Android phone, PC); hidden where the browser does not allow it (iPhone).
 - **New in game 5.0 PTU (build 13273298)**, shown when the game sends it. This build does not open the local API yet: nothing could be checked in game.
