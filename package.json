@@ -13,7 +13,9 @@
         "build:exe": "node scripts/build-exe.mjs",
         "build:portable": "node scripts/build-portable.mjs",
 		"build:voiceattack": "node scripts/build-voiceattack.mjs",
-        "templates:export": "node scripts/export-templates.mjs"
+        "templates:export": "node scripts/export-templates.mjs",
+        "license:check": "node scripts/license-headers.mjs",
+        "license:fix": "node scripts/license-headers.mjs --fix"
     },
     "engines": {
         "node": ">=24"
