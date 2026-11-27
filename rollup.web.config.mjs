@@ -7,6 +7,7 @@ import typescript from "@rollup/plugin-typescript";
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { thirdPartyNotices } from "./scripts/third-party-notices.mjs";
 
 const out = "dist-web";
 const require = createRequire(import.meta.url);
@@ -40,6 +41,14 @@ export default {
 		json(),
 		nodeResolve({ browser: false, exportConditions: ["node"], preferBuiltins: true }),
 		commonjs(),
+		// dist-web/THIRD_PARTY_NOTICES.txt : paquets embarqués, Swagger UI (copié) et Node.js (exe, zip portable).
+		thirdPartyNotices({
+			packages: ["swagger-ui-dist"],
+			extras: [
+				{ title: "swagger-ui-bundle.js — components bundled by Swagger UI / composants inclus par Swagger UI", file: "node_modules/swagger-ui-dist/swagger-ui-bundle.js.LICENSE.txt" },
+				{ title: "Node.js v24 — runtime of sc-telemetry-web.exe and of the portable zip / moteur de l'exe et du zip portable", file: "scripts/licenses/node.txt" },
+			],
+		}),
 		{
 			name: "emit-module-package-file",
 			generateBundle() {

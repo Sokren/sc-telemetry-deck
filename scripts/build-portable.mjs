@@ -30,6 +30,9 @@ fs.rmSync("dist-portable", { recursive: true, force: true });
 fs.mkdirSync(path.join(stage, "runtime"), { recursive: true });
 fs.copyFileSync(process.execPath, path.join(stage, "runtime", "node.exe"));
 fs.cpSync("dist-web", path.join(stage, "app"), { recursive: true });
+// Licences : celle du projet et celles des logiciels tiers (dont node.exe), en vue à la racine du zip.
+fs.copyFileSync("LICENSE", path.join(stage, "LICENSE.txt"));
+fs.copyFileSync(path.join("dist-web", "THIRD_PARTY_NOTICES.txt"), path.join(stage, "THIRD_PARTY_NOTICES.txt"));
 
 const crlf = (text) => text.replace(/\r?\n/g, "\r\n");
 fs.writeFileSync(path.join(stage, "SC Telemetry Web.cmd"), crlf(fs.readFileSync("scripts/portable/SC Telemetry Web.cmd", "utf-8")));

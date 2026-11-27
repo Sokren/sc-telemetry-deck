@@ -47,3 +47,6 @@ Si Windows Smart App Control bloque encore
   Fermez-la d'abord.
 
 Après un patch du jeu : remplacez sc_extrait.desc / actions.json dans app\data\.
+
+License / Licence : MPL 2.0 (LICENSE.txt). Third-party software / logiciels tiers : THIRD_PARTY_NOTICES.txt.
+Source : https://github.com/Sokren/sc-telemetry-deck

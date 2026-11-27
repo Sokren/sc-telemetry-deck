@@ -7,6 +7,7 @@ import typescript from "@rollup/plugin-typescript";
 import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
+import { thirdPartyNotices } from "./scripts/third-party-notices.mjs";
 
 const isWatching = !!process.env.ROLLUP_WATCH;
 const sdPlugin = "com.sokren.sc-telemetry.sdPlugin";
@@ -55,6 +56,8 @@ const config = {
 		}),
 		commonjs(),
 		!isWatching && terser(),
+		// bin/THIRD_PARTY_NOTICES.txt : licences des paquets embarqués dans plugin.js.
+		thirdPartyNotices(),
 		{
 			name: "emit-module-package-file",
 			generateBundle() {
