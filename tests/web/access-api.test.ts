@@ -16,7 +16,10 @@ const READ = [
 	"GET /api/v1/ship/functions/{id}",
 	"GET /api/v1/telemetry/{section}",
 	"GET /api/v1/actions",
+	"GET /api/v1/game",
 ];
+/** Routes de l'appelant lui-même : ouvertes à tout jeton en marche, quel que soit son niveau. */
+const SELF = ["GET /api/v1/access/me"];
 const PILOT = ["POST /api/v1/actions/{name}/trigger", "POST /api/v1/ship/functions/{id}/press", "POST /api/v1/morse", "DELETE /api/v1/morse"];
 
 /** Valeurs plausibles des paramètres de chemin. */
@@ -60,14 +63,14 @@ async function statusOf(method: string, apiPath: string, secret: string, server 
 describe("jetons externes : liste blanche des routes", () => {
 	test("chaque route est classée (lecture, pilotage ou jeton principal seulement)", () => {
 		const keys = s.routes.filter((r) => !r.public).map((r) => `${r.method} ${r.path}`);
-		for (const k of [...READ, ...PILOT]) expect(keys).toContain(k);
+		for (const k of [...READ, ...PILOT, ...SELF]) expect(keys).toContain(k);
 	});
 
 	test.each(["read", "pilot", "pilot_full"] as const)("jeton %s : accès exactement selon son niveau", async (level) => {
 		const wrong: string[] = [];
 		for (const r of s.routes.filter((x) => !x.public)) {
 			const key = `${r.method} ${r.path}`;
-			const allowed = READ.includes(key) || (PILOT.includes(key) && level !== "read");
+			const allowed = READ.includes(key) || SELF.includes(key) || (PILOT.includes(key) && level !== "read");
 			const { status, body } = await statusOf(r.method, r.path, secrets[level]);
 			if (allowed && (status === 401 || (status === 403 && body?.error === "forbidden"))) wrong.push(`${key} refusé (${status})`);
 			if (!allowed && !(status === 403 && body?.error === "forbidden" && body.reason === "level")) wrong.push(`${key} accepté (${status})`);

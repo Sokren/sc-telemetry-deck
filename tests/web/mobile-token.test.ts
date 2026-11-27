@@ -11,9 +11,9 @@ beforeEach(async () => {
 afterEach(() => server.close());
 
 const PC_ONLY = { error: "forbidden", reason: "pc_only" };
-/** Routes d'administration : réseau local, jetons externes, plugins, réglage des mises à jour. */
+/** Routes d'administration : réseau local, jetons externes (sauf « ce jeton », `/access/me`), plugins, réglage des mises à jour. */
 const isAdminRoute = (r: { method: string; path: string }) =>
-	/^\/api\/v1\/(lan|access|plugins)(\/|$)/.test(r.path) || (r.path === "/api/v1/update" && r.method === "PUT") || r.path === "/api/v1/update/check";
+	(/^\/api\/v1\/(lan|access|plugins)(\/|$)/.test(r.path) && r.path !== "/api/v1/access/me") || (r.path === "/api/v1/update" && r.method === "PUT") || r.path === "/api/v1/update/check";
 const concrete = (p: string) => p.replace(/\{[^}]+\}/g, "x");
 
 describe("jeton admin : PC seulement", () => {

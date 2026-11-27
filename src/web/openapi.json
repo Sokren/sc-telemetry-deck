@@ -2,7 +2,7 @@
 	"openapi": "3.1.0",
 	"info": {
 		"title": "SC Telemetry Deck API",
-		"version": "1.13.0",
+		"version": "1.14.0",
 		"description": "Local API to read Star Citizen's state and trigger game actions through SC Telemetry Deck. Requires the token shown by the app (Authorization: Bearer …). Sensitive actions (self destruct, eject, opening doors…) are sent like any other: check before calling them. — FR : API locale pour lire l'état de Star Citizen et déclencher des actions du jeu via SC Telemetry Deck. Demande le jeton affiché par l'appli (Authorization: Bearer …). Les actions sensibles (autodestruction, éjection, ouverture des portes…) sont envoyées comme les autres : vérifiez avant de les appeler. External tokens: besides the app token, you can create named tokens (POST /api/v1/access/tokens, from the PC) at one of three levels — read (game state, events), pilot (read + actions, ship functions, Morse, without the protected actions) or pilot_full (pilot + eject, self destruct and unlocking the ship). They are accepted only in the Authorization header, only from the PC unless their lan flag is set, and only on the routes of their level; anything else gets 403 forbidden with a reason. Admin token and mobile token: the admin token (settings.json, every right) works only from the PC; the mobile token, shared by tablets and phones (QR code, link, ?t= accepted), has the page's rights without the administration routes (local network, tokens, plugins, update settings). Either one used where it is not allowed gets 403 forbidden, reason pc_only. — FR : jetons externes : en plus du jeton de l’appli, tu peux créer des jetons nommés (POST /api/v1/access/tokens, depuis le PC) à l’un des trois niveaux — read (état du jeu, événements), pilot (lecture + actions, fonctions vaisseau, morse, sans les actions protégées) ou pilot_full (pilot + éjection, autodestruction et déverrouillage du vaisseau). Ils ne sont acceptés que dans l’en-tête Authorization, que depuis le PC sauf si leur option lan est cochée, et que sur les routes de leur niveau ; sinon 403 forbidden avec une raison. Jeton admin et jeton mobile : le jeton admin (settings.json, tous les droits) ne marche que depuis le PC ; le jeton mobile, commun aux tablettes et téléphones (QR code, lien, ?t= accepté), a les droits de la page sans les routes d’administration (réseau local, jetons, plugins, réglage des mises à jour). L’un ou l’autre utilisé là où il n’est pas permis reçoit 403 forbidden, raison pc_only.",
 		"license": {
 			"name": "Unofficial community project — projet communautaire non officiel"
@@ -1924,6 +1924,41 @@
 				}
 			}
 		},
+			"/api/v1/access/me": {
+				"get": {
+					"operationId": "getAccessMe",
+					"tags": [
+						"Access"
+					],
+					"summary": "This token: kind, level and rights — ce jeton : type, niveau et droits",
+					"description": "Who the caller is and what it may do. Open to every token in use, whatever its level (main, mobile, external, plugin); a stopped token, or a token used off the PC without the local network box, still gets 403 (stopped, lan). Read on every call: rights changed while a plugin runs show at once. Never returns the token, its hash or its id. — FR : qui est l'appelant et ce qu'il peut faire. Ouverte à tout jeton en marche, quel que soit son niveau (principal, mobile, externe, plugin) ; un jeton stoppé, ou utilisé hors du PC sans la case réseau local, reçoit quand même 403 (stopped, lan). Lue à chaque appel : des droits changés pendant qu'un plugin tourne se voient tout de suite. Ne renvoie jamais le jeton, son empreinte ni son id.",
+					"responses": {
+						"200": {
+							"description": "Caller — appelant",
+							"content": {
+								"application/json": {
+									"schema": {
+										"$ref": "#/components/schemas/AccessMe"
+									}
+								}
+							}
+						},
+						"401": {
+							"$ref": "#/components/responses/Unauthorized"
+						},
+						"403": {
+							"description": "Forbidden for this external token — refusé à ce jeton externe",
+							"content": {
+								"application/json": {
+									"schema": {
+										"$ref": "#/components/schemas/Forbidden"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
 		"/api/v1/access/tokens": {
 			"get": {
 				"operationId": "listAccessTokens",
@@ -2978,7 +3013,17 @@
 					},
 					"401": {
 						"$ref": "#/components/responses/Unauthorized"
-					}
+					},
+						"403": {
+							"description": "Forbidden for this external token — refusé à ce jeton externe",
+							"content": {
+								"application/json": {
+									"schema": {
+										"$ref": "#/components/schemas/Forbidden"
+									}
+								}
+							}
+						}
 				}
 			}
 		}
@@ -4744,6 +4789,76 @@
 					}
 				}
 			},
+				"AccessMe": {
+					"type": "object",
+					"required": [
+						"kind",
+						"name",
+						"plugin",
+						"level",
+						"custom",
+						"can"
+					],
+					"additionalProperties": false,
+					"properties": {
+						"kind": {
+							"enum": [
+								"main",
+								"mobile",
+								"external",
+								"plugin"
+							],
+							"description": "main: the app's own token (PC); mobile: phone / tablet token; external: token created in the app; plugin: token of a plugin started by the app — FR : main : jeton de l'appli (PC) ; mobile : jeton téléphone / tablette ; external : jeton créé dans l'appli ; plugin : jeton d'un plugin lancé par l'appli"
+						},
+						"name": {
+							"type": [
+								"string",
+								"null"
+							],
+							"description": "Token name, null for main and mobile — FR : nom du jeton, null pour main et mobile"
+						},
+						"plugin": {
+							"type": [
+								"string",
+								"null"
+							],
+							"description": "Plugin folder, null if not a plugin — FR : dossier du plugin, null sinon"
+						},
+						"level": {
+							"enum": [
+								"read",
+								"pilot",
+								"pilot_full",
+								null
+							],
+							"description": "Level of an external or plugin token, null for main and mobile — FR : niveau d'un jeton externe ou de plugin, null pour main et mobile"
+						},
+						"custom": {
+							"type": "boolean",
+							"description": "Rights chosen one by one instead of a level (always false for now) — FR : droits choisis un par un au lieu d'un niveau (toujours false pour l'instant)"
+						},
+						"can": {
+							"type": "object",
+							"additionalProperties": {
+								"anyOf": [
+									{
+										"type": "boolean"
+									},
+									{
+										"const": "all"
+									},
+									{
+										"type": "array",
+										"items": {
+											"type": "string"
+										}
+									}
+								]
+							},
+							"description": "Rights, flat keys domain.object (read.status, read.game, actions.<category>, actions.dangerous, actions.protected, morse.send, views.edit, net.lan, admin…). Test the rights you need here, never the level name. Unknown keys must be ignored; keys are only ever added. Every known key is present, false included. can says what the app would allow; the game may still refuse. — FR : droits, clés plates domaine.objet (read.status, read.game, actions.<catégorie>, actions.dangerous, actions.protected, morse.send, views.edit, net.lan, admin…). Testez ici les droits dont vous avez besoin, jamais le nom du niveau. Ignorez les clés inconnues ; des clés peuvent s'ajouter, jamais disparaître. Toutes les clés connues sont présentes, false compris. can dit ce que l'appli autoriserait ; le jeu peut quand même refuser."
+						}
+					}
+				},
 			"AccessToken": {
 				"type": "object",
 				"required": [

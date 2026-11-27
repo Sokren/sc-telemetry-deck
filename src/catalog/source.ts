@@ -44,6 +44,11 @@ export class ActionSource {
 		}
 	}
 
+	/** Instantané `actions.json` (sans interroger le jeu). */
+	getSnapshot(): GameAction[] {
+		return this.snapshot();
+	}
+
 	invalidate(): void {
 		this.#cache = undefined;
 	}

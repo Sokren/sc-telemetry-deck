@@ -9,6 +9,7 @@ export function panelRoutes(deps: { hub: Pick<TelemetryHub, "section">; counterm
 		{
 			method: "GET",
 			path: "/api/v1/game",
+			access: "read",
 			handle: async ({ lang }) => ({ status: 200, json: gameOf(deps.hub.section("game"), lang) }),
 		},
 		{

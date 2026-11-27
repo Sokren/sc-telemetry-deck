@@ -9,7 +9,7 @@ import type { TelemetryHub } from "../telemetry/hub.js";
 import type { WebSettings } from "./config.js";
 import { createHandler, type Route } from "./http.js";
 import { AccessStore } from "./access.js";
-import { accessRoutes } from "./routes/access.js";
+import { accessMeRoute, accessRoutes } from "./routes/access.js";
 import { pluginRoutes } from "./routes/plugins.js";
 import { PluginManager } from "./plugins/manager.js";
 import type { ExecFinder } from "./plugins/manifest.js";
@@ -246,6 +246,7 @@ export function createApp(deps: AppDeps): App {
 		...panelRoutes({ hub: deps.hub, countermeasures }),
 		...morseRoutes({ morse }),
 		...updateRoutes({ updates }),
+		accessMeRoute({ source: deps.source }),
 		...adminOnly(accessRoutes({ store: access, isLocal, closeStreams: (id) => events.closeFor(id) })),
 		...adminOnly(plugins ? pluginRoutes({ plugins, access, isLocal, openFolder }) : []),
 		...viewsRoutes({ views, version: deps.version }),

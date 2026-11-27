@@ -35,6 +35,11 @@ export type Route = {
 	admin?: true;
 	/** Route des vues : ouverte aux seuls jetons de plugin qui ont ce droit (jamais aux jetons externes). */
 	views?: "read" | "create" | "edit";
+	/**
+	 * Route de l'appelant lui-même (`GET /api/v1/access/me`) : ouverte à tout appelant authentifié, quel que soit son
+	 * niveau. Un jeton externe stoppé ou appelé hors du PC sans la case « réseau local » reste refusé.
+	 */
+	self?: true;
 	/** Taille maximale du corps en octets (64 Ko par défaut). */
 	maxBody?: number;
 	handle(ctx: Ctx): Promise<Reply>;
@@ -204,6 +209,8 @@ export function createHandler(
 					? forbidden("stopped")
 					: !caller.token.lan && !isLocal(req)
 						? forbidden("lan")
+					: match.route.self
+						? undefined
 					: match.route.views
 						? !caller.token.plugin
 							? forbidden("level")
